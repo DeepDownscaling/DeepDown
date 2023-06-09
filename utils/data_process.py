@@ -1,10 +1,7 @@
 import numpy as np
 import xarray as xr
-import pandas as pd
-import geopandas as gpd
 import dask
 import datetime
-from dotenv import dotenv_values
 
 def rename_dimensions_variables(ds):
     """Rename dimensions and attributes of the given dataset to homogenize data."""
