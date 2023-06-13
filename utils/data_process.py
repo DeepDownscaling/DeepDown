@@ -118,32 +118,6 @@ def get_nc_data(files, start, end, lon_bnds=None, lat_bnds=None):
     return ds
 
 
-def get_era5_data(files, start, end, lon_bnds=None, lat_bnds=None):
-    """
-    Extract ERA5 data for the given file(s) pattern/path.
-
-    Parameters
-    ----------
-    files : str or list
-        The file(s) pattern/path to extract data from.
-    start : str
-        The desired start date of the data.
-    end : str
-        The desired end date of the data.
-    lon_bnds : list
-        The desired longitude bounds of the data ([min, max]) or full longitude array.
-    lat_bnds : list
-        The desired latitude bounds of the data ([min, max]) or full latitude array.
-
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with the extracted data.
-    """
-    
-    return get_nc_data(files, start, end, lon_bnds, lat_bnds)
-
-
 def precip_exceedance(precip, qt=0.95):
     """
     Computes exceedances of precipitation.
