@@ -195,7 +195,7 @@ def load_data(vars, paths, date_start, date_end, lon_bnds, lat_bnds, levels):
     data = []
     for i_var in range(0, len(vars)):
         
-        dat = get_era5_data(paths[i_var] +'/*nc', date_start, date_end, lon_bnds, lat_bnds)
+        dat = get_nc_data(paths[i_var] +'/*nc', date_start, date_end, lon_bnds, lat_bnds)
 
         if 'level' in list(dat.coords): 
             print("Selecting level")

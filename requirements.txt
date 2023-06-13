@@ -1,5 +1,4 @@
 xarray
-rioxarray
 pyproj
 pyyaml
 numpy

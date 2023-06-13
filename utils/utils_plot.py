@@ -72,7 +72,7 @@ def plot_hist(history):
     plt.show()
 
 
-def plot_map(ax, lons, lats, vals, title=None, vmin=None, vmax=None, cmap=None, show_colorbar=True):
+def plot_map(ax, vals, title=None, vmin=None, vmax=None, cmap=None, show_colorbar=True):
     """ Plotting a map with the provided values."""
     im = ax.imshow(vals, vmin=vmin, vmax=vmax, cmap=cmap)
     ax.axis('off')
