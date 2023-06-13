@@ -1,0 +1,4 @@
+PATH_DEM: '/path/to/srtm_1k.nc'
+PATH_ERA5_025: '/path/to/ERA5_025'
+PATH_ERA5_100: '/path/to/ERA5_100'
+PATH_MeteoSwiss: '/path/to/MeteoSwiss'
