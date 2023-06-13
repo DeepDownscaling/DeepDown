@@ -66,9 +66,9 @@ def spatial_slice(ds, lon_bnds, lat_bnds):
     ds : xarray.Dataset
         The dataset to slice.
     lon_bnds : list
-        The longitude bounds of the slice.
+        The desired longitude bounds of the data ([min, max]) or full longitude array.
     lat_bnds : list
-        The latitude bounds of the slice.
+        The desired latitude bounds of the data ([min, max]) or full latitude array.
 
     Returns
     -------
@@ -100,9 +100,9 @@ def get_nc_data(files, start, end, lon_bnds=None, lat_bnds=None):
     end : str
         The desired end date of the data.
     lon_bnds : list
-        The desired longitude bounds of the data.
+        The desired longitude bounds of the data ([min, max]) or full longitude array.
     lat_bnds : list
-        The desired latitude bounds of the data.
+        The desired latitude bounds of the data ([min, max]) or full latitude array.
 
     Returns
     -------
@@ -131,9 +131,9 @@ def get_era5_data(files, start, end, lon_bnds=None, lat_bnds=None):
     end : str
         The desired end date of the data.
     lon_bnds : list
-        The desired longitude bounds of the data.
+        The desired longitude bounds of the data ([min, max]) or full longitude array.
     lat_bnds : list
-        The desired latitude bounds of the data.
+        The desired latitude bounds of the data ([min, max]) or full latitude array.
 
     Returns
     -------
@@ -167,7 +167,7 @@ def precip_exceedance(precip, qt=0.95):
     return out
 
 
-def load_data(vars, paths, date_start, date_end, lons, lats, levels):
+def load_data(vars, paths, date_start, date_end, lon_bnds, lat_bnds, levels):
     """Load the data.
 
     Parameters
@@ -180,10 +180,10 @@ def load_data(vars, paths, date_start, date_end, lons, lats, levels):
         The starting date.
     date_end : str
         The end date.
-    lons : list
-        The longitudes to extract.
-    lats : list
-        The latitudes to extract.
+    lon_bnds : list
+        The desired longitude bounds of the data ([min, max]) or full longitude array.
+    lat_bnds : list
+        The desired latitude bounds of the data ([min, max]) or full latitude array.
     levels : list
         The levels to extract.
 
@@ -195,7 +195,7 @@ def load_data(vars, paths, date_start, date_end, lons, lats, levels):
     data = []
     for i_var in range(0, len(vars)):
         
-        dat = get_era5_data(paths[i_var] +'*nc', date_start, date_end, lons, lats)
+        dat = get_era5_data(paths[i_var] +'/*nc', date_start, date_end, lon_bnds, lat_bnds)
 
         if 'level' in list(dat.coords): 
             print("Selecting level")
@@ -210,9 +210,7 @@ def load_data(vars, paths, date_start, date_end, lons, lats, levels):
     
         data.append(dat)
 
-    ds = xr.merge(data)
-
-    return ds
+    return xr.merge(data)
 
 
 def convert_to_xarray(a, lat, lon, time):
