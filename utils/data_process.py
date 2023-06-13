@@ -1,13 +1,28 @@
 import numpy as np
 import xarray as xr
 import pandas as pd
-import geopandas as gpd
 import dask
 import datetime
-from dotenv import dotenv_values
+
+
+# Some constants
+G = 9.80665
+
 
 def rename_dimensions_variables(ds):
-    """Rename dimensions and attributes of the given dataset to homogenize data."""
+    """
+    Rename dimensions of the given dataset to homogenize data.
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        The dataset to rename the dimensions of.
+
+    Returns
+    -------
+    xarray.Dataset
+        The dataset with renamed dimensions.
+    """
     if 'latitude' in ds.dims:
         ds = ds.rename({'latitude': 'lat'})
     if 'longitude' in ds.dims:
@@ -17,7 +32,23 @@ def rename_dimensions_variables(ds):
 
 
 def temporal_slice(ds, start, end):
-    """Slice along the temporal dimension."""
+    """
+    Slice along the temporal dimension.
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        The dataset to slice.
+    start : str
+        The start date of the slice.
+    end : str
+        The end date of the slice.
+    
+    Returns
+    -------
+    xarray.Dataset
+        The dataset with the temporal slice applied.
+    """
     ds = ds.sel(time=slice(start, end))
 
     if 'time_bnds' in ds.variables:
@@ -27,7 +58,23 @@ def temporal_slice(ds, start, end):
 
 
 def spatial_slice(ds, lon_bnds, lat_bnds):
-    """Slice along the spatial dimension."""
+    """
+    Slice along the spatial dimension.
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        The dataset to slice.
+    lon_bnds : list
+        The desired longitude bounds of the data ([min, max]) or full longitude array.
+    lat_bnds : list
+        The desired latitude bounds of the data ([min, max]) or full latitude array.
+
+    Returns
+    -------
+    xarray.Dataset
+        The dataset with the spatial slice applied.
+    """
     if lon_bnds != None:
         ds = ds.sel(lon=slice(min(lon_bnds), max(lon_bnds)))
 
@@ -41,7 +88,27 @@ def spatial_slice(ds, lon_bnds, lat_bnds):
 
 
 def get_nc_data(files, start, end, lon_bnds=None, lat_bnds=None):
-    """Extract netCDF data for the given file(s) pattern/path."""
+    """
+    Extract netCDF data for the given file(s) pattern/path.
+
+    Parameters
+    ----------
+    files : str or list
+        The file(s) pattern/path to extract data from.
+    start : str
+        The desired start date of the data.
+    end : str
+        The desired end date of the data.
+    lon_bnds : list
+        The desired longitude bounds of the data ([min, max]) or full longitude array.
+    lat_bnds : list
+        The desired latitude bounds of the data ([min, max]) or full latitude array.
+
+    Returns
+    -------
+    xarray.Dataset
+        The dataset with the extracted data.
+    """
     print('Extracting data for the period {} - {}'.format(start, end))
     ds = xr.open_mfdataset(files, combine='by_coords')
     ds = rename_dimensions_variables(ds)
@@ -52,34 +119,46 @@ def get_nc_data(files, start, end, lon_bnds=None, lat_bnds=None):
 
 
 def get_era5_data(files, start, end, lon_bnds=None, lat_bnds=None):
-    """Extract ERA5 data for the given file(s) pattern/path."""
+    """
+    Extract ERA5 data for the given file(s) pattern/path.
+
+    Parameters
+    ----------
+    files : str or list
+        The file(s) pattern/path to extract data from.
+    start : str
+        The desired start date of the data.
+    end : str
+        The desired end date of the data.
+    lon_bnds : list
+        The desired longitude bounds of the data ([min, max]) or full longitude array.
+    lat_bnds : list
+        The desired latitude bounds of the data ([min, max]) or full latitude array.
+
+    Returns
+    -------
+    xarray.Dataset
+        The dataset with the extracted data.
+    """
     
     return get_nc_data(files, start, end, lon_bnds, lat_bnds)
 
 
 def precip_exceedance(precip, qt=0.95):
-    """Create exceedances of precipitation
-
-    Arguments:
-    precip -- the precipitation dataframe
-    qt -- the desired quantile
     """
-    precip_qt = precip.copy()
+    Computes exceedances of precipitation.
 
-    for key, ts in precip.iteritems():
-        if key in ['date', 'year', 'month', 'day']:
-            continue
-        precip_qt[key] = ts > ts.quantile(qt)
+    Parameters
+    ----------
+    precip : xarray.DataArray
+        The precipitation data.
+    qt : float
+        The quantile to compute the exceedances for.
 
-    return precip_qt
-
-
-def precip_exceedance_xarray(precip, qt=0.95):
-    """Create exceedances of precipitation
-
-    Arguments:
-    precip -- xarray with precipitation 
-    qt -- the desired quantile
+    Returns
+    -------
+    xarray.DataArray
+        The exceedances of the precipitation data.
     """
     qq = xr.DataArray(precip).quantile(qt, dim='time') 
     out = xr.DataArray(precip > qq)
@@ -88,67 +167,72 @@ def precip_exceedance_xarray(precip, qt=0.95):
     return out
 
 
-def get_Y_sets(dat, YY_TRAIN, YY_VAL, YY_TEST):
-    """ Prepare the targe Y for train, validation and test """
-    # Prepare the target Y
-    # Split the prec into the same 
-    Y_train = dat.sel(time=slice('{}-01-01'.format(YY_TRAIN[0]),
-                             '{}-12-31'.format(YY_VAL)))
-    Y_val = dat.sel(time=slice('{}-01-01'.format(YY_TRAIN[1]),
-                             '{}-12-31'.format(YY_TRAIN[1])))
-    Y_test = dat.sel(time=slice('{}-01-01'.format(YY_TEST[0]),
-                            '{}-12-31'.format(YY_TEST[1])))
-    Y_train_input = np.array(Y_train)
-    Y_val_input = np.array(Y_val)
-    Y_test_input = np.array(Y_test)
+def load_data(vars, paths, date_start, date_end, lon_bnds, lat_bnds, levels):
+    """Load the data.
 
-    return Y_train_input, Y_val_input, Y_test_input
+    Parameters
+    ----------
+    vars : list
+        The variables to load.
+    paths : list
+        The paths to the data.
+    date_start : str
+        The starting date.
+    date_end : str
+        The end date.
+    lon_bnds : list
+        The desired longitude bounds of the data ([min, max]) or full longitude array.
+    lat_bnds : list
+        The desired latitude bounds of the data ([min, max]) or full latitude array.
+    levels : list
+        The levels to extract.
 
-
-
-def load_data(i_vars, i_paths, G, PATH_ERA5, DATE_START, DATE_END, LONS, LATS, LEVELS):
-    """Load the data
-       Args: 
-       Var: variables
-       PATH_ERA5: path to the era5 datasets
-       DATE_START: starting date
-       DATE_END: end date
-       LONS: longitudes
-       LATS: latitudes"""
-
-    
-    l_vars = []
-    for iv in range(0,len(i_vars)):
+    Returns
+    -------
+    xarray.Dataset
+        The data.
+    """
+    data = []
+    for i_var in range(0, len(vars)):
         
-        vv = get_era5_data(PATH_ERA5 + i_paths[iv] +'*nc', DATE_START, DATE_END, LONS, LATS)
-        #if i_vars[iv] != 'tpcw' and i_vars[iv] != 't2m' and i_vars[iv] != 'msl':
-        if 'level' in list(vv.coords): 
-            print("select level")
-            #print(vv.level)
-            # levels
-            lev = np.array(vv.level)
-            l=[x for x in lev if x in LEVELS]
-            #print(l)
-            vv = vv.sel(level=l)
-            
-        if i_vars[iv] == 'z':
-            vv.z.values = vv.z.values/G
-        #elif i_vars[iv] == 'rh':
-        #    vv = vv.sel(level=LEVELS)
-            
-        vv['time'] = pd.DatetimeIndex(vv.time.dt.date)
-    
-        l_vars.append(vv)
+        dat = get_era5_data(paths[i_var] +'/*nc', date_start, date_end, lon_bnds, lat_bnds)
 
+        if 'level' in list(dat.coords): 
+            print("Selecting level")
+            lev = np.array(dat.level)
+            l = [x for x in lev if x in levels]
+            dat = dat.sel(level=l)
+            
+        if vars[i_var] == 'z':
+            dat.z.values = dat.z.values/G
+            
+        dat['time'] = pd.DatetimeIndex(dat.time.dt.date)
     
-    
-    return l_vars
+        data.append(dat)
+
+    return xr.merge(data)
 
 
 def convert_to_xarray(a, lat, lon, time):
-    """Convert a numpy array into a Dataarray
-       Args: a array
-             lat, lon, time coordinales"""
+    """
+    Convert a numpy array into a Dataarray.
+    
+    Parameters
+    ----------
+    a : numpy.ndarray
+        The array to convert.
+    lat : numpy.ndarray
+        The latitude values.
+    lon : numpy.ndarray
+        The longitude values.
+    time : numpy.ndarray
+        The time values.
+
+    Returns
+    -------
+    xarray.DataArray
+        The converted array.
+    """
     mx= xr.DataArray(a, dims=["time","lat", "lon"],
                       coords=dict(time = time, lat = lat,lon = lon))
     return mx

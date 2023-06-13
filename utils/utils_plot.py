@@ -1,10 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import pandas as pd
-import geopandas as gpd
-import itertools
 import xarray as xr
+import geopandas as gpd
 
 from matplotlib import colors
 import matplotlib.colors as mcolors
@@ -73,23 +71,15 @@ def plot_hist(history):
     
     plt.show()
 
-    
+
 def plot_map(ax, lons, lats, vals, title=None, vmin=None, vmax=None, cmap=None, show_colorbar=True):
-    """ Plotting a map with the provided values and the country boundaries."""
-    
-    # Load country outlines
-    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-
-    im = ax.pcolormesh(lons, lats, vals, shading='auto', vmin=vmin, vmax=vmax, cmap=cmap)
-    world.boundary.plot(ax=ax, lw=1, color='k')
-    ax.set_xlim(min(lons), max(lons))
-    ax.set_ylim(min(lats), max(lats))
+    """ Plotting a map with the provided values."""
+    im = ax.imshow(vals, vmin=vmin, vmax=vmax, cmap=cmap)
+    ax.axis('off')
     if title:
-        ax.set_title(title)
+        ax.set_title(title, fontsize=10)
     if show_colorbar:
-        # adding more settings to the colorbar to control aspect
         plt.colorbar(im, ax=ax, shrink=.5, pad=.1, aspect=8)
-
         
         
 def plot_relevances(rel):
