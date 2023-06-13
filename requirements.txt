@@ -1,0 +1,9 @@
+xarray
+rioxarray
+pyproj
+pyyaml
+numpy
+dask
+torch
+matplotlib
+scipy
