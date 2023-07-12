@@ -162,3 +162,5 @@ cython_debug/
 # Own rules
 config.yaml
 tmp/
+
+*.pt
