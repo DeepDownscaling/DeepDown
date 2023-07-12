@@ -201,3 +201,24 @@ def plot_loss(G_content, G_advers, D_real_L, D_fake_L, weight_param):
     plt.title("Discriminator loss")
     plt.xlabel("Iteration")
     plt.show()
+    
+    
+    
+def pad_to(x, stride):
+        
+        h, w = x.shape[-2:]
+
+        if h % stride > 0:
+            new_h = h + stride - h % stride
+        else:
+            new_h = h
+        if w % stride > 0:
+            new_w = w + stride - w % stride
+        else:
+            new_w = w
+        lh, uh = int((new_h-h) / 2), int(new_h-h) - int((new_h-h) / 2)
+        lw, uw = int((new_w-w) / 2), int(new_w-w) - int((new_w-w) / 2)
+        pads = (lw, uw, lh, uh)
+        out = F.pad(x, pads, "constant", 0)
+
+        return out, pads

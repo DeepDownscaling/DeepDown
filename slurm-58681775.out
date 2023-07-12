@@ -1,0 +1,2299 @@
+Workspace environment set for:
+   /storage/workspaces/giub_hydro/hydro 
+
+The following have been reloaded with a version change:
+  1) CUDA/11.8.0 => CUDA/11.3.1
+
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+Cuda Avaliable : True
+cuda
+🌳 Configuration Tree 
+┣━━ PATH_DEM: /storage/workspaces/giub_hydro/hydro/data/SRTM/srtm_1k.nc
+┣━━ PATH_ERA5_025: 
+┃   /storage/workspaces/giub_hydro/hydro/data/ERA5_extended/ERA5_025/
+┣━━ PATH_ERA5_100: /storage/workspaces/giub_hydro/hydro/data/ERA5/
+┣━━ PATH_MeteoSwiss: /storage/workspaces/giub_hydro/hydro/data/MeteoSwiss/
+┣━━ NUM_CHANNELS_IN: 4
+┣━━ NUM_CHANNELS_OUT: 2
+┣━━ lr: 0.0005
+┣━━ num_epochs: 10
+┣━━ G_iters: 2
+┣━━ dtype: torch.float32
+┣━━ DATE_START: 1999-01-01
+┣━━ DATE_END: 2021-12-31
+┣━━ YY_TRAIN: [1999, 2015]
+┣━━ YY_TEST: [2016, 2021]
+┣━━ LEVELS: [850, 1000]
+┣━━ RESOL_LOW: 0.25
+┣━━ INPUT_VARIABLES: ['tp', 't']
+┣━━ DUMP_DATA_TO_PICKLE: True
+┣━━ DO_CROP: True
+┣━━ lowres_shape: [70, 60]
+┗━━ device: cuda
+Target data loaded from pickle.
+Input data loaded from pickle.
+Loading data into RAM
+Loading data into RAM
+Loading data into RAM
+x shape:  torch.Size([4, 70, 60])
+y shape:  torch.Size([2, 70, 60])
+train the SRGAN
+d_total_error: tensor(1.4624, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5986775159835815
+D_fake_L[iter_count]: 0.8636861443519592
+Epoch: 0, Iter: 0, D: 1.462, G: 120.6, Time since last print (min): 0.04794
+
+d_total_error: tensor(1.3190, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.0734273195266724
+D_fake_L[iter_count]: 0.24559253454208374
+d_total_error: tensor(0.6226, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04444507881999016
+D_fake_L[iter_count]: 0.5782023072242737
+d_total_error: tensor(6.2904, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 6.290378570556641
+D_fake_L[iter_count]: 2.3469335985737416e-07
+d_total_error: tensor(9.4416, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.8740476662060246e-05
+D_fake_L[iter_count]: 9.441619873046875
+d_total_error: tensor(0.8250, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.07229217886924744
+D_fake_L[iter_count]: 0.752662181854248
+d_total_error: tensor(1.6169, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.6040644645690918
+D_fake_L[iter_count]: 0.012831254862248898
+d_total_error: tensor(0.7146, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5169439315795898
+D_fake_L[iter_count]: 0.19769693911075592
+d_total_error: tensor(0.2909, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04559572786092758
+D_fake_L[iter_count]: 0.24529454112052917
+d_total_error: tensor(0.2289, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.15116889774799347
+D_fake_L[iter_count]: 0.07776641845703125
+d_total_error: tensor(0.1430, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.10558328032493591
+D_fake_L[iter_count]: 0.037429824471473694
+d_total_error: tensor(0.1031, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.06253411620855331
+D_fake_L[iter_count]: 0.04057289659976959
+d_total_error: tensor(0.0150, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0025839994195848703
+D_fake_L[iter_count]: 0.012451695278286934
+d_total_error: tensor(0.0584, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0041283778846263885
+D_fake_L[iter_count]: 0.05422831326723099
+d_total_error: tensor(1.1095, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.003005002625286579
+D_fake_L[iter_count]: 1.1065231561660767
+d_total_error: tensor(0.2490, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.24898706376552582
+D_fake_L[iter_count]: 3.5038428904954344e-05
+d_total_error: tensor(0.2151, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2028771936893463
+D_fake_L[iter_count]: 0.01225484348833561
+d_total_error: tensor(0.9129, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.13394226133823395
+D_fake_L[iter_count]: 0.7790017127990723
+d_total_error: tensor(0.8810, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8416578769683838
+D_fake_L[iter_count]: 0.03936457633972168
+d_total_error: tensor(0.2900, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04119037836790085
+D_fake_L[iter_count]: 0.24881768226623535
+d_total_error: tensor(0.1820, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.15817399322986603
+D_fake_L[iter_count]: 0.02386920154094696
+d_total_error: tensor(0.0306, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.028365399688482285
+D_fake_L[iter_count]: 0.002264410490170121
+d_total_error: tensor(0.0106, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0034124422818422318
+D_fake_L[iter_count]: 0.007150736171752214
+d_total_error: tensor(0.0268, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0028263411950320005
+D_fake_L[iter_count]: 0.02394387498497963
+d_total_error: tensor(0.1124, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.007701225113123655
+D_fake_L[iter_count]: 0.10474209487438202
+d_total_error: tensor(0.0204, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.018615689128637314
+D_fake_L[iter_count]: 0.001783618819899857
+d_total_error: tensor(0.0443, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04410885274410248
+D_fake_L[iter_count]: 0.00016695578233338892
+d_total_error: tensor(0.6278, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00479825958609581
+D_fake_L[iter_count]: 0.6230138540267944
+d_total_error: tensor(0.1659, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.14856092631816864
+D_fake_L[iter_count]: 0.017336906865239143
+d_total_error: tensor(0.2661, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.027753489091992378
+D_fake_L[iter_count]: 0.2383863627910614
+d_total_error: tensor(0.5848, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5848001837730408
+D_fake_L[iter_count]: 1.7508874350369297e-07
+d_total_error: tensor(0.3016, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.16809530556201935
+D_fake_L[iter_count]: 0.13351044058799744
+d_total_error: tensor(0.0617, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00032298604492098093
+D_fake_L[iter_count]: 0.06134788691997528
+d_total_error: tensor(0.0496, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.03231401368975639
+D_fake_L[iter_count]: 0.017284857109189034
+d_total_error: tensor(0.2319, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.008022311143577099
+D_fake_L[iter_count]: 0.2239052951335907
+d_total_error: tensor(0.0062, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005809393711388111
+D_fake_L[iter_count]: 0.0004392382106743753
+d_total_error: tensor(0.5603, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.423345685005188
+D_fake_L[iter_count]: 0.13700155913829803
+d_total_error: tensor(0.0183, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.013228137046098709
+D_fake_L[iter_count]: 0.005028554704040289
+d_total_error: tensor(0.7060, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.007181043270975351
+D_fake_L[iter_count]: 0.6988203525543213
+d_total_error: tensor(0.0061, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005201926454901695
+D_fake_L[iter_count]: 0.000865306647028774
+d_total_error: tensor(0.2837, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2097875028848648
+D_fake_L[iter_count]: 0.07395893335342407
+d_total_error: tensor(0.1954, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.18341562151908875
+D_fake_L[iter_count]: 0.011963866651058197
+d_total_error: tensor(0.0592, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.025994613766670227
+D_fake_L[iter_count]: 0.03319341316819191
+d_total_error: tensor(0.0202, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.019635479897260666
+D_fake_L[iter_count]: 0.0006086229113861918
+d_total_error: tensor(0.0080, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0039256480522453785
+D_fake_L[iter_count]: 0.004084169398993254
+d_total_error: tensor(0.0087, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00018795186770148575
+D_fake_L[iter_count]: 0.008554080501198769
+d_total_error: tensor(0.2317, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.006456715986132622
+D_fake_L[iter_count]: 0.22523167729377747
+d_total_error: tensor(1.2012, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.1949405670166016
+D_fake_L[iter_count]: 0.00629259180277586
+d_total_error: tensor(0.8565, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0890631154179573
+D_fake_L[iter_count]: 0.7674254179000854
+d_total_error: tensor(0.1901, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.13976337015628815
+D_fake_L[iter_count]: 0.05033671855926514
+d_total_error: tensor(1.4125, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.07334454357624054
+D_fake_L[iter_count]: 1.3391954898834229
+d_total_error: tensor(1.1830, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.1482598781585693
+D_fake_L[iter_count]: 0.0346970409154892
+d_total_error: tensor(0.3053, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.09681493043899536
+D_fake_L[iter_count]: 0.208467036485672
+d_total_error: tensor(0.1732, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.06422126293182373
+D_fake_L[iter_count]: 0.10899654775857925
+d_total_error: tensor(0.1380, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0709804818034172
+D_fake_L[iter_count]: 0.06700516492128372
+d_total_error: tensor(0.0435, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.020553268492221832
+D_fake_L[iter_count]: 0.022969335317611694
+d_total_error: tensor(0.2307, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.1905515491962433
+D_fake_L[iter_count]: 0.040160391479730606
+d_total_error: tensor(0.0914, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.013053391128778458
+D_fake_L[iter_count]: 0.07838554680347443
+d_total_error: tensor(0.0288, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.02395142801105976
+D_fake_L[iter_count]: 0.004863651469349861
+d_total_error: tensor(0.0287, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.019993074238300323
+D_fake_L[iter_count]: 0.008736886084079742
+d_total_error: tensor(0.0609, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04033219441771507
+D_fake_L[iter_count]: 0.02056298404932022
+d_total_error: tensor(0.0143, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00875661801546812
+D_fake_L[iter_count]: 0.005495706107467413
+d_total_error: tensor(0.0456, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.009255126118659973
+D_fake_L[iter_count]: 0.036381930112838745
+d_total_error: tensor(0.3393, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0042786370031535625
+D_fake_L[iter_count]: 0.3350354731082916
+d_total_error: tensor(1.6088, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.6087896823883057
+D_fake_L[iter_count]: 2.7250709990767064e-06
+d_total_error: tensor(0.5036, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00078355404548347
+D_fake_L[iter_count]: 0.5027710199356079
+d_total_error: tensor(0.2264, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.09542566537857056
+D_fake_L[iter_count]: 0.13100236654281616
+d_total_error: tensor(0.1126, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.09919160604476929
+D_fake_L[iter_count]: 0.013405404053628445
+d_total_error: tensor(0.0178, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.011834998615086079
+D_fake_L[iter_count]: 0.005949598737061024
+d_total_error: tensor(0.1367, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.13175295293331146
+D_fake_L[iter_count]: 0.004942942410707474
+d_total_error: tensor(0.0170, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.007675849366933107
+D_fake_L[iter_count]: 0.009353039786219597
+d_total_error: tensor(0.0177, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.004941601771861315
+D_fake_L[iter_count]: 0.012772653251886368
+d_total_error: tensor(0.1396, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.001813514158129692
+D_fake_L[iter_count]: 0.13781383633613586
+d_total_error: tensor(0.2209, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2208441197872162
+D_fake_L[iter_count]: 4.5059521653456613e-05
+d_total_error: tensor(0.0125, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.011166349984705448
+D_fake_L[iter_count]: 0.0013723738957196474
+d_total_error: tensor(0.0058, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0009055899572558701
+D_fake_L[iter_count]: 0.004937177058309317
+d_total_error: tensor(0.0521, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.02966226264834404
+D_fake_L[iter_count]: 0.022404776886105537
+d_total_error: tensor(0.0009, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0003136817831546068
+D_fake_L[iter_count]: 0.0005888122250325978
+d_total_error: tensor(0.0551, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.002555588958784938
+D_fake_L[iter_count]: 0.05251050740480423
+d_total_error: tensor(0.0523, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.05188748240470886
+D_fake_L[iter_count]: 0.00036435952642932534
+d_total_error: tensor(0.0199, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.006539647001773119
+D_fake_L[iter_count]: 0.0133132329210639
+d_total_error: tensor(0.0156, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.013460593298077583
+D_fake_L[iter_count]: 0.002122318372130394
+d_total_error: tensor(1.9100, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01740649715065956
+D_fake_L[iter_count]: 1.892571210861206
+d_total_error: tensor(11.5914, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 11.591375350952148
+D_fake_L[iter_count]: 4.92330991619383e-06
+d_total_error: tensor(2.6656, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4129509925842285
+D_fake_L[iter_count]: 2.2526159286499023
+d_total_error: tensor(2.2525, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3106841444969177
+D_fake_L[iter_count]: 1.9418458938598633
+d_total_error: tensor(1.7814, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.994893491268158
+D_fake_L[iter_count]: 0.786467432975769
+d_total_error: tensor(1.6099, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.1408122777938843
+D_fake_L[iter_count]: 0.46908870339393616
+d_total_error: tensor(1.4689, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7379105687141418
+D_fake_L[iter_count]: 0.7309818267822266
+d_total_error: tensor(1.5210, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7025022506713867
+D_fake_L[iter_count]: 0.8184990286827087
+d_total_error: tensor(1.3993, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7179617881774902
+D_fake_L[iter_count]: 0.6812908053398132
+d_total_error: tensor(1.3601, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7484705448150635
+D_fake_L[iter_count]: 0.611608624458313
+d_total_error: tensor(1.3108, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6566311717033386
+D_fake_L[iter_count]: 0.6541879177093506
+d_total_error: tensor(1.4510, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7168266773223877
+D_fake_L[iter_count]: 0.734187126159668
+d_total_error: tensor(1.3733, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7216102480888367
+D_fake_L[iter_count]: 0.6517306566238403
+d_total_error: tensor(1.3363, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.692328929901123
+D_fake_L[iter_count]: 0.6439586877822876
+d_total_error: tensor(1.3070, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7051503658294678
+D_fake_L[iter_count]: 0.6018893122673035
+d_total_error: tensor(1.3496, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7093945741653442
+D_fake_L[iter_count]: 0.6401842832565308
+d_total_error: tensor(1.3820, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7103807926177979
+D_fake_L[iter_count]: 0.6716230511665344
+d_total_error: tensor(1.3828, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6216121912002563
+D_fake_L[iter_count]: 0.7611896991729736
+d_total_error: tensor(1.3488, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6791803240776062
+D_fake_L[iter_count]: 0.6695889830589294
+d_total_error: tensor(1.3533, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7132447361946106
+D_fake_L[iter_count]: 0.6400913596153259
+d_total_error: tensor(1.3118, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6625112295150757
+D_fake_L[iter_count]: 0.6493028402328491
+d_total_error: tensor(1.3350, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6886906623840332
+D_fake_L[iter_count]: 0.6463081240653992
+d_total_error: tensor(1.3618, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5594357252120972
+D_fake_L[iter_count]: 0.8023568391799927
+d_total_error: tensor(1.3095, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7538013458251953
+D_fake_L[iter_count]: 0.5557034611701965
+d_total_error: tensor(1.3099, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7559027671813965
+D_fake_L[iter_count]: 0.553963303565979
+d_total_error: tensor(1.2782, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5580335855484009
+D_fake_L[iter_count]: 0.7201322913169861
+d_total_error: tensor(1.3334, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6356736421585083
+D_fake_L[iter_count]: 0.6977031230926514
+d_total_error: tensor(1.2586, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6074163913726807
+D_fake_L[iter_count]: 0.6511805057525635
+d_total_error: tensor(1.2417, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7256771326065063
+D_fake_L[iter_count]: 0.5160332322120667
+d_total_error: tensor(1.1729, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5910868644714355
+D_fake_L[iter_count]: 0.5817968249320984
+d_total_error: tensor(1.0732, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4769699275493622
+D_fake_L[iter_count]: 0.5962177515029907
+d_total_error: tensor(0.9365, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.45166459679603577
+D_fake_L[iter_count]: 0.48488324880599976
+d_total_error: tensor(1.0968, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5910475254058838
+D_fake_L[iter_count]: 0.5057287216186523
+d_total_error: tensor(0.9059, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3490975797176361
+D_fake_L[iter_count]: 0.556774377822876
+d_total_error: tensor(0.6329, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2874453067779541
+D_fake_L[iter_count]: 0.34549859166145325
+d_total_error: tensor(0.5559, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.29515331983566284
+D_fake_L[iter_count]: 0.2607446610927582
+d_total_error: tensor(0.8761, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6620912551879883
+D_fake_L[iter_count]: 0.2140214741230011
+d_total_error: tensor(0.7157, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.06684152781963348
+D_fake_L[iter_count]: 0.6488146781921387
+d_total_error: tensor(0.3942, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2256678193807602
+D_fake_L[iter_count]: 0.1684829741716385
+d_total_error: tensor(0.1793, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.1093633621931076
+D_fake_L[iter_count]: 0.0699806734919548
+d_total_error: tensor(0.1315, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.10132405161857605
+D_fake_L[iter_count]: 0.030209675431251526
+d_total_error: tensor(0.0958, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.05737674981355667
+D_fake_L[iter_count]: 0.038400907069444656
+d_total_error: tensor(0.0381, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.02242489531636238
+D_fake_L[iter_count]: 0.01571796089410782
+d_total_error: tensor(0.0297, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.004075590521097183
+D_fake_L[iter_count]: 0.025609515607357025
+d_total_error: tensor(0.0161, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00172065244987607
+D_fake_L[iter_count]: 0.014387022703886032
+d_total_error: tensor(0.0573, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.051692888140678406
+D_fake_L[iter_count]: 0.0056041935458779335
+d_total_error: tensor(0.0380, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.021647680550813675
+D_fake_L[iter_count]: 0.016366951167583466
+d_total_error: tensor(0.0835, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0702858716249466
+D_fake_L[iter_count]: 0.013252019882202148
+d_total_error: tensor(0.0212, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.006188458297401667
+D_fake_L[iter_count]: 0.01498720794916153
+d_total_error: tensor(0.0116, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00471810856834054
+D_fake_L[iter_count]: 0.006919552106410265
+d_total_error: tensor(0.0177, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0026970612816512585
+D_fake_L[iter_count]: 0.014966845512390137
+d_total_error: tensor(0.0679, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.061151161789894104
+D_fake_L[iter_count]: 0.006701277568936348
+d_total_error: tensor(0.0059, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0015231984434649348
+D_fake_L[iter_count]: 0.004349941853433847
+d_total_error: tensor(0.0124, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.001399421482346952
+D_fake_L[iter_count]: 0.010979576036334038
+d_total_error: tensor(0.0079, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0006067295325919986
+D_fake_L[iter_count]: 0.007308728527277708
+d_total_error: tensor(0.0078, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0003836667165160179
+D_fake_L[iter_count]: 0.0074499547481536865
+d_total_error: tensor(0.1847, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0016699987463653088
+D_fake_L[iter_count]: 0.18299010396003723
+d_total_error: tensor(1.2048, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.189375877380371
+D_fake_L[iter_count]: 0.0154444370418787
+d_total_error: tensor(1.6664, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.016530347988009453
+D_fake_L[iter_count]: 1.649830937385559
+d_total_error: tensor(2.6004, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 2.4672040939331055
+D_fake_L[iter_count]: 0.13321803510189056
+d_total_error: tensor(1.4332, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8517453074455261
+D_fake_L[iter_count]: 0.5814813375473022
+d_total_error: tensor(1.1204, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5130687355995178
+D_fake_L[iter_count]: 0.6073076128959656
+d_total_error: tensor(1.1811, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.33694541454315186
+D_fake_L[iter_count]: 0.8441203236579895
+d_total_error: tensor(1.1087, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.32933008670806885
+D_fake_L[iter_count]: 0.7794194221496582
+d_total_error: tensor(0.7528, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3095040023326874
+D_fake_L[iter_count]: 0.4432722330093384
+d_total_error: tensor(0.5284, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2792621850967407
+D_fake_L[iter_count]: 0.24908886849880219
+d_total_error: tensor(0.2241, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.11429613828659058
+D_fake_L[iter_count]: 0.10979746282100677
+d_total_error: tensor(0.1068, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0499652698636055
+D_fake_L[iter_count]: 0.05681496486067772
+d_total_error: tensor(0.0485, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01863403245806694
+D_fake_L[iter_count]: 0.02989349514245987
+d_total_error: tensor(0.0843, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.06350911408662796
+D_fake_L[iter_count]: 0.0207577645778656
+d_total_error: tensor(0.0584, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04124424606561661
+D_fake_L[iter_count]: 0.01718074269592762
+d_total_error: tensor(0.0786, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0681767612695694
+D_fake_L[iter_count]: 0.010433037765324116
+d_total_error: tensor(0.0471, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.004028460010886192
+D_fake_L[iter_count]: 0.04303983598947525
+d_total_error: tensor(0.0071, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0012749453308060765
+D_fake_L[iter_count]: 0.0058718835934996605
+d_total_error: tensor(0.0408, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.03363843634724617
+D_fake_L[iter_count]: 0.007127780467271805
+d_total_error: tensor(0.0652, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01767750456929207
+D_fake_L[iter_count]: 0.04749783128499985
+d_total_error: tensor(0.0087, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.007176761515438557
+D_fake_L[iter_count]: 0.0015714415349066257
+d_total_error: tensor(0.0114, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.010421927087008953
+D_fake_L[iter_count]: 0.0010147932916879654
+d_total_error: tensor(0.0106, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.004073340445756912
+D_fake_L[iter_count]: 0.006516800262033939
+d_total_error: tensor(0.0089, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.008126353845000267
+D_fake_L[iter_count]: 0.0007842787308618426
+d_total_error: tensor(0.0031, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0015100480522960424
+D_fake_L[iter_count]: 0.0016360789304599166
+d_total_error: tensor(0.0060, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0036036556120961905
+D_fake_L[iter_count]: 0.002346610650420189
+d_total_error: tensor(0.0146, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00699540413916111
+D_fake_L[iter_count]: 0.007593137677758932
+d_total_error: tensor(0.0884, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0037573392037302256
+D_fake_L[iter_count]: 0.08460640907287598
+d_total_error: tensor(1.4272, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.4119672775268555
+D_fake_L[iter_count]: 0.015258550643920898
+d_total_error: tensor(3.5751, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.038918450474739075
+D_fake_L[iter_count]: 3.536222457885742
+d_total_error: tensor(1.9592, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.7177746295928955
+D_fake_L[iter_count]: 0.24140174686908722
+d_total_error: tensor(1.6847, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.3890538215637207
+D_fake_L[iter_count]: 0.2956140637397766
+d_total_error: tensor(1.5692, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5980311632156372
+D_fake_L[iter_count]: 0.9711266756057739
+d_total_error: tensor(1.5433, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5711981058120728
+D_fake_L[iter_count]: 0.9721063375473022
+d_total_error: tensor(1.3156, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6539967656135559
+D_fake_L[iter_count]: 0.6616418361663818
+d_total_error: tensor(1.4490, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9108521342277527
+D_fake_L[iter_count]: 0.5381520986557007
+d_total_error: tensor(1.3706, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7514045238494873
+D_fake_L[iter_count]: 0.6191983222961426
+d_total_error: tensor(1.4908, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8548479676246643
+D_fake_L[iter_count]: 0.6359057426452637
+d_total_error: tensor(1.4689, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6787640452384949
+D_fake_L[iter_count]: 0.7901617288589478
+d_total_error: tensor(1.4095, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.787800669670105
+D_fake_L[iter_count]: 0.6216702461242676
+d_total_error: tensor(1.3660, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6933969855308533
+D_fake_L[iter_count]: 0.6726416945457458
+d_total_error: tensor(1.3462, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6884132623672485
+D_fake_L[iter_count]: 0.6578287482261658
+d_total_error: tensor(1.2901, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.681967556476593
+D_fake_L[iter_count]: 0.6081342697143555
+d_total_error: tensor(1.3474, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6328890919685364
+D_fake_L[iter_count]: 0.7145501971244812
+d_total_error: tensor(1.4154, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7911136746406555
+D_fake_L[iter_count]: 0.6242499351501465
+d_total_error: tensor(1.4256, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6796207427978516
+D_fake_L[iter_count]: 0.7459608316421509
+d_total_error: tensor(1.3557, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7363461256027222
+D_fake_L[iter_count]: 0.6193728446960449
+d_total_error: tensor(1.4249, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7376317977905273
+D_fake_L[iter_count]: 0.6872866153717041
+d_total_error: tensor(1.4033, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6713994741439819
+D_fake_L[iter_count]: 0.7319038510322571
+d_total_error: tensor(1.3911, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7907692790031433
+D_fake_L[iter_count]: 0.6002888679504395
+d_total_error: tensor(1.3415, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6411327123641968
+D_fake_L[iter_count]: 0.7003711462020874
+d_total_error: tensor(1.4307, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.818437933921814
+D_fake_L[iter_count]: 0.612291693687439
+d_total_error: tensor(1.4749, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5794656276702881
+D_fake_L[iter_count]: 0.8954541683197021
+d_total_error: tensor(1.4011, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7278324365615845
+D_fake_L[iter_count]: 0.673233151435852
+d_total_error: tensor(1.2731, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.652671754360199
+D_fake_L[iter_count]: 0.6204453706741333
+d_total_error: tensor(1.3000, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7239004373550415
+D_fake_L[iter_count]: 0.5760769844055176
+d_total_error: tensor(1.2713, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7453110814094543
+D_fake_L[iter_count]: 0.5260388851165771
+d_total_error: tensor(1.2508, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7098180055618286
+D_fake_L[iter_count]: 0.5410081744194031
+d_total_error: tensor(1.3086, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7369722723960876
+D_fake_L[iter_count]: 0.5715993642807007
+d_total_error: tensor(1.2867, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5960981845855713
+D_fake_L[iter_count]: 0.6905665397644043
+d_total_error: tensor(1.3658, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6914580464363098
+D_fake_L[iter_count]: 0.6743791103363037
+d_total_error: tensor(1.3811, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5323557257652283
+D_fake_L[iter_count]: 0.8487246632575989
+d_total_error: tensor(1.1499, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6745703220367432
+D_fake_L[iter_count]: 0.4753151834011078
+d_total_error: tensor(1.0780, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6475743055343628
+D_fake_L[iter_count]: 0.4303942620754242
+d_total_error: tensor(1.0897, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5284085273742676
+D_fake_L[iter_count]: 0.5613353252410889
+d_total_error: tensor(1.0634, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6680068373680115
+D_fake_L[iter_count]: 0.39542627334594727
+d_total_error: tensor(0.8815, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3435589075088501
+D_fake_L[iter_count]: 0.5379786491394043
+d_total_error: tensor(0.7233, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.31256410479545593
+D_fake_L[iter_count]: 0.41071388125419617
+d_total_error: tensor(0.3938, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.22130143642425537
+D_fake_L[iter_count]: 0.17248964309692383
+d_total_error: tensor(0.1590, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.08655987679958344
+D_fake_L[iter_count]: 0.07239209860563278
+d_total_error: tensor(0.0973, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.05184317007660866
+D_fake_L[iter_count]: 0.04541369527578354
+d_total_error: tensor(0.1757, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.10188114643096924
+D_fake_L[iter_count]: 0.07381249964237213
+d_total_error: tensor(0.0526, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.034367598593235016
+D_fake_L[iter_count]: 0.018233655020594597
+d_total_error: tensor(0.0220, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.013417109847068787
+D_fake_L[iter_count]: 0.008611023426055908
+d_total_error: tensor(0.0200, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00744791142642498
+D_fake_L[iter_count]: 0.01254366897046566
+d_total_error: tensor(0.0755, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.06988885998725891
+D_fake_L[iter_count]: 0.005618740804493427
+d_total_error: tensor(0.0959, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.006020775064826012
+D_fake_L[iter_count]: 0.08991675078868866
+d_total_error: tensor(0.3248, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.32057708501815796
+D_fake_L[iter_count]: 0.004246353637427092
+d_total_error: tensor(1.1955, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0010199450189247727
+D_fake_L[iter_count]: 1.194493055343628
+d_total_error: tensor(2.0440, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 2.0302987098693848
+D_fake_L[iter_count]: 0.01365726999938488
+d_total_error: tensor(0.8456, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.15946008265018463
+D_fake_L[iter_count]: 0.686187744140625
+d_total_error: tensor(0.7039, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.07680283486843109
+D_fake_L[iter_count]: 0.6271014213562012
+d_total_error: tensor(0.2727, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.1737593412399292
+D_fake_L[iter_count]: 0.09895672649145126
+d_total_error: tensor(0.1012, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.058346640318632126
+D_fake_L[iter_count]: 0.04281643405556679
+d_total_error: tensor(0.1249, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.08643687516450882
+D_fake_L[iter_count]: 0.03842433542013168
+d_total_error: tensor(0.0421, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.019762994721531868
+D_fake_L[iter_count]: 0.02232503890991211
+d_total_error: tensor(0.0207, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.008500601164996624
+D_fake_L[iter_count]: 0.012152090668678284
+d_total_error: tensor(0.0728, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.037472981959581375
+D_fake_L[iter_count]: 0.03536941111087799
+d_total_error: tensor(0.0272, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005018920172005892
+D_fake_L[iter_count]: 0.02219073846936226
+d_total_error: tensor(0.0396, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.010294940322637558
+D_fake_L[iter_count]: 0.029299398884177208
+d_total_error: tensor(0.0156, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.010115839540958405
+D_fake_L[iter_count]: 0.005461352411657572
+d_total_error: tensor(0.0233, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01630556955933571
+D_fake_L[iter_count]: 0.006963449530303478
+d_total_error: tensor(0.0310, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005354615859687328
+D_fake_L[iter_count]: 0.025640398263931274
+d_total_error: tensor(0.3998, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.03750215843319893
+D_fake_L[iter_count]: 0.3623358905315399
+d_total_error: tensor(3.6237, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 3.581913948059082
+D_fake_L[iter_count]: 0.04178421199321747
+d_total_error: tensor(0.9733, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3668706715106964
+D_fake_L[iter_count]: 0.6064426898956299
+d_total_error: tensor(1.3495, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5370683670043945
+D_fake_L[iter_count]: 0.812394380569458
+d_total_error: tensor(1.1111, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.266185462474823
+D_fake_L[iter_count]: 0.844906210899353
+d_total_error: tensor(1.0455, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6548134684562683
+D_fake_L[iter_count]: 0.39066916704177856
+d_total_error: tensor(0.5395, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.16989293694496155
+D_fake_L[iter_count]: 0.36955732107162476
+d_total_error: tensor(0.3872, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.22450362145900726
+D_fake_L[iter_count]: 0.16266125440597534
+d_total_error: tensor(0.2105, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.09366784244775772
+D_fake_L[iter_count]: 0.11686725914478302
+d_total_error: tensor(0.0315, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01127032283693552
+D_fake_L[iter_count]: 0.020214730873703957
+d_total_error: tensor(0.2473, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.20825695991516113
+D_fake_L[iter_count]: 0.039059679955244064
+d_total_error: tensor(0.0610, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.022686386480927467
+D_fake_L[iter_count]: 0.03828338533639908
+d_total_error: tensor(0.0255, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0032313340343534946
+D_fake_L[iter_count]: 0.02225574478507042
+d_total_error: tensor(0.0131, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.007020564749836922
+D_fake_L[iter_count]: 0.006033897399902344
+d_total_error: tensor(0.0059, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0013709740014746785
+D_fake_L[iter_count]: 0.00451115146279335
+d_total_error: tensor(0.0080, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00010218217357760295
+D_fake_L[iter_count]: 0.007893156260251999
+d_total_error: tensor(0.0149, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.012581978924572468
+D_fake_L[iter_count]: 0.002281110268086195
+d_total_error: tensor(0.0147, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0009099373128265142
+D_fake_L[iter_count]: 0.013783109374344349
+d_total_error: tensor(0.0188, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.007717179134488106
+D_fake_L[iter_count]: 0.011107826605439186
+d_total_error: tensor(0.0388, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.00708354776725173
+D_fake_L[iter_count]: 0.03170440346002579
+Epoch: 1, Iter: 250, D: 0.03879, G: 30.56, Time since last print (min): 1.316
+
+d_total_error: tensor(0.0378, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.021014099940657616
+D_fake_L[iter_count]: 0.01675226166844368
+d_total_error: tensor(0.0265, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.013867625966668129
+D_fake_L[iter_count]: 0.012590296566486359
+d_total_error: tensor(0.0133, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.010917887091636658
+D_fake_L[iter_count]: 0.0023996124509721994
+d_total_error: tensor(0.0772, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0024594732094556093
+D_fake_L[iter_count]: 0.07477632910013199
+d_total_error: tensor(0.9294, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.926540195941925
+D_fake_L[iter_count]: 0.0028611239977180958
+d_total_error: tensor(5.9766, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0009031202644109726
+D_fake_L[iter_count]: 5.975647926330566
+d_total_error: tensor(3.3501, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 3.293027877807617
+D_fake_L[iter_count]: 0.05705743655562401
+d_total_error: tensor(2.2857, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 2.1326258182525635
+D_fake_L[iter_count]: 0.15310443937778473
+d_total_error: tensor(1.4651, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8987512588500977
+D_fake_L[iter_count]: 0.5663561820983887
+d_total_error: tensor(1.3724, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4755174517631531
+D_fake_L[iter_count]: 0.8968900442123413
+d_total_error: tensor(1.5019, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5839866399765015
+D_fake_L[iter_count]: 0.9178721904754639
+d_total_error: tensor(1.4076, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6266008019447327
+D_fake_L[iter_count]: 0.7810168266296387
+d_total_error: tensor(1.5502, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9674668908119202
+D_fake_L[iter_count]: 0.582746148109436
+d_total_error: tensor(1.4557, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8332720398902893
+D_fake_L[iter_count]: 0.6224691271781921
+d_total_error: tensor(1.3494, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5958871841430664
+D_fake_L[iter_count]: 0.7535350322723389
+d_total_error: tensor(1.3774, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6150658130645752
+D_fake_L[iter_count]: 0.762350857257843
+d_total_error: tensor(1.5112, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8233600854873657
+D_fake_L[iter_count]: 0.687798023223877
+d_total_error: tensor(1.5047, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6418765783309937
+D_fake_L[iter_count]: 0.8628242015838623
+d_total_error: tensor(1.3700, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6962319016456604
+D_fake_L[iter_count]: 0.6737537384033203
+d_total_error: tensor(1.5342, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9388625621795654
+D_fake_L[iter_count]: 0.595378041267395
+d_total_error: tensor(1.3606, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7738977670669556
+D_fake_L[iter_count]: 0.5866777896881104
+d_total_error: tensor(1.4281, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7349112033843994
+D_fake_L[iter_count]: 0.6932120323181152
+d_total_error: tensor(1.4037, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7592679858207703
+D_fake_L[iter_count]: 0.6444385051727295
+d_total_error: tensor(1.4142, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.658693790435791
+D_fake_L[iter_count]: 0.7554895877838135
+d_total_error: tensor(1.3840, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7770805358886719
+D_fake_L[iter_count]: 0.6069208383560181
+d_total_error: tensor(1.4108, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8175849914550781
+D_fake_L[iter_count]: 0.5932366847991943
+d_total_error: tensor(1.3785, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8360113501548767
+D_fake_L[iter_count]: 0.5425034761428833
+d_total_error: tensor(1.3955, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8052637577056885
+D_fake_L[iter_count]: 0.590284526348114
+d_total_error: tensor(1.3895, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7392287254333496
+D_fake_L[iter_count]: 0.6503199338912964
+d_total_error: tensor(1.3603, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6935142278671265
+D_fake_L[iter_count]: 0.666740894317627
+d_total_error: tensor(1.3855, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7010598182678223
+D_fake_L[iter_count]: 0.6844816207885742
+d_total_error: tensor(1.3734, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6394412517547607
+D_fake_L[iter_count]: 0.7339087724685669
+d_total_error: tensor(1.3379, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6860995292663574
+D_fake_L[iter_count]: 0.6517924070358276
+d_total_error: tensor(1.3446, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7096429467201233
+D_fake_L[iter_count]: 0.6349838972091675
+d_total_error: tensor(1.3239, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7855648398399353
+D_fake_L[iter_count]: 0.5383694767951965
+d_total_error: tensor(1.3171, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6983739137649536
+D_fake_L[iter_count]: 0.6186956763267517
+d_total_error: tensor(1.3940, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8095883131027222
+D_fake_L[iter_count]: 0.5844485759735107
+d_total_error: tensor(1.4400, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6677619218826294
+D_fake_L[iter_count]: 0.7721881866455078
+d_total_error: tensor(1.3549, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7302266955375671
+D_fake_L[iter_count]: 0.6246309280395508
+d_total_error: tensor(1.3285, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7285621166229248
+D_fake_L[iter_count]: 0.5999493598937988
+d_total_error: tensor(1.3444, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7172597646713257
+D_fake_L[iter_count]: 0.6271827220916748
+d_total_error: tensor(1.3759, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7468945980072021
+D_fake_L[iter_count]: 0.6289999485015869
+d_total_error: tensor(1.4177, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6673351526260376
+D_fake_L[iter_count]: 0.7503796815872192
+d_total_error: tensor(1.3828, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5539872646331787
+D_fake_L[iter_count]: 0.828784704208374
+d_total_error: tensor(1.3565, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6401822566986084
+D_fake_L[iter_count]: 0.7163217067718506
+d_total_error: tensor(1.3959, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.774506151676178
+D_fake_L[iter_count]: 0.6214087009429932
+d_total_error: tensor(1.2887, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7690982818603516
+D_fake_L[iter_count]: 0.5195543169975281
+d_total_error: tensor(1.3747, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7253917455673218
+D_fake_L[iter_count]: 0.6492974162101746
+d_total_error: tensor(1.4119, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7797336578369141
+D_fake_L[iter_count]: 0.6322013139724731
+d_total_error: tensor(1.3498, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5895617604255676
+D_fake_L[iter_count]: 0.7601898908615112
+d_total_error: tensor(1.3217, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5248794555664062
+D_fake_L[iter_count]: 0.7968438267707825
+d_total_error: tensor(1.3184, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5338488817214966
+D_fake_L[iter_count]: 0.7845304608345032
+d_total_error: tensor(1.3209, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5753709077835083
+D_fake_L[iter_count]: 0.7455148696899414
+d_total_error: tensor(1.3530, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7266484498977661
+D_fake_L[iter_count]: 0.6263594627380371
+d_total_error: tensor(1.4298, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6248921155929565
+D_fake_L[iter_count]: 0.8048664331436157
+d_total_error: tensor(1.3418, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6252766847610474
+D_fake_L[iter_count]: 0.7165418267250061
+d_total_error: tensor(1.4183, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7074045538902283
+D_fake_L[iter_count]: 0.7109054327011108
+d_total_error: tensor(1.3711, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5734831094741821
+D_fake_L[iter_count]: 0.7975773811340332
+d_total_error: tensor(1.2952, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6735299825668335
+D_fake_L[iter_count]: 0.6216821670532227
+d_total_error: tensor(1.2998, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6323943138122559
+D_fake_L[iter_count]: 0.6674016714096069
+d_total_error: tensor(1.3479, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.726228654384613
+D_fake_L[iter_count]: 0.6216623187065125
+d_total_error: tensor(1.3895, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7843273282051086
+D_fake_L[iter_count]: 0.6051961779594421
+d_total_error: tensor(1.3054, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6139670014381409
+D_fake_L[iter_count]: 0.6914236545562744
+d_total_error: tensor(1.4673, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8088343143463135
+D_fake_L[iter_count]: 0.6584919691085815
+d_total_error: tensor(1.3212, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6146841049194336
+D_fake_L[iter_count]: 0.7064979076385498
+d_total_error: tensor(1.3171, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6947969198226929
+D_fake_L[iter_count]: 0.6223140358924866
+d_total_error: tensor(1.3248, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5806002616882324
+D_fake_L[iter_count]: 0.7441550493240356
+d_total_error: tensor(1.3233, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6355677843093872
+D_fake_L[iter_count]: 0.687690258026123
+d_total_error: tensor(1.2557, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6472472548484802
+D_fake_L[iter_count]: 0.6084654331207275
+d_total_error: tensor(1.2848, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6807835102081299
+D_fake_L[iter_count]: 0.6040595769882202
+d_total_error: tensor(1.3352, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7002129554748535
+D_fake_L[iter_count]: 0.634964644908905
+d_total_error: tensor(1.3566, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.698088526725769
+D_fake_L[iter_count]: 0.6584744453430176
+d_total_error: tensor(1.2520, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7017769813537598
+D_fake_L[iter_count]: 0.5502680540084839
+d_total_error: tensor(1.2166, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6560235619544983
+D_fake_L[iter_count]: 0.5605857968330383
+d_total_error: tensor(1.2785, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7313166856765747
+D_fake_L[iter_count]: 0.5471710562705994
+d_total_error: tensor(1.2770, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.654617965221405
+D_fake_L[iter_count]: 0.6224161982536316
+d_total_error: tensor(1.3286, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6903080940246582
+D_fake_L[iter_count]: 0.6383373737335205
+d_total_error: tensor(1.2399, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5698959827423096
+D_fake_L[iter_count]: 0.6700476408004761
+d_total_error: tensor(1.1173, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7062110900878906
+D_fake_L[iter_count]: 0.411105751991272
+d_total_error: tensor(1.0053, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4853261113166809
+D_fake_L[iter_count]: 0.5199790596961975
+d_total_error: tensor(1.2502, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6965581178665161
+D_fake_L[iter_count]: 0.5536190271377563
+d_total_error: tensor(1.1543, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5194233655929565
+D_fake_L[iter_count]: 0.6349002718925476
+d_total_error: tensor(0.9967, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5588986873626709
+D_fake_L[iter_count]: 0.4377574920654297
+d_total_error: tensor(1.2611, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7720544338226318
+D_fake_L[iter_count]: 0.48905572295188904
+d_total_error: tensor(0.6859, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3885989189147949
+D_fake_L[iter_count]: 0.29730385541915894
+d_total_error: tensor(0.7025, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.29166221618652344
+D_fake_L[iter_count]: 0.4107971489429474
+d_total_error: tensor(0.3566, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.16955633461475372
+D_fake_L[iter_count]: 0.1870630532503128
+d_total_error: tensor(0.4019, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.27756139636039734
+D_fake_L[iter_count]: 0.12434296309947968
+d_total_error: tensor(0.4760, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.19654621183872223
+D_fake_L[iter_count]: 0.2794240117073059
+d_total_error: tensor(0.3084, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.13600614666938782
+D_fake_L[iter_count]: 0.1724182665348053
+d_total_error: tensor(0.1315, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04517105221748352
+D_fake_L[iter_count]: 0.08628508448600769
+d_total_error: tensor(0.0520, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.017207255586981773
+D_fake_L[iter_count]: 0.034776099026203156
+d_total_error: tensor(0.0239, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.013774702325463295
+D_fake_L[iter_count]: 0.010096870362758636
+d_total_error: tensor(0.0282, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.022400621324777603
+D_fake_L[iter_count]: 0.005816217977553606
+d_total_error: tensor(0.0196, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.008919132873415947
+D_fake_L[iter_count]: 0.010713937692344189
+d_total_error: tensor(0.0387, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.032436762005090714
+D_fake_L[iter_count]: 0.006287293508648872
+d_total_error: tensor(0.0214, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.011118585243821144
+D_fake_L[iter_count]: 0.0102410688996315
+d_total_error: tensor(0.0053, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0006777892704121768
+D_fake_L[iter_count]: 0.0046579260379076
+d_total_error: tensor(0.0062, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0016746086766943336
+D_fake_L[iter_count]: 0.0045618340373039246
+d_total_error: tensor(0.0457, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.020032726228237152
+D_fake_L[iter_count]: 0.025711212307214737
+d_total_error: tensor(0.0100, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.002639726735651493
+D_fake_L[iter_count]: 0.007398900110274553
+d_total_error: tensor(0.0147, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01036580465734005
+D_fake_L[iter_count]: 0.004376809578388929
+d_total_error: tensor(0.0096, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0051396433264017105
+D_fake_L[iter_count]: 0.004474440589547157
+d_total_error: tensor(0.0475, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01337461918592453
+D_fake_L[iter_count]: 0.03411020711064339
+d_total_error: tensor(0.0947, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.07442180812358856
+D_fake_L[iter_count]: 0.020241640508174896
+d_total_error: tensor(0.0122, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005250090733170509
+D_fake_L[iter_count]: 0.006966909393668175
+d_total_error: tensor(0.0520, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.017741810530424118
+D_fake_L[iter_count]: 0.034211546182632446
+d_total_error: tensor(0.2783, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04299443960189819
+D_fake_L[iter_count]: 0.2352902889251709
+d_total_error: tensor(1.2835, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.2588810920715332
+D_fake_L[iter_count]: 0.024646922945976257
+d_total_error: tensor(1.6568, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.173281729221344
+D_fake_L[iter_count]: 1.4834938049316406
+d_total_error: tensor(1.2302, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9185007810592651
+D_fake_L[iter_count]: 0.31173187494277954
+d_total_error: tensor(1.5685, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5110083222389221
+D_fake_L[iter_count]: 1.0574798583984375
+d_total_error: tensor(0.8289, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4235880970954895
+D_fake_L[iter_count]: 0.4053610563278198
+d_total_error: tensor(0.4239, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.08733323216438293
+D_fake_L[iter_count]: 0.3365332782268524
+d_total_error: tensor(0.2374, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.16372820734977722
+D_fake_L[iter_count]: 0.07366678863763809
+d_total_error: tensor(0.1544, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.035709694027900696
+D_fake_L[iter_count]: 0.11865298449993134
+d_total_error: tensor(0.1065, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.07385234534740448
+D_fake_L[iter_count]: 0.03263237699866295
+d_total_error: tensor(0.1235, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.07154367119073868
+D_fake_L[iter_count]: 0.051951512694358826
+d_total_error: tensor(0.0550, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.009991448372602463
+D_fake_L[iter_count]: 0.04504570737481117
+d_total_error: tensor(0.0258, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.015414705500006676
+D_fake_L[iter_count]: 0.010360149666666985
+d_total_error: tensor(0.0420, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01940920017659664
+D_fake_L[iter_count]: 0.02262699604034424
+d_total_error: tensor(0.0286, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0005252845003269613
+D_fake_L[iter_count]: 0.02807270735502243
+d_total_error: tensor(0.0557, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04957006871700287
+D_fake_L[iter_count]: 0.006105441600084305
+d_total_error: tensor(0.0691, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.03357260301709175
+D_fake_L[iter_count]: 0.03551562875509262
+d_total_error: tensor(0.0369, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.007883925922214985
+D_fake_L[iter_count]: 0.029035402461886406
+d_total_error: tensor(0.0670, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.05272345989942551
+D_fake_L[iter_count]: 0.014315616339445114
+d_total_error: tensor(0.0391, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.020517239347100258
+D_fake_L[iter_count]: 0.01858682930469513
+d_total_error: tensor(0.1464, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.12601569294929504
+D_fake_L[iter_count]: 0.02036934718489647
+d_total_error: tensor(0.4196, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01023466419428587
+D_fake_L[iter_count]: 0.40932413935661316
+d_total_error: tensor(1.0928, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.0427058935165405
+D_fake_L[iter_count]: 0.050050415098667145
+d_total_error: tensor(0.3542, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.1276388168334961
+D_fake_L[iter_count]: 0.22655710577964783
+d_total_error: tensor(0.5061, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.006070231087505817
+D_fake_L[iter_count]: 0.5000773072242737
+d_total_error: tensor(0.1530, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.09276194125413895
+D_fake_L[iter_count]: 0.06027335673570633
+d_total_error: tensor(0.0354, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.029454173520207405
+D_fake_L[iter_count]: 0.005913593806326389
+d_total_error: tensor(0.1180, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.09720304608345032
+D_fake_L[iter_count]: 0.02081015333533287
+d_total_error: tensor(0.0094, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0026475321501493454
+D_fake_L[iter_count]: 0.0067850640043616295
+d_total_error: tensor(0.0379, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.027272619307041168
+D_fake_L[iter_count]: 0.010583193972706795
+d_total_error: tensor(0.0140, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.001972354017198086
+D_fake_L[iter_count]: 0.012019002810120583
+d_total_error: tensor(0.0141, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0011129959020763636
+D_fake_L[iter_count]: 0.012952802702784538
+d_total_error: tensor(0.0814, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0012080066371709108
+D_fake_L[iter_count]: 0.08023317158222198
+d_total_error: tensor(1.4319, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.427276849746704
+D_fake_L[iter_count]: 0.004652722738683224
+d_total_error: tensor(3.9880, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0028993263840675354
+D_fake_L[iter_count]: 3.985060453414917
+d_total_error: tensor(1.5232, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.2968356609344482
+D_fake_L[iter_count]: 0.226388081908226
+d_total_error: tensor(1.8119, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.5736761093139648
+D_fake_L[iter_count]: 0.23824580013751984
+d_total_error: tensor(1.6411, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7484279870986938
+D_fake_L[iter_count]: 0.8927083015441895
+d_total_error: tensor(1.5180, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6612920761108398
+D_fake_L[iter_count]: 0.8566647171974182
+d_total_error: tensor(1.3317, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5819182395935059
+D_fake_L[iter_count]: 0.7497363686561584
+d_total_error: tensor(1.3845, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7475858926773071
+D_fake_L[iter_count]: 0.6369320154190063
+d_total_error: tensor(1.4556, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8214391469955444
+D_fake_L[iter_count]: 0.6341259479522705
+d_total_error: tensor(1.3658, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6930007934570312
+D_fake_L[iter_count]: 0.6728320717811584
+d_total_error: tensor(1.3078, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6475527286529541
+D_fake_L[iter_count]: 0.6602069735527039
+d_total_error: tensor(1.3434, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7093474864959717
+D_fake_L[iter_count]: 0.6340899467468262
+d_total_error: tensor(1.4935, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7033600807189941
+D_fake_L[iter_count]: 0.7901654839515686
+d_total_error: tensor(1.5243, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9706599712371826
+D_fake_L[iter_count]: 0.5536408424377441
+d_total_error: tensor(1.3424, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7055821418762207
+D_fake_L[iter_count]: 0.6368403434753418
+d_total_error: tensor(1.3432, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.827814519405365
+D_fake_L[iter_count]: 0.5154293775558472
+d_total_error: tensor(1.3981, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7779291868209839
+D_fake_L[iter_count]: 0.6201483011245728
+d_total_error: tensor(1.4261, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6320226192474365
+D_fake_L[iter_count]: 0.7940353155136108
+d_total_error: tensor(1.4981, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9191767573356628
+D_fake_L[iter_count]: 0.5789155960083008
+d_total_error: tensor(1.3726, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7054461240768433
+D_fake_L[iter_count]: 0.6671870946884155
+d_total_error: tensor(1.3598, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8001888990402222
+D_fake_L[iter_count]: 0.5596185922622681
+d_total_error: tensor(1.5317, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8430381417274475
+D_fake_L[iter_count]: 0.6887094974517822
+d_total_error: tensor(1.4373, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7565510272979736
+D_fake_L[iter_count]: 0.6807608604431152
+d_total_error: tensor(1.2695, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5110307931900024
+D_fake_L[iter_count]: 0.7584991455078125
+d_total_error: tensor(1.3721, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5016806125640869
+D_fake_L[iter_count]: 0.8703736662864685
+d_total_error: tensor(1.3864, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5476838946342468
+D_fake_L[iter_count]: 0.838756799697876
+d_total_error: tensor(1.5016, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6273863911628723
+D_fake_L[iter_count]: 0.8741780519485474
+d_total_error: tensor(1.3249, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.761615514755249
+D_fake_L[iter_count]: 0.5632510185241699
+d_total_error: tensor(1.4573, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9599679708480835
+D_fake_L[iter_count]: 0.49730899930000305
+d_total_error: tensor(1.3722, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.771192193031311
+D_fake_L[iter_count]: 0.6009697914123535
+d_total_error: tensor(1.3575, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7396976947784424
+D_fake_L[iter_count]: 0.6177569627761841
+d_total_error: tensor(1.3492, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5902628302574158
+D_fake_L[iter_count]: 0.7589325308799744
+d_total_error: tensor(1.3193, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5752096176147461
+D_fake_L[iter_count]: 0.7440984845161438
+d_total_error: tensor(1.4529, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8100401163101196
+D_fake_L[iter_count]: 0.6428710222244263
+d_total_error: tensor(1.4049, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8220473527908325
+D_fake_L[iter_count]: 0.5828791260719299
+d_total_error: tensor(1.3130, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7988864183425903
+D_fake_L[iter_count]: 0.5141448974609375
+d_total_error: tensor(1.4251, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8802661895751953
+D_fake_L[iter_count]: 0.5448469519615173
+d_total_error: tensor(1.3026, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7764670848846436
+D_fake_L[iter_count]: 0.5260964035987854
+d_total_error: tensor(1.4594, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6451230049133301
+D_fake_L[iter_count]: 0.8142686486244202
+d_total_error: tensor(1.3169, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.665372371673584
+D_fake_L[iter_count]: 0.6515353918075562
+d_total_error: tensor(1.2848, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6404187083244324
+D_fake_L[iter_count]: 0.644403338432312
+d_total_error: tensor(1.2612, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6485337615013123
+D_fake_L[iter_count]: 0.6126803159713745
+d_total_error: tensor(1.2622, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6618306636810303
+D_fake_L[iter_count]: 0.6004147529602051
+d_total_error: tensor(1.4383, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.960918128490448
+D_fake_L[iter_count]: 0.4773622155189514
+d_total_error: tensor(1.2319, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5626535415649414
+D_fake_L[iter_count]: 0.6692185997962952
+d_total_error: tensor(1.2911, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7037330865859985
+D_fake_L[iter_count]: 0.587372899055481
+d_total_error: tensor(1.2511, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5533320307731628
+D_fake_L[iter_count]: 0.6977742314338684
+d_total_error: tensor(1.1056, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6709727048873901
+D_fake_L[iter_count]: 0.4346300959587097
+d_total_error: tensor(1.0719, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6235979199409485
+D_fake_L[iter_count]: 0.44829219579696655
+d_total_error: tensor(0.8886, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3850577473640442
+D_fake_L[iter_count]: 0.5035402178764343
+d_total_error: tensor(0.7072, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.394459068775177
+D_fake_L[iter_count]: 0.3127132058143616
+d_total_error: tensor(0.7348, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.319661021232605
+D_fake_L[iter_count]: 0.41517719626426697
+d_total_error: tensor(0.6204, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.42723900079727173
+D_fake_L[iter_count]: 0.19311454892158508
+d_total_error: tensor(0.4340, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.079623281955719
+D_fake_L[iter_count]: 0.35433971881866455
+d_total_error: tensor(0.7187, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6656160354614258
+D_fake_L[iter_count]: 0.053036950528621674
+d_total_error: tensor(1.0396, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.01854235865175724
+D_fake_L[iter_count]: 1.0210975408554077
+d_total_error: tensor(1.3749, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.330981731414795
+D_fake_L[iter_count]: 0.0439675934612751
+d_total_error: tensor(0.4185, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.11790445446968079
+D_fake_L[iter_count]: 0.3006402850151062
+d_total_error: tensor(0.2211, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.023546837270259857
+D_fake_L[iter_count]: 0.1975189745426178
+d_total_error: tensor(0.1723, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.06620213389396667
+D_fake_L[iter_count]: 0.10610058903694153
+d_total_error: tensor(0.0647, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.0371384397149086
+D_fake_L[iter_count]: 0.027512792497873306
+d_total_error: tensor(0.0652, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.021900590509176254
+D_fake_L[iter_count]: 0.04331551492214203
+d_total_error: tensor(0.0210, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.016218658536672592
+D_fake_L[iter_count]: 0.004777773283421993
+d_total_error: tensor(0.1316, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005640275310724974
+D_fake_L[iter_count]: 0.1260002702474594
+d_total_error: tensor(0.8006, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7929280400276184
+D_fake_L[iter_count]: 0.007677352521568537
+d_total_error: tensor(6.8252, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.011226551607251167
+D_fake_L[iter_count]: 6.8139238357543945
+d_total_error: tensor(1.7411, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.5124322175979614
+D_fake_L[iter_count]: 0.22871237993240356
+d_total_error: tensor(1.6243, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.2351479530334473
+D_fake_L[iter_count]: 0.3891722559928894
+d_total_error: tensor(1.3719, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7031000256538391
+D_fake_L[iter_count]: 0.6687816977500916
+d_total_error: tensor(1.4053, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6788724660873413
+D_fake_L[iter_count]: 0.7264683842658997
+d_total_error: tensor(1.3907, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5787683725357056
+D_fake_L[iter_count]: 0.8119391202926636
+d_total_error: tensor(1.3418, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5747078657150269
+D_fake_L[iter_count]: 0.7670736312866211
+d_total_error: tensor(1.4399, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7672663927078247
+D_fake_L[iter_count]: 0.6726518869400024
+d_total_error: tensor(1.3829, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6642705202102661
+D_fake_L[iter_count]: 0.7186024188995361
+d_total_error: tensor(1.3886, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7605177164077759
+D_fake_L[iter_count]: 0.6280735731124878
+d_total_error: tensor(1.3949, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5869284272193909
+D_fake_L[iter_count]: 0.8079245090484619
+d_total_error: tensor(1.4054, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6666836738586426
+D_fake_L[iter_count]: 0.7387398481369019
+d_total_error: tensor(1.4078, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7081869840621948
+D_fake_L[iter_count]: 0.6995917558670044
+d_total_error: tensor(1.3598, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7268986105918884
+D_fake_L[iter_count]: 0.6329432725906372
+d_total_error: tensor(1.3566, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7584635019302368
+D_fake_L[iter_count]: 0.5981431007385254
+d_total_error: tensor(1.3787, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7751191854476929
+D_fake_L[iter_count]: 0.6035655736923218
+d_total_error: tensor(1.3515, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6827205419540405
+D_fake_L[iter_count]: 0.6687853336334229
+d_total_error: tensor(1.3312, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6597151160240173
+D_fake_L[iter_count]: 0.6714448928833008
+d_total_error: tensor(1.3766, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7621510624885559
+D_fake_L[iter_count]: 0.6144760847091675
+d_total_error: tensor(1.3836, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6719759702682495
+D_fake_L[iter_count]: 0.7116276025772095
+d_total_error: tensor(1.4171, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7755357027053833
+D_fake_L[iter_count]: 0.64154052734375
+d_total_error: tensor(1.3423, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6850155591964722
+D_fake_L[iter_count]: 0.657333254814148
+d_total_error: tensor(1.3646, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7028535604476929
+D_fake_L[iter_count]: 0.6617799401283264
+d_total_error: tensor(1.3275, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6879947185516357
+D_fake_L[iter_count]: 0.6395217776298523
+d_total_error: tensor(1.4447, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8530157208442688
+D_fake_L[iter_count]: 0.5916352868080139
+d_total_error: tensor(1.4175, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6801446676254272
+D_fake_L[iter_count]: 0.7373433113098145
+d_total_error: tensor(1.3956, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6987179517745972
+D_fake_L[iter_count]: 0.69684898853302
+d_total_error: tensor(1.4993, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8805110454559326
+D_fake_L[iter_count]: 0.6187974214553833
+d_total_error: tensor(1.3740, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7251269817352295
+D_fake_L[iter_count]: 0.6489168405532837
+d_total_error: tensor(1.3646, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6323373317718506
+D_fake_L[iter_count]: 0.7322900295257568
+d_total_error: tensor(1.3384, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.719663143157959
+D_fake_L[iter_count]: 0.6187671422958374
+d_total_error: tensor(1.4476, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7833318114280701
+D_fake_L[iter_count]: 0.664225161075592
+d_total_error: tensor(1.4542, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6309534311294556
+D_fake_L[iter_count]: 0.8232463598251343
+d_total_error: tensor(1.3623, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6820836663246155
+D_fake_L[iter_count]: 0.6802487373352051
+d_total_error: tensor(1.3441, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7239354252815247
+D_fake_L[iter_count]: 0.6201881766319275
+d_total_error: tensor(1.3601, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7116511464118958
+D_fake_L[iter_count]: 0.6484310626983643
+d_total_error: tensor(1.3364, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7810440063476562
+D_fake_L[iter_count]: 0.5553353428840637
+d_total_error: tensor(1.3526, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8252196311950684
+D_fake_L[iter_count]: 0.5274292826652527
+d_total_error: tensor(1.3948, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8041689991950989
+D_fake_L[iter_count]: 0.5905904173851013
+d_total_error: tensor(1.3887, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7020926475524902
+D_fake_L[iter_count]: 0.686630368232727
+d_total_error: tensor(1.4512, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7295784950256348
+D_fake_L[iter_count]: 0.7215864658355713
+d_total_error: tensor(1.4153, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5962338447570801
+D_fake_L[iter_count]: 0.819108247756958
+d_total_error: tensor(1.3769, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6970729827880859
+D_fake_L[iter_count]: 0.6798579692840576
+d_total_error: tensor(1.3368, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6770274043083191
+D_fake_L[iter_count]: 0.6597399115562439
+d_total_error: tensor(1.3083, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7523729801177979
+D_fake_L[iter_count]: 0.5559749603271484
+Epoch: 3, Iter: 500, D: 1.308, G: 21.77, Time since last print (min): 1.32
+
+d_total_error: tensor(1.3909, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8888055086135864
+D_fake_L[iter_count]: 0.5021443367004395
+d_total_error: tensor(1.3825, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7329399585723877
+D_fake_L[iter_count]: 0.6495236158370972
+d_total_error: tensor(1.4073, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6984442472457886
+D_fake_L[iter_count]: 0.7088198065757751
+d_total_error: tensor(1.3718, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6461801528930664
+D_fake_L[iter_count]: 0.7256671786308289
+d_total_error: tensor(1.3919, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5667815804481506
+D_fake_L[iter_count]: 0.8250705003738403
+d_total_error: tensor(1.3476, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6721417903900146
+D_fake_L[iter_count]: 0.675439715385437
+d_total_error: tensor(1.3604, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.708230197429657
+D_fake_L[iter_count]: 0.6521304845809937
+d_total_error: tensor(1.3535, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6746411323547363
+D_fake_L[iter_count]: 0.6788302659988403
+d_total_error: tensor(1.3850, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8350213170051575
+D_fake_L[iter_count]: 0.5499494075775146
+d_total_error: tensor(1.3554, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7388691306114197
+D_fake_L[iter_count]: 0.6165547966957092
+d_total_error: tensor(1.4048, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6665091514587402
+D_fake_L[iter_count]: 0.7383247017860413
+d_total_error: tensor(1.4053, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7881512641906738
+D_fake_L[iter_count]: 0.6171191930770874
+d_total_error: tensor(1.3338, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6240711212158203
+D_fake_L[iter_count]: 0.7097636461257935
+d_total_error: tensor(1.3548, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6620981693267822
+D_fake_L[iter_count]: 0.6927347183227539
+d_total_error: tensor(1.2773, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6621313095092773
+D_fake_L[iter_count]: 0.6151440143585205
+d_total_error: tensor(1.3172, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7149067521095276
+D_fake_L[iter_count]: 0.6022577881813049
+d_total_error: tensor(1.3680, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7499396204948425
+D_fake_L[iter_count]: 0.6180671453475952
+d_total_error: tensor(1.2849, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.684824526309967
+D_fake_L[iter_count]: 0.6000601053237915
+d_total_error: tensor(1.3730, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7370178699493408
+D_fake_L[iter_count]: 0.6359613537788391
+d_total_error: tensor(1.4099, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7035523056983948
+D_fake_L[iter_count]: 0.7063612341880798
+d_total_error: tensor(1.3574, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7286882400512695
+D_fake_L[iter_count]: 0.6287529468536377
+d_total_error: tensor(1.3455, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7284451127052307
+D_fake_L[iter_count]: 0.6170800924301147
+d_total_error: tensor(1.2480, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6616646647453308
+D_fake_L[iter_count]: 0.5863179564476013
+d_total_error: tensor(1.3382, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6899603009223938
+D_fake_L[iter_count]: 0.6482360363006592
+d_total_error: tensor(1.3615, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.777725100517273
+D_fake_L[iter_count]: 0.5838128924369812
+d_total_error: tensor(1.3682, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.792762041091919
+D_fake_L[iter_count]: 0.5753905773162842
+d_total_error: tensor(1.4204, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6938489675521851
+D_fake_L[iter_count]: 0.726566731929779
+d_total_error: tensor(1.3517, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5844343900680542
+D_fake_L[iter_count]: 0.7672796845436096
+d_total_error: tensor(1.3118, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6115968227386475
+D_fake_L[iter_count]: 0.7002516388893127
+d_total_error: tensor(1.3130, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6464788913726807
+D_fake_L[iter_count]: 0.6665352582931519
+d_total_error: tensor(1.2771, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6661569476127625
+D_fake_L[iter_count]: 0.6109392642974854
+d_total_error: tensor(1.3805, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7672112584114075
+D_fake_L[iter_count]: 0.6132651567459106
+d_total_error: tensor(1.2543, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.651441216468811
+D_fake_L[iter_count]: 0.6029011011123657
+d_total_error: tensor(1.3788, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6966253519058228
+D_fake_L[iter_count]: 0.6821683645248413
+d_total_error: tensor(1.3502, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7452378273010254
+D_fake_L[iter_count]: 0.6049764156341553
+d_total_error: tensor(1.3472, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8245784044265747
+D_fake_L[iter_count]: 0.5225862264633179
+d_total_error: tensor(1.4203, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6271739602088928
+D_fake_L[iter_count]: 0.7931373119354248
+d_total_error: tensor(1.3440, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6935093402862549
+D_fake_L[iter_count]: 0.6504913568496704
+d_total_error: tensor(1.3133, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6275556087493896
+D_fake_L[iter_count]: 0.6857108473777771
+d_total_error: tensor(1.3734, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.808379054069519
+D_fake_L[iter_count]: 0.5650368332862854
+d_total_error: tensor(1.3247, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7116535902023315
+D_fake_L[iter_count]: 0.6130036115646362
+d_total_error: tensor(1.2653, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7262143492698669
+D_fake_L[iter_count]: 0.5390867590904236
+d_total_error: tensor(1.3178, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7483607530593872
+D_fake_L[iter_count]: 0.5694372057914734
+d_total_error: tensor(1.3483, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.737445592880249
+D_fake_L[iter_count]: 0.6108579635620117
+d_total_error: tensor(1.3635, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7428128719329834
+D_fake_L[iter_count]: 0.620703399181366
+d_total_error: tensor(1.3249, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6507225632667542
+D_fake_L[iter_count]: 0.674176037311554
+d_total_error: tensor(1.3850, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.748930037021637
+D_fake_L[iter_count]: 0.6360686421394348
+d_total_error: tensor(1.4027, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6414922475814819
+D_fake_L[iter_count]: 0.7611967921257019
+d_total_error: tensor(1.3079, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6423107981681824
+D_fake_L[iter_count]: 0.6655619144439697
+d_total_error: tensor(1.3347, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7361127138137817
+D_fake_L[iter_count]: 0.5985472202301025
+d_total_error: tensor(1.3469, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6777337789535522
+D_fake_L[iter_count]: 0.669163167476654
+d_total_error: tensor(1.3515, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6655154228210449
+D_fake_L[iter_count]: 0.6859827041625977
+d_total_error: tensor(1.4088, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7872854471206665
+D_fake_L[iter_count]: 0.6215144395828247
+d_total_error: tensor(1.2942, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7140097618103027
+D_fake_L[iter_count]: 0.5802029371261597
+d_total_error: tensor(1.3490, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7270298004150391
+D_fake_L[iter_count]: 0.6219391822814941
+d_total_error: tensor(1.4044, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6816319823265076
+D_fake_L[iter_count]: 0.7227621078491211
+d_total_error: tensor(1.4342, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5960603952407837
+D_fake_L[iter_count]: 0.8381627202033997
+d_total_error: tensor(1.2324, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6633615493774414
+D_fake_L[iter_count]: 0.5689889192581177
+d_total_error: tensor(1.3770, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7503747940063477
+D_fake_L[iter_count]: 0.6265950202941895
+d_total_error: tensor(1.2654, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6395963430404663
+D_fake_L[iter_count]: 0.6258062124252319
+d_total_error: tensor(1.4487, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8309541940689087
+D_fake_L[iter_count]: 0.6177449226379395
+d_total_error: tensor(1.4503, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7851897478103638
+D_fake_L[iter_count]: 0.6650973558425903
+d_total_error: tensor(1.3155, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5837810039520264
+D_fake_L[iter_count]: 0.7317023873329163
+d_total_error: tensor(1.3700, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5519483685493469
+D_fake_L[iter_count]: 0.8180206418037415
+d_total_error: tensor(1.4355, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7669018507003784
+D_fake_L[iter_count]: 0.6685973405838013
+d_total_error: tensor(1.3769, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5793849229812622
+D_fake_L[iter_count]: 0.7975434064865112
+d_total_error: tensor(1.2965, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6329332590103149
+D_fake_L[iter_count]: 0.663526177406311
+d_total_error: tensor(1.3554, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7966418266296387
+D_fake_L[iter_count]: 0.5587500333786011
+d_total_error: tensor(1.3441, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7492398023605347
+D_fake_L[iter_count]: 0.5948237776756287
+d_total_error: tensor(1.3712, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7155615091323853
+D_fake_L[iter_count]: 0.6556451320648193
+d_total_error: tensor(1.2841, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6280398368835449
+D_fake_L[iter_count]: 0.6560749411582947
+d_total_error: tensor(1.2435, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5572773218154907
+D_fake_L[iter_count]: 0.6862311363220215
+d_total_error: tensor(1.3681, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7532379031181335
+D_fake_L[iter_count]: 0.6148412227630615
+d_total_error: tensor(1.4051, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8400862216949463
+D_fake_L[iter_count]: 0.564975380897522
+d_total_error: tensor(1.2563, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7166807651519775
+D_fake_L[iter_count]: 0.539668083190918
+d_total_error: tensor(1.4092, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8502244353294373
+D_fake_L[iter_count]: 0.5590037107467651
+d_total_error: tensor(1.3371, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.745951771736145
+D_fake_L[iter_count]: 0.5911956429481506
+d_total_error: tensor(1.3436, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5892878770828247
+D_fake_L[iter_count]: 0.7542692422866821
+d_total_error: tensor(1.3450, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6689020991325378
+D_fake_L[iter_count]: 0.6760818362236023
+d_total_error: tensor(1.2699, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6108853816986084
+D_fake_L[iter_count]: 0.659050703048706
+d_total_error: tensor(1.2781, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.716958224773407
+D_fake_L[iter_count]: 0.5611189603805542
+d_total_error: tensor(1.3219, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6282566785812378
+D_fake_L[iter_count]: 0.6936485767364502
+d_total_error: tensor(1.2780, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7942385077476501
+D_fake_L[iter_count]: 0.48376786708831787
+d_total_error: tensor(1.2407, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6013791561126709
+D_fake_L[iter_count]: 0.6393511295318604
+d_total_error: tensor(1.3404, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7582553625106812
+D_fake_L[iter_count]: 0.5821022391319275
+d_total_error: tensor(1.4876, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6657801866531372
+D_fake_L[iter_count]: 0.8217722177505493
+d_total_error: tensor(1.2982, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.626887321472168
+D_fake_L[iter_count]: 0.6712824106216431
+d_total_error: tensor(1.2525, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6897686123847961
+D_fake_L[iter_count]: 0.5627203583717346
+d_total_error: tensor(1.3596, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7543817162513733
+D_fake_L[iter_count]: 0.6052253246307373
+d_total_error: tensor(1.4708, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8326110243797302
+D_fake_L[iter_count]: 0.6382160186767578
+d_total_error: tensor(1.4865, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6976200342178345
+D_fake_L[iter_count]: 0.7889186143875122
+d_total_error: tensor(1.3200, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5171144604682922
+D_fake_L[iter_count]: 0.8029074668884277
+d_total_error: tensor(1.3005, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.668326199054718
+D_fake_L[iter_count]: 0.6321440935134888
+d_total_error: tensor(1.3749, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7552414536476135
+D_fake_L[iter_count]: 0.6197032928466797
+d_total_error: tensor(1.1829, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6548649072647095
+D_fake_L[iter_count]: 0.5279957056045532
+d_total_error: tensor(1.2699, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6708362102508545
+D_fake_L[iter_count]: 0.5990583896636963
+d_total_error: tensor(1.3664, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6474471092224121
+D_fake_L[iter_count]: 0.7189620733261108
+d_total_error: tensor(1.4526, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7572685480117798
+D_fake_L[iter_count]: 0.6953307390213013
+d_total_error: tensor(1.3242, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5102731585502625
+D_fake_L[iter_count]: 0.8139335513114929
+d_total_error: tensor(1.2715, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5246402025222778
+D_fake_L[iter_count]: 0.7468842267990112
+d_total_error: tensor(1.2648, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6418863534927368
+D_fake_L[iter_count]: 0.6229262948036194
+d_total_error: tensor(1.3623, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6946796178817749
+D_fake_L[iter_count]: 0.6675985455513
+d_total_error: tensor(1.3753, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6123202443122864
+D_fake_L[iter_count]: 0.7630144953727722
+d_total_error: tensor(1.2790, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5433631539344788
+D_fake_L[iter_count]: 0.7356560826301575
+d_total_error: tensor(1.4472, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7594549059867859
+D_fake_L[iter_count]: 0.6877772808074951
+d_total_error: tensor(1.2744, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5771386623382568
+D_fake_L[iter_count]: 0.6972300410270691
+d_total_error: tensor(1.2537, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6608710885047913
+D_fake_L[iter_count]: 0.5928027033805847
+d_total_error: tensor(1.1911, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6424163579940796
+D_fake_L[iter_count]: 0.5486849546432495
+d_total_error: tensor(1.2579, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6954796314239502
+D_fake_L[iter_count]: 0.5623801350593567
+d_total_error: tensor(1.3201, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6799595952033997
+D_fake_L[iter_count]: 0.6401017904281616
+d_total_error: tensor(1.2527, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5184572339057922
+D_fake_L[iter_count]: 0.7342586517333984
+d_total_error: tensor(1.3793, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7543460130691528
+D_fake_L[iter_count]: 0.6249229907989502
+d_total_error: tensor(1.2736, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5973106026649475
+D_fake_L[iter_count]: 0.6762946844100952
+d_total_error: tensor(1.2958, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.747144341468811
+D_fake_L[iter_count]: 0.5486316680908203
+d_total_error: tensor(1.2483, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5523097515106201
+D_fake_L[iter_count]: 0.6959645748138428
+d_total_error: tensor(1.2830, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6379987597465515
+D_fake_L[iter_count]: 0.6450035572052002
+d_total_error: tensor(1.2523, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6447470188140869
+D_fake_L[iter_count]: 0.6075506210327148
+d_total_error: tensor(1.1699, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6380344033241272
+D_fake_L[iter_count]: 0.531891942024231
+d_total_error: tensor(1.1736, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5219698548316956
+D_fake_L[iter_count]: 0.6515989303588867
+d_total_error: tensor(1.3320, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6893202662467957
+D_fake_L[iter_count]: 0.6426618695259094
+d_total_error: tensor(1.2172, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6985248923301697
+D_fake_L[iter_count]: 0.5187036395072937
+d_total_error: tensor(1.1073, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5329675674438477
+D_fake_L[iter_count]: 0.574375331401825
+d_total_error: tensor(0.9147, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5267329216003418
+D_fake_L[iter_count]: 0.3880104720592499
+d_total_error: tensor(1.0489, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.40912163257598877
+D_fake_L[iter_count]: 0.639799952507019
+d_total_error: tensor(1.1904, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7503174543380737
+D_fake_L[iter_count]: 0.44011738896369934
+d_total_error: tensor(1.0772, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.39030325412750244
+D_fake_L[iter_count]: 0.6869127750396729
+d_total_error: tensor(0.8479, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.526128351688385
+D_fake_L[iter_count]: 0.3217359781265259
+d_total_error: tensor(0.8240, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.35652798414230347
+D_fake_L[iter_count]: 0.467433363199234
+d_total_error: tensor(0.9848, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.614457368850708
+D_fake_L[iter_count]: 0.37034499645233154
+d_total_error: tensor(0.9333, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2687617838382721
+D_fake_L[iter_count]: 0.664530336856842
+d_total_error: tensor(0.6263, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3995518684387207
+D_fake_L[iter_count]: 0.2267349660396576
+d_total_error: tensor(0.9014, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5190654397010803
+D_fake_L[iter_count]: 0.3822880685329437
+d_total_error: tensor(0.5015, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.27318066358566284
+D_fake_L[iter_count]: 0.22832007706165314
+d_total_error: tensor(0.4580, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.17227999866008759
+D_fake_L[iter_count]: 0.2857489585876465
+d_total_error: tensor(0.2167, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.17109014093875885
+D_fake_L[iter_count]: 0.04559151455760002
+d_total_error: tensor(0.1899, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.08993424475193024
+D_fake_L[iter_count]: 0.10000786185264587
+d_total_error: tensor(0.1564, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.12073482573032379
+D_fake_L[iter_count]: 0.03567349165678024
+d_total_error: tensor(0.2502, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.08819904178380966
+D_fake_L[iter_count]: 0.16199690103530884
+d_total_error: tensor(0.3125, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.18484248220920563
+D_fake_L[iter_count]: 0.12763647735118866
+d_total_error: tensor(0.2360, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.1511172205209732
+D_fake_L[iter_count]: 0.0848923847079277
+d_total_error: tensor(0.2580, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.03587750345468521
+D_fake_L[iter_count]: 0.22212380170822144
+d_total_error: tensor(0.2262, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.20097726583480835
+D_fake_L[iter_count]: 0.02523175999522209
+d_total_error: tensor(0.2571, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.09263813495635986
+D_fake_L[iter_count]: 0.16444414854049683
+d_total_error: tensor(0.1689, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.11428084969520569
+D_fake_L[iter_count]: 0.0545915886759758
+d_total_error: tensor(0.1964, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.178659126162529
+D_fake_L[iter_count]: 0.017720216885209084
+d_total_error: tensor(0.4751, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.009524615481495857
+D_fake_L[iter_count]: 0.4655824303627014
+d_total_error: tensor(0.5411, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.48753821849823
+D_fake_L[iter_count]: 0.05357658863067627
+d_total_error: tensor(0.3062, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.029199331998825073
+D_fake_L[iter_count]: 0.27699995040893555
+d_total_error: tensor(0.1089, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.08425280451774597
+D_fake_L[iter_count]: 0.024685125797986984
+d_total_error: tensor(0.0616, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.048224978148937225
+D_fake_L[iter_count]: 0.013337766751646996
+d_total_error: tensor(0.1286, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.006765170022845268
+D_fake_L[iter_count]: 0.12178952991962433
+d_total_error: tensor(0.9823, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9737181663513184
+D_fake_L[iter_count]: 0.008550700731575489
+d_total_error: tensor(3.7104, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005650539882481098
+D_fake_L[iter_count]: 3.7047951221466064
+d_total_error: tensor(1.5586, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.3914400339126587
+D_fake_L[iter_count]: 0.16716061532497406
+d_total_error: tensor(1.4032, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.8245890140533447
+D_fake_L[iter_count]: 0.5786011815071106
+d_total_error: tensor(1.3361, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5062364339828491
+D_fake_L[iter_count]: 0.8299086093902588
+d_total_error: tensor(1.3099, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5666722059249878
+D_fake_L[iter_count]: 0.7432652115821838
+d_total_error: tensor(1.2589, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7774783372879028
+D_fake_L[iter_count]: 0.48144471645355225
+d_total_error: tensor(1.2351, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7587683796882629
+D_fake_L[iter_count]: 0.47629278898239136
+d_total_error: tensor(1.2298, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.633504331111908
+D_fake_L[iter_count]: 0.5962884426116943
+d_total_error: tensor(1.1219, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6052771210670471
+D_fake_L[iter_count]: 0.5165814161300659
+d_total_error: tensor(1.0908, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.44480904936790466
+D_fake_L[iter_count]: 0.645967423915863
+d_total_error: tensor(1.0746, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6315708160400391
+D_fake_L[iter_count]: 0.4430367052555084
+d_total_error: tensor(0.7939, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5033576488494873
+D_fake_L[iter_count]: 0.2905324697494507
+d_total_error: tensor(0.6485, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2776053249835968
+D_fake_L[iter_count]: 0.3708505928516388
+d_total_error: tensor(0.5097, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.26874202489852905
+D_fake_L[iter_count]: 0.24098801612854004
+d_total_error: tensor(0.2559, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.12835603952407837
+D_fake_L[iter_count]: 0.12755994498729706
+d_total_error: tensor(0.1357, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.062481414526700974
+D_fake_L[iter_count]: 0.0732496827840805
+d_total_error: tensor(0.1295, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04371081292629242
+D_fake_L[iter_count]: 0.08580071479082108
+d_total_error: tensor(0.1092, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.07612791657447815
+D_fake_L[iter_count]: 0.03302706032991409
+d_total_error: tensor(0.0649, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04926557093858719
+D_fake_L[iter_count]: 0.015606021508574486
+d_total_error: tensor(0.0675, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.025362025946378708
+D_fake_L[iter_count]: 0.04210677742958069
+d_total_error: tensor(0.0799, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.011382057331502438
+D_fake_L[iter_count]: 0.06849277019500732
+d_total_error: tensor(0.0855, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.05457715317606926
+D_fake_L[iter_count]: 0.030970513820648193
+d_total_error: tensor(0.0344, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.027236398309469223
+D_fake_L[iter_count]: 0.0071952869184315205
+d_total_error: tensor(0.0264, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.014554484747350216
+D_fake_L[iter_count]: 0.011807692237198353
+d_total_error: tensor(0.1182, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.015291683375835419
+D_fake_L[iter_count]: 0.10291583091020584
+d_total_error: tensor(0.7129, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7076767683029175
+D_fake_L[iter_count]: 0.005209842696785927
+d_total_error: tensor(1.9712, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.032263822853565216
+D_fake_L[iter_count]: 1.9389477968215942
+d_total_error: tensor(1.3805, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.2461071014404297
+D_fake_L[iter_count]: 0.1344425082206726
+d_total_error: tensor(1.3421, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.0027995109558105
+D_fake_L[iter_count]: 0.3392517566680908
+d_total_error: tensor(1.4097, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3808448910713196
+D_fake_L[iter_count]: 1.0288968086242676
+d_total_error: tensor(0.9945, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4270692467689514
+D_fake_L[iter_count]: 0.56744384765625
+d_total_error: tensor(0.6354, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.33869239687919617
+D_fake_L[iter_count]: 0.29673904180526733
+d_total_error: tensor(0.5100, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3583669662475586
+D_fake_L[iter_count]: 0.1516038477420807
+d_total_error: tensor(0.5849, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04679214581847191
+D_fake_L[iter_count]: 0.5380915403366089
+d_total_error: tensor(0.1356, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.07658111304044724
+D_fake_L[iter_count]: 0.0590205118060112
+d_total_error: tensor(0.1994, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.13772547245025635
+D_fake_L[iter_count]: 0.061653170734643936
+d_total_error: tensor(0.1225, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.05135105550289154
+D_fake_L[iter_count]: 0.07119694352149963
+d_total_error: tensor(0.0590, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005178498104214668
+D_fake_L[iter_count]: 0.05386659502983093
+d_total_error: tensor(0.0720, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.04265911132097244
+D_fake_L[iter_count]: 0.02931116707623005
+d_total_error: tensor(0.0365, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.010002810508012772
+D_fake_L[iter_count]: 0.02653370425105095
+d_total_error: tensor(0.0535, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.008941760286688805
+D_fake_L[iter_count]: 0.044565923511981964
+d_total_error: tensor(0.2302, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.22640712559223175
+D_fake_L[iter_count]: 0.0037509030662477016
+d_total_error: tensor(1.6183, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.025323763489723206
+D_fake_L[iter_count]: 1.5929508209228516
+d_total_error: tensor(3.4724, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 3.460062026977539
+D_fake_L[iter_count]: 0.012318059802055359
+d_total_error: tensor(1.6677, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.361680030822754
+D_fake_L[iter_count]: 0.3060220181941986
+d_total_error: tensor(1.3734, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4215438663959503
+D_fake_L[iter_count]: 0.9519016146659851
+d_total_error: tensor(1.3773, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3416536748409271
+D_fake_L[iter_count]: 1.0356343984603882
+d_total_error: tensor(1.1615, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5377658605575562
+D_fake_L[iter_count]: 0.6237450242042542
+d_total_error: tensor(1.2055, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.7531964778900146
+D_fake_L[iter_count]: 0.4522651731967926
+d_total_error: tensor(1.2113, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.776776909828186
+D_fake_L[iter_count]: 0.4344779849052429
+d_total_error: tensor(1.0435, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5703727006912231
+D_fake_L[iter_count]: 0.4731295704841614
+d_total_error: tensor(0.9438, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5029969811439514
+D_fake_L[iter_count]: 0.4407961964607239
+d_total_error: tensor(0.7165, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.24001282453536987
+D_fake_L[iter_count]: 0.47651124000549316
+d_total_error: tensor(0.4236, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.11261026561260223
+D_fake_L[iter_count]: 0.3109557628631592
+d_total_error: tensor(0.2211, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.16710251569747925
+D_fake_L[iter_count]: 0.05401851236820221
+d_total_error: tensor(0.1819, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.06948456168174744
+D_fake_L[iter_count]: 0.1124403104186058
+d_total_error: tensor(0.0546, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.02608340233564377
+D_fake_L[iter_count]: 0.02850106544792652
+d_total_error: tensor(0.0545, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.018309922888875008
+D_fake_L[iter_count]: 0.036158107221126556
+d_total_error: tensor(0.0639, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.033210523426532745
+D_fake_L[iter_count]: 0.030644532293081284
+d_total_error: tensor(0.1126, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.06044101342558861
+D_fake_L[iter_count]: 0.05213015899062157
+d_total_error: tensor(0.0441, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.026108521968126297
+D_fake_L[iter_count]: 0.017968222498893738
+d_total_error: tensor(0.0746, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.021483244374394417
+D_fake_L[iter_count]: 0.05312919244170189
+d_total_error: tensor(0.0734, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.009612707421183586
+D_fake_L[iter_count]: 0.06382196396589279
+d_total_error: tensor(0.2088, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.19401225447654724
+D_fake_L[iter_count]: 0.014774193987250328
+d_total_error: tensor(1.1795, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.005507966037839651
+D_fake_L[iter_count]: 1.1740070581436157
+d_total_error: tensor(1.9981, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 1.9580516815185547
+D_fake_L[iter_count]: 0.040062591433525085
+d_total_error: tensor(1.3490, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.9933328628540039
+D_fake_L[iter_count]: 0.35571610927581787
+d_total_error: tensor(0.9787, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.429184228181839
+D_fake_L[iter_count]: 0.5495302677154541
+d_total_error: tensor(0.9083, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.35379675030708313
+D_fake_L[iter_count]: 0.5545228719711304
+d_total_error: tensor(0.8247, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4516363739967346
+D_fake_L[iter_count]: 0.37304699420928955
+d_total_error: tensor(0.8128, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3026030659675598
+D_fake_L[iter_count]: 0.5102106332778931
+d_total_error: tensor(0.2321, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.1610412448644638
+D_fake_L[iter_count]: 0.07105062901973724
+d_total_error: tensor(0.3361, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.22728952765464783
+D_fake_L[iter_count]: 0.1088162511587143
+d_total_error: tensor(0.3012, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.03178992122411728
+D_fake_L[iter_count]: 0.26938915252685547
+d_total_error: tensor(0.0469, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.02543141320347786
+D_fake_L[iter_count]: 0.02150842919945717
+d_total_error: tensor(0.0622, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.050199251621961594
+D_fake_L[iter_count]: 0.012026526033878326
+d_total_error: tensor(0.0610, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.022985704243183136
+D_fake_L[iter_count]: 0.03796861693263054
+d_total_error: tensor(0.0424, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.016491621732711792
+D_fake_L[iter_count]: 0.025948364287614822
+d_total_error: tensor(0.0622, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.004815056454390287
+D_fake_L[iter_count]: 0.0573771707713604
+d_total_error: tensor(0.0376, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.011621344834566116
+D_fake_L[iter_count]: 0.025932200253009796
+d_total_error: tensor(0.0318, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.018233004957437515
+D_fake_L[iter_count]: 0.013532617129385471
+d_total_error: tensor(0.8226, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.12701424956321716
+D_fake_L[iter_count]: 0.6956297159194946
+d_total_error: tensor(3.9719, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 3.966771125793457
+D_fake_L[iter_count]: 0.0051743024960160255
+d_total_error: tensor(1.4184, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.6338893175125122
+D_fake_L[iter_count]: 0.7844699621200562
+d_total_error: tensor(1.3191, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.5420506000518799
+D_fake_L[iter_count]: 0.7770591974258423
+d_total_error: tensor(1.1722, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.2781465947628021
+D_fake_L[iter_count]: 0.8940505981445312
+d_total_error: tensor(0.9423, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3640115261077881
+D_fake_L[iter_count]: 0.5782484412193298
+d_total_error: tensor(0.9659, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.4680374562740326
+D_fake_L[iter_count]: 0.49786627292633057
+d_total_error: tensor(0.7749, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.3927934169769287
+D_fake_L[iter_count]: 0.38212883472442627
+d_total_error: tensor(0.6191, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.1490139365196228
+D_fake_L[iter_count]: 0.4700978696346283
+d_total_error: tensor(0.5040, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.23801451921463013
+D_fake_L[iter_count]: 0.2659769356250763
+d_total_error: tensor(0.3684, device='cuda:0', grad_fn=<AddBackward0>)
+D_real_L[iter_count]: 0.18739359080791473
+D_fake_L[iter_count]: 0.18103861808776855
