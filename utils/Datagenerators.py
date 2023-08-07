@@ -1,6 +1,8 @@
 # Import torch
 import torch
 from torch.utils.data import Dataset, DataLoader
+import numpy as np
+import xarray as xr
 
 # Create data generator in pytorch - Adapted from the keras class
 class DataGenerator(Dataset):
