@@ -434,6 +434,9 @@ class BasicLayer(nn.Module):
         return flops
 
 
+
+    
+    
 class PatchEmbed(nn.Module):
     r""" Image to Patch Embedding
 
