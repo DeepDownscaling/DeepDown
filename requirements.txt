@@ -1,6 +1,6 @@
 xarray
-pyproj
 pyyaml
+pyproj
 numpy
 dask
 torch

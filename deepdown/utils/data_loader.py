@@ -1,8 +1,6 @@
 import os
 import pickle
 import hashlib
-import dask
-import datetime
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -21,32 +19,40 @@ G = 9.80665
 def read_config(file_path):
     with open(file_path, "r") as f:
         return yaml.safe_load(f)
-    
+
+
 def print_config(config: DictConfig) -> None:
     """Print content of given config using Rich library and its tree structure.
     Args: config: Config to print to console using a Rich tree.
     """
+
     def walk_config(tree: Tree, config: DictConfig):
         """Recursive function to accumulate branch."""
         for group_name, group_option in config.items():
             if isinstance(group_option, dict):
-                #print('HERE', group_name)
-                branch = tree.add(str(group_name), style=Style(color='yellow', bold=True))
+                # print('HERE', group_name)
+                branch = tree.add(str(group_name),
+                                  style=Style(color='yellow', bold=True))
                 walk_config(branch, group_option)
             elif isinstance(group_option, ListConfig):
                 if not group_option:
-                    #print('THERE')
-                    tree.add(f'{group_name}: []', style=Style(color='yellow', bold=True))
+                    # print('THERE')
+                    tree.add(f'{group_name}: []',
+                             style=Style(color='yellow', bold=True))
                 else:
-                    #print('THA')
-                    tree.add(f'{str(group_name)}: {group_option}', style=Style(color='yellow', bold=True))
+                    # print('THA')
+                    tree.add(f'{str(group_name)}: {group_option}',
+                             style=Style(color='yellow', bold=True))
             else:
                 if group_name == '_target_':
-                    #print('THI')
-                    tree.add(f'{str(group_name)}: {group_option}', style=Style(color='white', italic=True, bold=True))
+                    # print('THI')
+                    tree.add(f'{str(group_name)}: {group_option}',
+                             style=Style(color='white', italic=True, bold=True))
                 else:
-                    #print('THO')
-                    tree.add(f'{str(group_name)}: {group_option}', style=Style(color='yellow', bold=True))
+                    # print('THO')
+                    tree.add(f'{str(group_name)}: {group_option}',
+                             style=Style(color='yellow', bold=True))
+
     tree = Tree(
         ':deciduous_tree: Configuration Tree ',
         style=Style(color='white', bold=True, encircle=True),
@@ -57,7 +63,6 @@ def print_config(config: DictConfig) -> None:
     walk_config(tree, config)
     get_console().print(tree)
 
-    
 
 def rename_dimensions_variables(ds):
     """
@@ -184,9 +189,9 @@ def precip_exceedance(precip, qt=0.95):
     xarray.DataArray
         The exceedances of the precipitation data.
     """
-    qq = xr.DataArray(precip).quantile(qt, dim='time') 
+    qq = xr.DataArray(precip).quantile(qt, dim='time')
     out = xr.DataArray(precip > qq)
-    out = out*1
+    out = out * 1
 
     return out
 
@@ -218,20 +223,21 @@ def load_data(vars, paths, date_start, date_end, lon_bnds, lat_bnds, levels):
     """
     data = []
     for i_var in range(0, len(vars)):
-        
-        dat = get_nc_data(paths[i_var] +'/*nc', date_start, date_end, lon_bnds, lat_bnds)
 
-        if 'level' in list(dat.coords): 
+        dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end, lon_bnds,
+                          lat_bnds)
+
+        if 'level' in list(dat.coords):
             print("Selecting level")
             lev = np.array(dat.level)
             l = [x for x in lev if x in levels]
             dat = dat.sel(level=l)
-            
+
         if vars[i_var] == 'z':
-            dat.z.values = dat.z.values/G
-            
+            dat.z.values = dat.z.values / G
+
         dat['time'] = pd.DatetimeIndex(dat.time.dt.date)
-    
+
         data.append(dat)
 
     return xr.merge(data)
@@ -257,8 +263,8 @@ def convert_to_xarray(a, lat, lon, time):
     xarray.DataArray
         The converted array.
     """
-    mx= xr.DataArray(a, dims=["time","lat", "lon"],
-                      coords=dict(time = time, lat = lat,lon = lon))
+    mx = xr.DataArray(a, dims=["time", "lat", "lon"],
+                      coords=dict(time=time, lat=lat, lon=lon))
     return mx
 
 
@@ -282,7 +288,7 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
     xarray.Dataset
         The target data.
     """
-    
+
     # Load from pickle
     target_pkl_file = f'tmp/target_{date_start}_{date_end}.pkl'
     target_loaded_from_pickle = False
@@ -291,7 +297,7 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
             target = pickle.load(f)
             target_loaded_from_pickle = True
             print('Target data loaded from pickle.')
-    
+
     # Read data from original files
     if not target_loaded_from_pickle:
         print('Extracting target data...')
@@ -300,7 +306,7 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
         t_abs = get_nc_data(path + '/TabsD_v2.0_swiss.lv95/*nc', date_start, date_end)
         t_max = get_nc_data(path + '/TmaxD_v2.0_swiss.lv95/*nc', date_start, date_end)
         t_min = get_nc_data(path + '/TminD_v2.0_swiss.lv95/*nc', date_start, date_end)
-        
+
         # Merge the target data
         target = xr.merge([pr, t_abs, t_max, t_min])
 
@@ -309,10 +315,11 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
             target = target.reindex(N=list(reversed(target.N)))
 
         # Crop the target data to the final domain
-        target = target.sel(E=slice(min(t_abs.E), max(t_abs.E)), N=slice(max(t_abs.N), min(t_abs.N)))
+        target = target.sel(E=slice(min(t_abs.E), max(t_abs.E)),
+                            N=slice(max(t_abs.N), min(t_abs.N)))
 
         # Rename coordinates
-        target = target.rename({'E': 'x','N': 'y'})
+        target = target.rename({'E': 'x', 'N': 'y'})
         target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'])
 
         # Save to pickle
@@ -324,7 +331,7 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
     return target
 
 
-def load_input_data(date_start, date_end, path_dem, input_vars, input_paths, 
+def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
                     levels, resol_low, x_axis, y_axis, dump_data_to_pickle=True):
     """
     Load the input data.
@@ -362,12 +369,12 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
     input_loaded_from_pickle = False
     if dump_data_to_pickle:
         tag = (
-            pickle.dumps(input_vars)
-            + pickle.dumps(input_paths)
-            + pickle.dumps(date_start)
-            + pickle.dumps(date_end)
-            + pickle.dumps(levels)
-            + pickle.dumps(resol_low)
+                pickle.dumps(input_vars)
+                + pickle.dumps(input_paths)
+                + pickle.dumps(date_start)
+                + pickle.dumps(date_end)
+                + pickle.dumps(levels)
+                + pickle.dumps(resol_low)
         )
 
         input_pkl_file = f"tmp/input_{hashlib.md5(tag).hexdigest()}.pkl"
@@ -401,31 +408,33 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
         # Load the predictors data
         era5_lon = [lon_min, lon_max]
         era5_lat = [lat_min, lat_max]
-        inputs = load_data(input_vars, input_paths, date_start, date_end, era5_lon, era5_lat, levels)
+        inputs = load_data(input_vars, input_paths, date_start, date_end, era5_lon,
+                           era5_lat, levels)
 
         # Interpolate low res data
         # Create a new xarray dataset with the new grid coordinates
         new_data_format = xr.Dataset(coords={'latitude': (('lat', 'lon'), lat_grid),
-                                            'longitude': (('lat', 'lon'), lon_grid)})
+                                             'longitude': (('lat', 'lon'), lon_grid)})
 
         # Interpolate the original data onto the new grid
-        inputs = inputs.interp(lat=new_data_format.latitude, lon=new_data_format.longitude, method='nearest')
+        inputs = inputs.interp(lat=new_data_format.latitude,
+                               lon=new_data_format.longitude, method='nearest')
 
         # Removing duplicate coordinates
         inputs = inputs.drop_vars(['lat', 'lon'])
 
         # Add the Swiss coordinates
-        inputs = inputs.assign_coords(x=(('lat', 'lon'), x_grid), 
+        inputs = inputs.assign_coords(x=(('lat', 'lon'), x_grid),
                                       y=(('lat', 'lon'), y_grid))
         # Rename variables before merging
-        inputs = inputs.rename({'lon': 'x','lat': 'y'})
+        inputs = inputs.rename({'lon': 'x', 'lat': 'y'})
         inputs = inputs.drop_vars(['latitude', 'longitude'])
 
         # Squeeze the 2D coordinates
         x_1d = inputs['x'][0, :]
         y_1d = inputs['y'][:, 0]
         inputs = inputs.assign(x=xr.DataArray(x_1d, dims='x'),
-                            y=xr.DataArray(y_1d, dims='y'))
+                               y=xr.DataArray(y_1d, dims='y'))
 
         # Invert y axis if needed
         if inputs.y[0].values < inputs.y[1].values:
@@ -441,4 +450,3 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
                 pickle.dump(input_data, f, protocol=-1)
 
     return input_data
-

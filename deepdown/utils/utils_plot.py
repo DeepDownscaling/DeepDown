@@ -3,9 +3,11 @@ import numpy as np
 import seaborn as sns
 import xarray as xr
 import geopandas as gpd
+import pandas as pd
 
 from matplotlib import colors
 import matplotlib.colors as mcolors
+
 
 def plot_prediction_scatter(y_test, y_pred):
     n_cols = 3
@@ -32,7 +34,7 @@ def plot_prediction_ts(test_dates, final_predictions, test_labels):
     df_to_compare = pd.DataFrame(
         {'date': test_dates, 'Actual': test_labels, 'Predicted': final_predictions})
     dfm = pd.melt(df_to_compare, id_vars=['date'], value_vars=[
-                  'Actual', 'Predicted'], var_name='data', value_name='precip')
+        'Actual', 'Predicted'], var_name='data', value_name='precip')
     f, axs = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
 
     sns.regplot(data=df_to_compare, x="Actual", y="Predicted", ax=axs[0], )
@@ -49,7 +51,8 @@ def plot_importance(features_importance, attributes, IMAGES_PATH):
     plt.show()
 
 
-def save_fig(fig_id, IMAGES_PATH, tight_layout=True, fig_extension="png", resolution=300):
+def save_fig(fig_id, IMAGES_PATH, tight_layout=True, fig_extension="png",
+             resolution=300):
     path = os.path.join(IMAGES_PATH, fig_id + "." + fig_extension)
     print("Saving figure", fig_id)
     if tight_layout:
@@ -58,7 +61,6 @@ def save_fig(fig_id, IMAGES_PATH, tight_layout=True, fig_extension="png", resolu
 
 
 def plot_hist(history):
-    
     # plot the train and validation losses
     N = np.arange(len(history.history['loss']))
     plt.figure()
@@ -68,7 +70,7 @@ def plot_hist(history):
     plt.xlabel('Epochs')
     plt.ylabel('Loss/Accuracy')
     plt.legend(loc='upper right')
-    
+
     plt.show()
 
 
@@ -80,8 +82,8 @@ def plot_map(ax, vals, title=None, vmin=None, vmax=None, cmap=None, show_colorba
         ax.set_title(title, fontsize=10)
     if show_colorbar:
         plt.colorbar(im, ax=ax, shrink=.5, pad=.1, aspect=8)
-        
-        
+
+
 def plot_relevances(rel):
     """ plot relevances for each variable, e.g., 31 (5 variables * 6 levels + 1 tpcw)
         Args: a matrix with the relevances calculated based on a specific method (e.g. LRP)
@@ -89,7 +91,7 @@ def plot_relevances(rel):
     n_figs = rel.shape[2]
     ncols = 5
     nrows = -(-n_figs // ncols)
-    fig, axes = plt.subplots(figsize=(24, 3.2*nrows), ncols=ncols, nrows=nrows)
+    fig, axes = plt.subplots(figsize=(24, 3.2 * nrows), ncols=ncols, nrows=nrows)
     # set title 
     n_tit = list(itertools.product(conf['variables'][:-1], conf['levels']))
     n_tit.append(conf['variables'][5])
@@ -97,48 +99,51 @@ def plot_relevances(rel):
         i_row = i // ncols
         i_col = i % ncols
         ax = axes[i_row, i_col]
-        vals = rel[:,:,i]
+        vals = rel[:, :, i]
         plot_map(ax, lons_x, lats_y, vals, title=str(n_tit[i]))
 
 
-def plot_xr_rel(rel, lats_y,lons_x, vnames, fname, cmap='Reds', vmin=None, vmax=None, vcenter=None, plot=True):
-    
-    
-    mx= xr.DataArray(rel, dims=["lat", "lon", "variable"],
-                  coords=dict(lat = lats_y, 
-            lon = lons_x, variable= vnames ))
-    
+def plot_xr_rel(rel, lats_y, lons_x, vnames, fname, cmap='Reds', vmin=None, vmax=None,
+                vcenter=None, plot=True):
+    mx = xr.DataArray(rel, dims=["lat", "lon", "variable"],
+                      coords=dict(lat=lats_y,
+                                  lon=lons_x, variable=vnames))
+
     if mx.min() == 0:
         norm = mcolors.TwoSlopeNorm(vcenter=0, vmax=mx.max())
     else:
         norm = mcolors.TwoSlopeNorm(vmin=mx.min(), vcenter=0, vmax=mx.max())
-        
-    
-    if vcenter is None:
-    
-        g = mx.plot.pcolormesh("lon", "lat", col="variable", col_wrap=4, robust=True, cmap=cmap,
-        yincrease = False, extend='both',vmin=vmin, vmax=vmax,
-        figsize=(14, 14),  cbar_kwargs={"orientation": "vertical", "shrink": 0.9, "aspect": 50})
-    
-    else:
-        
-        g = mx.plot.pcolormesh("lon", "lat", col="variable", col_wrap=4, robust=True, cmap=cmap,
-        yincrease = False, extend='both', norm = norm,
-        figsize=(14, 14),  cbar_kwargs={"orientation": "vertical", "shrink": 0.9, "aspect": 50})
-        
-    #figsize=(14, 12)
-    for ax, title in zip(g.axes.flat, vnames):
 
+    if vcenter is None:
+
+        g = mx.plot.pcolormesh("lon", "lat", col="variable", col_wrap=4, robust=True,
+                               cmap=cmap,
+                               yincrease=False, extend='both', vmin=vmin, vmax=vmax,
+                               figsize=(14, 14),
+                               cbar_kwargs={"orientation": "vertical", "shrink": 0.9,
+                                            "aspect": 50})
+
+    else:
+
+        g = mx.plot.pcolormesh("lon", "lat", col="variable", col_wrap=4, robust=True,
+                               cmap=cmap,
+                               yincrease=False, extend='both', norm=norm,
+                               figsize=(14, 14),
+                               cbar_kwargs={"orientation": "vertical", "shrink": 0.9,
+                                            "aspect": 50})
+
+    # figsize=(14, 12)
+    for ax, title in zip(g.axes.flat, vnames):
         world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
         world.boundary.plot(ax=ax, lw=1, color='k')
         ax.set_xlim(min(lons_x), max(lons_x))
         ax.set_title(title)
         ax.set_ylim(min(lats_y), max(lats_y))
-        
+
     # To control the space
     plt.subplots_adjust(right=0.8, wspace=-0.6, hspace=0.2)
     if plot:
         plt.savefig('figures/' + fname + '.pdf')
     else:
-        
+
         plt.draw()
