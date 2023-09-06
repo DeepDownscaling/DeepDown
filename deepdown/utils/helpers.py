@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
+def print_cuda_availability():
+    print("Cuda Avaliable :", torch.cuda.is_available())
+    print(device)
+
 def test_discriminator(training_set, Discriminator):
     x, y = (training_set.__getitem__(3))
     y = y.unsqueeze(0)

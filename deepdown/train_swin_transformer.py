@@ -7,24 +7,17 @@ import torch.utils.data as data
 
 # Utils
 from .utils.data_loader import *
-from .utils.utils_plot import *
 from .utils.utils_loss import *
 from .utils.helpers import *
 from .utils.data_generators import *
 from .models.SUNet import *
 from .constants import *
 
-# Try dask.distributed and see if the performance improves...
-from dask.distributed import Client
-
-# c = Client(n_workers=os.cpu_count()-2, threads_per_worker=1)
 
 warnings.filterwarnings("ignore", category=RuntimeWarning,
                         message="divide by zero encountered in divide")
 
-print("Cuda Avaliable :", torch.cuda.is_available())
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
+print_cuda_availability()
 
 
 def main():
