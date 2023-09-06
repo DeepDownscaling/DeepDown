@@ -36,7 +36,7 @@ from utils.utils_loss import *
 from utils.helpers import *
 from utils.Datagenerators import *
 from utils.SRGAN import *
-from src.train_srgan import *
+from deepdown.train_srgan import *
 
 # Try dask.distributed and see if the performance improves...
 from dask.distributed import Client

@@ -44,7 +44,7 @@ from utils.Datagenerators import *
 from models.SRGAN import *
 from models.swin_transformer import *
 from models.SUNet import *
-from src.constants import *
+from deepdown.constants import *
 
 # Try dask.distributed and see if the performance improves...
 from dask.distributed import Client
