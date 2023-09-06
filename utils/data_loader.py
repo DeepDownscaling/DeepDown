@@ -6,12 +6,58 @@ import datetime
 import numpy as np
 import xarray as xr
 import pandas as pd
+import yaml
 from pyproj import Transformer
+from omegaconf import DictConfig, ListConfig
+from rich import get_console
+from rich.style import Style
+from rich.tree import Tree
 
 
 # Some constants
 G = 9.80665
 
+
+def read_config(file_path):
+    with open(file_path, "r") as f:
+        return yaml.safe_load(f)
+    
+def print_config(config: DictConfig) -> None:
+    """Print content of given config using Rich library and its tree structure.
+    Args: config: Config to print to console using a Rich tree.
+    """
+    def walk_config(tree: Tree, config: DictConfig):
+        """Recursive function to accumulate branch."""
+        for group_name, group_option in config.items():
+            if isinstance(group_option, dict):
+                #print('HERE', group_name)
+                branch = tree.add(str(group_name), style=Style(color='yellow', bold=True))
+                walk_config(branch, group_option)
+            elif isinstance(group_option, ListConfig):
+                if not group_option:
+                    #print('THERE')
+                    tree.add(f'{group_name}: []', style=Style(color='yellow', bold=True))
+                else:
+                    #print('THA')
+                    tree.add(f'{str(group_name)}: {group_option}', style=Style(color='yellow', bold=True))
+            else:
+                if group_name == '_target_':
+                    #print('THI')
+                    tree.add(f'{str(group_name)}: {group_option}', style=Style(color='white', italic=True, bold=True))
+                else:
+                    #print('THO')
+                    tree.add(f'{str(group_name)}: {group_option}', style=Style(color='yellow', bold=True))
+    tree = Tree(
+        ':deciduous_tree: Configuration Tree ',
+        style=Style(color='white', bold=True, encircle=True),
+        guide_style=Style(color='bright_green', bold=True),
+        expanded=True,
+        highlight=True,
+    )
+    walk_config(tree, config)
+    get_console().print(tree)
+
+    
 
 def rename_dimensions_variables(ds):
     """
