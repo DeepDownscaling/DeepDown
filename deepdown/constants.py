@@ -1,7 +1,7 @@
 import yaml
 
 # Define paths and constant
-with open('config.yaml') as f:
+with open('../config.yaml') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 # Display options

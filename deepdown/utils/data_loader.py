@@ -268,7 +268,7 @@ def convert_to_xarray(a, lat, lon, time):
     return mx
 
 
-def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
+def load_target_data(date_start, date_end, path, dump_data_to_pickle=True, path_tmp='../tmp/'):
     """
     Load the target data.
 
@@ -282,6 +282,8 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
         The path to the data main directory.
     dump_data_to_pickle : bool
         Whether to dump the data to pickle or not.
+    path_tmp : str
+        The path to the temporary directory to save pickle files.
 
     Returns
     -------
@@ -290,7 +292,7 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
     """
 
     # Load from pickle
-    target_pkl_file = f'tmp/target_{date_start}_{date_end}.pkl'
+    target_pkl_file = f'{path_tmp}/target_{date_start}_{date_end}.pkl'
     target_loaded_from_pickle = False
     if dump_data_to_pickle and os.path.isfile(target_pkl_file):
         with open(target_pkl_file, 'rb') as f:
@@ -332,7 +334,8 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True):
 
 
 def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
-                    levels, resol_low, x_axis, y_axis, dump_data_to_pickle=True):
+                    levels, resol_low, x_axis, y_axis, dump_data_to_pickle=True,
+                    path_tmp='../tmp/'):
     """
     Load the input data.
 
@@ -358,6 +361,8 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
         The y coordinates of the final domain.
     dump_data_to_pickle : bool
         Whether to dump the data to pickle or not.
+    path_tmp : str
+        The path to the temporary directory to save pickle files.
 
     Returns
     -------
@@ -377,7 +382,7 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
                 + pickle.dumps(resol_low)
         )
 
-        input_pkl_file = f"tmp/input_{hashlib.md5(tag).hexdigest()}.pkl"
+        input_pkl_file = f"{path_tmp}/input_{hashlib.md5(tag).hexdigest()}.pkl"
         if os.path.isfile(input_pkl_file):
             with open(input_pkl_file, "rb") as f:
                 input_data = pickle.load(f)

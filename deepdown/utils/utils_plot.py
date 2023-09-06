@@ -79,9 +79,9 @@ def plot_map(ax, vals, title=None, vmin=None, vmax=None, cmap=None, show_colorba
     im = ax.imshow(vals, vmin=vmin, vmax=vmax, cmap=cmap)
     ax.axis('off')
     if title:
-        ax.set_title(title, fontsize=10)
+        ax.set_title(title, fontsize=12)
     if show_colorbar:
-        plt.colorbar(im, ax=ax, shrink=.5, pad=.1, aspect=8)
+        plt.colorbar(im, ax=ax, shrink=.5, pad=.05, aspect=16)
 
 
 def plot_relevances(rel):
