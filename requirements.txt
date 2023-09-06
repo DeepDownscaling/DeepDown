@@ -6,3 +6,5 @@ dask
 torch
 matplotlib
 scipy
+omegaconf
+rich
