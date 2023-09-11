@@ -15,12 +15,14 @@ try:
 
     kernel_path = os.path.abspath(os.path.join('..'))
     sys.path.append(kernel_path)
-    from kernels.window_process.window_process import WindowProcess, WindowProcessReverse
+    from kernels.window_process.window_process import WindowProcess, \
+        WindowProcessReverse
 
 except:
     WindowProcess = None
     WindowProcessReverse = None
-    print("[Warning] Fused window process have not been installed. Please refer to get_started.md for installation.")
+    print("[Warning] Fused window process have not been installed. "
+          "Please refer to get_started.md for installation.")
 
 
 class Mlp(nn.Module):
@@ -41,8 +43,6 @@ class Mlp(nn.Module):
         x = self.drop(x)
         return x
 
-    
-    
 
 def window_partition(x, window_size):
     """
@@ -90,7 +90,8 @@ class WindowAttention(nn.Module):
         proj_drop (float, optional): Dropout ratio of output. Default: 0.0
     """
 
-    def __init__(self, dim, window_size, num_heads, qkv_bias=True, qk_scale=None, attn_drop=0., proj_drop=0.):
+    def __init__(self, dim, window_size, num_heads, qkv_bias=True, qk_scale=None,
+                 attn_drop=0., proj_drop=0.):
 
         super().__init__()
         self.dim = dim
@@ -191,7 +192,9 @@ class SwinTransformerBlock(nn.Module):
         drop_path (float, optional): Stochastic depth rate. Default: 0.0
         act_layer (nn.Module, optional): Activation layer. Default: nn.GELU
         norm_layer (nn.Module, optional): Normalization layer.  Default: nn.LayerNorm
-        fused_window_process (bool, optional): If True, use one kernel to fused window shift & window partition for acceleration, similar for the reversed part. Default: False
+        fused_window_process (bool, optional): If True, use one kernel to fused window
+        shift & window partition for acceleration, similar for the reversed part.
+        Default: False
     """
 
     def __init__(self, dim, input_resolution, num_heads, window_size=7, shift_size=0,
@@ -334,12 +337,8 @@ class PatchMerging(nn.Module):
         """
         x: B, H*W, C
         """
-        
-        
         H, W = self.input_resolution
         B, L, C = x.shape
-        
-        
         assert L == H * W, "input feature has wrong size"
         assert H % 2 == 0 and W % 2 == 0, f"x size ({H}*{W}) are not even."
 
@@ -385,7 +384,9 @@ class BasicLayer(nn.Module):
         norm_layer (nn.Module, optional): Normalization layer. Default: nn.LayerNorm
         downsample (nn.Module | None, optional): Downsample layer at the end of the layer. Default: None
         use_checkpoint (bool): Whether to use checkpointing to save memory. Default: False.
-        fused_window_process (bool, optional): If True, use one kernel to fused window shift & window partition for acceleration, similar for the reversed part. Default: False
+        fused_window_process (bool, optional): If True, use one kernel to fused window
+        shift & window partition for acceleration, similar for the reversed part.
+        Default: False
     """
 
     def __init__(self, dim, input_resolution, depth, num_heads, window_size,
@@ -440,6 +441,9 @@ class BasicLayer(nn.Module):
         return flops
 
 
+
+
+
 class PatchEmbed(nn.Module):
     r""" Image to Patch Embedding
 
@@ -456,7 +460,6 @@ class PatchEmbed(nn.Module):
         img_size = to_2tuple(img_size)
         patch_size = to_2tuple(patch_size)
         patches_resolution = [img_size[0] // patch_size[0], img_size[1] // patch_size[1]]
-       
         self.img_size = img_size
         self.patch_size = patch_size
         self.patches_resolution = patches_resolution
@@ -548,31 +551,33 @@ class SwinTransformer(nn.Module):
         self.pos_drop = nn.Dropout(p=drop_rate)
 
         # stochastic depth
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate,
+                                                sum(depths))]  # stochastic depth decay rule
 
         # build layers
         self.layers = nn.ModuleList()
         for i_layer in range(self.num_layers):
-            layer = BasicLayer(dim=int(embed_dim * 2 ** i_layer),
-                               input_resolution=(patches_resolution[0] // (2 ** i_layer),
-                                                 patches_resolution[1] // (2 ** i_layer)),
-                               depth=depths[i_layer],
-                               num_heads=num_heads[i_layer],
-                               window_size=window_size,
-                               mlp_ratio=self.mlp_ratio,
-                               qkv_bias=qkv_bias, qk_scale=qk_scale,
-                               drop=drop_rate, attn_drop=attn_drop_rate,
-                               drop_path=dpr[sum(depths[:i_layer]):sum(depths[:i_layer + 1])],
-                               norm_layer=norm_layer,
-                               downsample=PatchMerging if (i_layer < self.num_layers - 1) else None,
-                               use_checkpoint=use_checkpoint,
-                               fused_window_process=fused_window_process)
+            layer = BasicLayer(
+                dim=int(embed_dim * 2 ** i_layer),
+                input_resolution=(patches_resolution[0] // (2 ** i_layer),
+                                  patches_resolution[1] // (2 ** i_layer)),
+                depth=depths[i_layer],
+                num_heads=num_heads[i_layer],
+                window_size=window_size,
+                mlp_ratio=self.mlp_ratio,
+                qkv_bias=qkv_bias, qk_scale=qk_scale,
+                drop=drop_rate, attn_drop=attn_drop_rate,
+                drop_path=dpr[sum(depths[:i_layer]):sum(depths[:i_layer + 1])],
+                norm_layer=norm_layer,
+                downsample=PatchMerging if (i_layer < self.num_layers - 1) else None,
+                use_checkpoint=use_checkpoint,
+                fused_window_process=fused_window_process)
             self.layers.append(layer)
 
         self.norm = norm_layer(self.num_features)
         self.avgpool = nn.AdaptiveAvgPool1d(1)
         self.head = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
-      #  self.head = nn.Linear(self.num_features, 2)
+
         self.apply(self._init_weights)
 
     def _init_weights(self, m):

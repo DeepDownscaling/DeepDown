@@ -1,8 +1,10 @@
 xarray
-pyproj
 pyyaml
+pyproj
 numpy
 dask
 torch
 matplotlib
 scipy
+omegaconf
+rich

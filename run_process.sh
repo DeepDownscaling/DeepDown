@@ -19,5 +19,7 @@ conda activate /storage/homefs/no21h426/.conda/envs/pyTT
 
 #activate the env with pip!
 
-#srun python src/DL_simple_GAN.py --config_file='/storage/homefs/no21h426/DL-downscaling/config.yaml'
+pip install -e .
+
+#srun python deepdown/train_simple_gan.py --config_file='/storage/homefs/no21h426/DL-downscaling/config.yaml'
 srun python src/DL_SwinTransformer.py --config_file='/storage/homefs/no21h426/DL-downscaling/config.yaml'

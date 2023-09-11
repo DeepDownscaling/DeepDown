@@ -2,10 +2,9 @@ import torch
 import numpy as np
 import torch.nn as nn
 
-
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 dtype = torch.float32
+
 
 class MeanSquaredErrorNans(nn.Module):
     def __init__(self):
@@ -20,7 +19,8 @@ class MeanSquaredErrorNans(nn.Module):
         loss = torch.square(y_pred - y_true)
         loss_sum = torch.sum(loss)
         return loss_sum / nb_values
-    
+
+
 def generator_loss(gen_img, true_img, logits_fake, weight_param=1e-3):
     """
     Computes the generator loss described above.
@@ -40,17 +40,18 @@ def generator_loss(gen_img, true_img, logits_fake, weight_param=1e-3):
     # work for us (at least pretrained) because climate data looks so different from normal pictures
     content_loss_func = nn.MSELoss()
     content_loss = content_loss_func(gen_img, true_img)
-        
+
     N = logits_fake.shape[0]
-    desired_labels = torch.ones(N,1).to(device=device, dtype=dtype)
+    desired_labels = torch.ones(N, 1).to(device=device, dtype=dtype)
     BCE_Loss = nn.BCELoss()
     adversarial_loss = BCE_Loss(logits_fake, desired_labels)
-    
-    total_loss = content_loss + weight_param*adversarial_loss
-#     print("Total loss: ", total_loss.cpu().detach().numpy())
-#     print("content loss: ", content_loss.cpu().detach().numpy())
-#     print("adversarial loss: ", adversarial_loss.cpu().detach().numpy())
+
+    total_loss = content_loss + weight_param * adversarial_loss
+    #     print("Total loss: ", total_loss.cpu().detach().numpy())
+    #     print("content loss: ", content_loss.cpu().detach().numpy())
+    #     print("adversarial loss: ", adversarial_loss.cpu().detach().numpy())
     return total_loss, content_loss, adversarial_loss
+
 
 def discriminator_loss(logits_real, logits_fake):
     """
@@ -68,20 +69,18 @@ def discriminator_loss(logits_real, logits_fake):
     """
     # How often it mistakes real images for fake
     N = logits_real.shape[0]
-    real_labels = torch.ones(N,1).to(device=device, dtype=dtype)
+    real_labels = torch.ones(N, 1).to(device=device, dtype=dtype)
     BCE_Loss = nn.BCELoss()
     L1 = BCE_Loss(logits_real, real_labels)
-        
+
     # How often it gets fooled into thinking fake images are real
-    fake_labels = torch.zeros(N,1).to(device=device, dtype=dtype)
+    fake_labels = torch.zeros(N, 1).to(device=device, dtype=dtype)
     L2 = BCE_Loss(logits_fake, fake_labels)
-    
-#     print("L1 (how bad on real data): %f\t L2 (how bad on fake data): %f" % (L1, L2))
-    
+
+    #     print("L1 (how bad on real data): %f\t L2 (how bad on fake data): %f" % (L1, L2))
+
     loss = (L1 + L2)
     return loss, L1, L2
-
-
 
 
 def generator_withNan_loss(gen_img, true_img, logits_fake, weight_param=1e-3):
@@ -98,24 +97,25 @@ def generator_withNan_loss(gen_img, true_img, logits_fake, weight_param=1e-3):
     - loss: PyTorch Tensor containing the (scalar) loss for the generator.
     """
     #
-    if torch.isnan(gen_img).any() or torch.isnan(true_img).any() or torch.isnan(logits_fake).any():
+    if torch.isnan(gen_img).any() or torch.isnan(true_img).any() or torch.isnan(
+            logits_fake).any():
         # Handle NaN values here
         # Replace NaN values in gen_img and true_img with zeros
         gen_img = torch.where(torch.isnan(gen_img), torch.zeros_like(gen_img), gen_img)
-        true_img = torch.where(torch.isnan(true_img), torch.zeros_like(true_img), true_img)
+        true_img = torch.where(torch.isnan(true_img), torch.zeros_like(true_img),
+                               true_img)
 
-    
     # Content loss - MSE loss
     content_loss_func = nn.MSELoss()
     content_loss = content_loss_func(gen_img, true_img)
-        
+
     N = logits_fake.shape[0]
     desired_labels = torch.ones(N, 1).to(device=device, dtype=dtype)
     BCE_Loss = nn.BCELoss()
     adversarial_loss = BCE_Loss(logits_fake, desired_labels)
-    
+
     total_loss = content_loss + weight_param * adversarial_loss
-    
+
     return total_loss, content_loss, adversarial_loss
 
 
@@ -133,16 +133,20 @@ def discriminator_with_Nan_loss(logits_real, logits_fake):
     # Handle NaN values
     if torch.isnan(logits_real).any() or torch.isnan(logits_fake).any():
         # Replace NaN values with zeros
-        logits_real = torch.where(torch.isnan(logits_real), torch.zeros_like(logits_real), logits_real)
-        logits_fake = torch.where(torch.isnan(logits_fake), torch.zeros_like(logits_fake), logits_fake)
+        logits_real = torch.where(torch.isnan(logits_real),
+                                  torch.zeros_like(logits_real), logits_real)
+        logits_fake = torch.where(torch.isnan(logits_fake),
+                                  torch.zeros_like(logits_fake), logits_fake)
 
     N = logits_real.shape[0]
-    real_labels = torch.ones(N, 1).to(device=logits_real.device, dtype=logits_real.dtype)
-    fake_labels = torch.zeros(N, 1).to(device=logits_fake.device, dtype=logits_fake.dtype)
-    
+    real_labels = torch.ones(N, 1).to(device=logits_real.device,
+                                      dtype=logits_real.dtype)
+    fake_labels = torch.zeros(N, 1).to(device=logits_fake.device,
+                                       dtype=logits_fake.dtype)
+
     BCE_Loss = nn.BCELoss()
     L1 = BCE_Loss(logits_real, real_labels)
     L2 = BCE_Loss(logits_fake, fake_labels)
-    
+
     loss = L1 + L2
     return loss, L1, L2
