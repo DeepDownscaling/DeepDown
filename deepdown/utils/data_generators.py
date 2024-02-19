@@ -9,18 +9,34 @@ class DataGenerator(Dataset):
     def __init__(self, dx, dy, input_vars, output_vars, shuffle=True, load=True,
                  mean=None, std=None, tp_log=None):
         """
-        Data generator for WeatherBench data.
-        Template from https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
-        Args:
-            dx: Dataset containing all input variables
-            dy: Dataset containing the data to predict
-            input_vars: Dictionary of the form {'var': level}. Use None for level if data is of single level
-            output_vars: List of variables to be predicted
-            shuffle: bool. If True, data is shuffled.
-            load: bool. If True, datadet is loaded into RAM.
-            mean: If None, compute mean from data.
-            std: If None, compute standard deviation from data.
-            tp_log: Log transformation for precipitation. If None, no transformation is applied.
+        Data generator. Template from:
+        https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
+
+        Parameters
+        ----------
+        dx: xarray Dataset
+            Input data.
+        dy: xarray Dataset
+            Data to predict.
+        input_vars: dict
+            Dictionary of input variables. Keys are variable names and values are
+            the pressure levels. Use None for variables on a single level.
+        output_vars: dict
+            Dictionary of output variables. Keys are variable names and values are
+            the pressure levels. Use None for variables on a single level.
+        shuffle: bool
+            If True, the data is shuffled.
+        load: bool
+            If True, the data is loaded into memory.
+        mean: xarray Dataset
+            Mean to subtract from data for normalization.
+            If None, it is computed from the data.
+        std: xarray Dataset
+            Standard deviation to subtract from data for normalization.
+            If None, it is computed from the data.
+        tp_log: float
+            If not None, applies a log transformation to the variable 'tp' using the
+            given value as a threshold.
         """
 
         self.dx = dx
@@ -28,6 +44,7 @@ class DataGenerator(Dataset):
         self.input_vars = input_vars
         self.output_vars = output_vars
         self.shuffle = shuffle
+        self.idxs = None
 
         data = []
         generic_level = xr.DataArray([1], coords={'level': [1]}, dims=['level'])
@@ -53,7 +70,8 @@ class DataGenerator(Dataset):
         # Normalize 
         self.mean = self.data.mean(
             ('time', 'y', 'x')).compute() if mean is None else mean
-        self.std = self.data.mean(('time', 'y', 'x')).compute() if std is None else std
+        self.std = self.data.std(
+            ('time', 'y', 'x')).compute() if std is None else std
         self.data = (self.data - self.mean) / self.std
 
         # Get indices of samples
@@ -66,18 +84,17 @@ class DataGenerator(Dataset):
         # Concatenate the DataArray objects along a new dimension
         self.dy = xr.concat(self.dy, dim='level').transpose('level', 'y', 'x', 'time')
 
-        # For some weird reason calling .load() earlier messes up the mean and std computations
         if load:
             print('Loading data into RAM')
             self.data.load()
             self.dy.load()
 
     def __len__(self):
-        'Denotes the number of samples'
+        """Denotes the number of samples"""
         return self.n_samples
 
     def __getitem__(self, idx):
-        'Loads and returns a sample from the dataset'
+        """Loads and returns a sample from the dataset"""
         idxs = self.idxs[idx]
         X = (torch.Tensor(self.data.isel(time=idxs).values))
         y = (torch.Tensor(self.dy.isel(time=idxs).values))
@@ -89,13 +106,15 @@ class DataGenerator(Dataset):
         return X, y
 
     def on_epoch_end(self):
-        'Updates indexes after each epoch'
+        """Updates indexes after each epoch"""
         self.idxs = np.arange(self.n_samples)
-        if self.shuffle == True:
+        if self.shuffle:
             np.random.shuffle(self.idxs)
 
+    @staticmethod
     def log_trans(x, e):
         return np.log(x + e) - np.log(e)
 
+    @staticmethod
     def log_retrans(x, e):
         return np.exp(x + np.log(e)) - e
