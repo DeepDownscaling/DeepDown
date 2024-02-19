@@ -1,35 +1,38 @@
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def print_cuda_availability():
-    print("Cuda Avaliable :", torch.cuda.is_available())
-    print(device)
+    """Prints whether cuda is available and the device being used."""
+    print("Cuda available :", torch.cuda.is_available())
+    print(DEVICE)
 
-def test_discriminator(training_set, Discriminator):
+
+def test_discriminator(training_set, discriminator, num_channels_out, h, w):
+    """
+    Test the discriminator model with a sample from the training set.
+
+    Parameters
+    ----------
+    training_set: DataLoader
+        DataLoader for the training set
+    discriminator: class
+        PyTorch Discriminator model
+    num_channels_out: int
+        Number of output channels
+    h: int
+        Height of the image
+    w: int
+        Width of the image
+    """
     x, y = (training_set.__getitem__(3))
     y = y.unsqueeze(0)
     print("y: ", y.shape)
-    model = Discriminator(num_channels=NUM_CHANNELS_OUT, H=h, W=w)
+    model = discriminator(num_channels=num_channels_out, H=h, W=w)
     output = model(y)
     print(output.size())
-    print(output)
-
-
-def test_withnan_discriminator(training_set):
-    x, y = training_set.__getitem__(3)
-    y = y.unsqueeze(0)
-    print("y shape:", y.shape)
-
-    # Replace NaN values with a valid value
-    y = torch.where(torch.isnan(y), torch.zeros_like(y), y)
-
-    model = Discriminator(num_channels=NUM_CHANNELS_OUT, H=h, W=w)
-    output = model(y)
-    print("Output size:", output.size())
     print(output)
 
 
@@ -41,8 +44,8 @@ def check_generator_accuracy(loader, model):
     # rmse_temp_ypred, rmse_temp_x = 0, 0
     with torch.no_grad():
         for x, y in loader:
-            model = model.to(device=device)
-            y = y.to(device=device, dtype=dtype)
+            model = model.to(device=DEVICE)
+            y = y.to(device=DEVICE, dtype=dtype)
 
             # Normalize x to be in -1 to 1 for purpose of comparing with high res data in same range
             # Turn it into a numpy array
@@ -54,8 +57,8 @@ def check_generator_accuracy(loader, model):
             x_norm_np = (x_np - x_min) / ((x_max - x_min + is_nan * eps) / 2) - 1
 
             x_norm = torch.from_numpy(x_norm_np)
-            x_norm = x_norm.to(device=device, dtype=dtype)
-            x = x.to(device=device, dtype=dtype)
+            x_norm = x_norm.to(device=DEVICE, dtype=dtype)
+            x = x.to(device=DEVICE, dtype=dtype)
 
             y_predicted = model(x)
             rmse_precip_ypred += torch.sqrt(
@@ -77,16 +80,16 @@ def check_generator_accuracy(loader, model):
 
 
 def check_discriminator_accuracy(loader, D, G):
-    D = D.to(device=device)
-    G = G.to(device=device)
+    D = D.to(device=DEVICE)
+    G = G.to(device=DEVICE)
     D.eval()  # set model to evaluation mode
     G.eval()
 
     count, avg_true_pred, avg_fake_pred = 0, 0, 0
     with torch.no_grad():
         for x, y in loader:
-            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            y = y.to(device=device, dtype=dtype)
+            x = x.to(device=DEVICE, dtype=dtype)  # move to device, e.g. GPU
+            y = y.to(device=DEVICE, dtype=dtype)
 
             true_pred = D(y)
             avg_true_pred += true_pred.sum()
@@ -107,8 +110,8 @@ def check_generator_with_nan_accuracy(loader, model):
     count, rmse_precip_ypred, rmse_precip_x = 0, 0, 0
     with torch.no_grad():
         for x, y in loader:
-            model = model.to(device=device)
-            y = y.to(device=device, dtype=dtype)
+            model = model.to(device=DEVICE)
+            y = y.to(device=DEVICE, dtype=dtype)
 
             x_np = x.numpy()
             x_min = np.amin(x_np, axis=(2, 3))[:, :, np.newaxis, np.newaxis]
@@ -119,8 +122,8 @@ def check_generator_with_nan_accuracy(loader, model):
             x_norm_np[np.isnan(x_norm_np)] = 0  # Replace NaN values with zeros
 
             x_norm = torch.from_numpy(x_norm_np)
-            x_norm = x_norm.to(device=device, dtype=dtype)
-            x = x.to(device=device, dtype=dtype)
+            x_norm = x_norm.to(device=DEVICE, dtype=dtype)
+            x = x.to(device=DEVICE, dtype=dtype)
 
             y_predicted = model(x)
             y_predicted[np.isnan(y_predicted)] = 0  # Replace NaN values with zeros
@@ -138,16 +141,16 @@ def check_generator_with_nan_accuracy(loader, model):
 
 
 def check_discriminator_with_nan_accuracy(loader, D, G):
-    D = D.to(device=device)
-    G = G.to(device=device)
+    D = D.to(device=DEVICE)
+    G = G.to(device=DEVICE)
     D.eval()
     G.eval()
 
     count, avg_true_pred, avg_fake_pred = 0, 0, 0
     with torch.no_grad():
         for x, y in loader:
-            x = x.to(device=device, dtype=dtype)
-            y = y.to(device=device, dtype=dtype)
+            x = x.to(device=DEVICE, dtype=dtype)
+            y = y.to(device=DEVICE, dtype=dtype)
 
             true_pred = D(y)
             true_pred[np.isnan(true_pred)] = 0  # Replace NaN values with zeros
@@ -163,45 +166,6 @@ def check_discriminator_with_nan_accuracy(loader, D, G):
         avg_fake_pred /= count
         print("Average prediction score on real data: %f" % (avg_true_pred))
         print("Average prediction score on fake data: %f" % (avg_fake_pred))
-
-
-# Helper functions for plotting
-def plot_epoch(x, y_pred, y):
-    figsize = (9, 4)
-    plt.figure(figsize=figsize)
-    plt.subplot(1, 3, 1)
-    plt.imshow(x[0, 0, :, :].cpu().detach().numpy())
-    plt.title("Input Precip")
-    plt.subplot(1, 3, 2)
-    plt.imshow(y_pred[0, 0, :, :].cpu().detach().numpy())
-    plt.title("Output Precip")
-    plt.subplot(1, 3, 3)
-    plt.imshow(y[0, 0, :, :].cpu().detach().numpy())
-    plt.title("True Precip")
-
-
-def plot_loss(G_content, G_advers, D_real_L, D_fake_L, weight_param):
-    D_count = np.count_nonzero(D_real_L)
-    G_count = np.count_nonzero(G_content)
-
-    plt.figure(figsize=(12, 4))
-    plt.subplot(1, 2, 1)
-    plt.plot(range(G_count), G_content[range(G_count)])
-    plt.plot(range(G_count), G_advers[range(G_count)])
-    plt.plot(range(G_count),
-             G_content[range(G_count)] + weight_param * G_advers[range(G_count)])
-    plt.legend(("Content", "Adversarial", "Total"))
-    plt.title("Generator loss")
-    plt.xlabel("Iteration")
-
-    plt.subplot(1, 2, 2)
-    plt.plot(range(D_count), D_real_L[range(D_count)])
-    plt.plot(range(D_count), D_fake_L[range(D_count)])
-    plt.plot(range(D_count), D_real_L[range(D_count)] + D_fake_L[range(D_count)])
-    plt.legend(("Real Pic", "Fake Pic", "Total"))
-    plt.title("Discriminator loss")
-    plt.xlabel("Iteration")
-    plt.show()
 
 
 def pad_to(x, stride):
