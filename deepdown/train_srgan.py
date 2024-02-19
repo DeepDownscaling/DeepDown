@@ -1,6 +1,7 @@
 # Common imports
 import argparse
 import time
+import numpy as np
 
 # Import torch
 from torch.utils.data import Dataset
@@ -43,9 +44,7 @@ def main(conf):
     crop_y = conf.get('crop_y', [1190000, 1260000])
 
     # Hyperparameters
-    num_channels_in = conf.get('num_channels_in')
-    num_channels_out = conf.get('num_channels_out')
-    lr = conf.get('lr')
+    lr = conf.get('lr', 0.0002)
     batch_size = conf.get('batch_size', 32)
     num_epochs = conf.get('num_epochs', 100)
 
@@ -102,8 +101,13 @@ def main(conf):
     print("y max: ",torch.max(test_y))
     torch.cuda.empty_cache()
 
+    h, w = test_y.shape
+    lowres_shape = test_x.shape
+    num_channels_in = test_x.shape[0]
+    num_channels_out = test_y.shape[0]
+
     D = Discriminator(num_channels=num_channels_out, H=h, W=w)
-    G = Generator(num_channels_in, input_size=config['lowres_shape'],
+    G = Generator(num_channels_in, input_size=lowres_shape,
                   output_channels=num_channels_out)
 
     # Define optimizer for discriminator
@@ -163,11 +167,11 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
     for epoch in range(num_epochs):
 
         for x, y in loader_train:
-            high_res_imgs = y.to(device=DEVICE, dtype=dtype)
+            high_res_imgs = y.to(device=DEVICE, dtype=torch.float32)
             logits_real = D(high_res_imgs)
 
             x.requires_grad_()
-            low_res_imgs = x.to(device=DEVICE, dtype=dtype)
+            low_res_imgs = x.to(device=DEVICE, dtype=torch.float32)
             fake_images = G(low_res_imgs)
             logits_fake = D(fake_images)
 
