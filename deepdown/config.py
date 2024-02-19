@@ -1,44 +1,61 @@
-import yaml
+from omegaconf import OmegaConf, DictConfig, ListConfig
+from pathlib import Path
+from rich import get_console
+from rich.style import Style
+from rich.tree import Tree
 
-# Define paths and constant
-with open('../config.yaml') as f:
-    config = yaml.load(f, Loader=yaml.FullLoader)
+"""
+Class to handle the configuration, such as path to data and directories.
+"""
 
-# Display options
-PLOT_DATA_FULL_EXTENT = False
-PLOT_DATA_CROPPED = False
 
-PATH_DEM = config['PATH_DEM']
-PATH_ERA5_025 = config['PATH_ERA5_025']  # Original ERA5 0.25°
-PATH_ERA5_100 = config['PATH_ERA5_100']  # ERA5 1°
-PATH_MCH = config['PATH_MeteoSwiss']
+class Config:
 
-NUM_CHANNELS_IN = config['NUM_CHANNELS_IN']
-NUM_CHANNELS_OUT = config['NUM_CHANNELS_OUT']
-lr = config['lr']
+    def __init__(self, cli_args):
+        # Load options from config file
+        if cli_args.config_file:
+            self.config = OmegaConf.load(cli_args.config_file)
+        elif Path('config.yaml').exists():
+            self.config = OmegaConf.load('config.yaml')
+        elif Path('../config.yaml').exists():
+            self.config = OmegaConf.load('../config.yaml')
+        else:
+            self.config = OmegaConf.create()
 
-# Data options
-DATE_START = config['DATE_START']
-DATE_END = config['DATE_END']
-YY_TRAIN = config['YY_TRAIN']
-YY_TEST = config['YY_TEST']
-LEVELS = config['LEVELS']
-RESOL_LOW = config['RESOL_LOW']
-INPUT_VARIABLES = config['INPUT_VARIABLES']
-INPUT_PATHS = [PATH_ERA5_025 + '/precipitation', PATH_ERA5_025 + '/temperature']
-DUMP_DATA_TO_PICKLE = config['DUMP_DATA_TO_PICKLE']
+        # Merge options from CLI
+        self.config = OmegaConf.merge(self.config, OmegaConf.from_cli())
 
-NUM_CHANNELS_IN = config['NUM_CHANNELS_IN']
-NUM_CHANNELS_OUT = config['NUM_CHANNELS_OUT']
-lr = config['lr']
-# Crop on a smaller region
-DO_CROP = config['DO_CROP']
-# I reduce the area of crop now, to avoid NA
-CROP_X = [2680000, 2760000]  # with NAN: [2720000, 2770000]
-CROP_Y = [1180000, 1260000]  # with NAN: [1290000, 1320000]
+    def print(self) -> None:
+        """Print content of given config using Rich library and its tree structure."""
 
-device = config['device']
-dtype = config['dtype']
-# Hyperparameters
-BATCH_SIZE = 32
-h, w = config['lowres_shape']
+        def walk_config(tree: Tree, config: DictConfig):
+            """Recursive function to accumulate branch."""
+            for group_name, group_option in config.items():
+                if isinstance(group_option, dict):
+                    branch = tree.add(str(group_name),
+                                      style=Style(color='yellow', bold=True))
+                    walk_config(branch, group_option)
+                elif isinstance(group_option, ListConfig):
+                    if not group_option:
+                        tree.add(f'{group_name}: []',
+                                 style=Style(color='yellow', bold=True))
+                    else:
+                        tree.add(f'{str(group_name)}: {group_option}',
+                                 style=Style(color='yellow', bold=True))
+                else:
+                    if group_name == '_target_':
+                        tree.add(f'{str(group_name)}: {group_option}',
+                                 style=Style(color='white', italic=True, bold=True))
+                    else:
+                        tree.add(f'{str(group_name)}: {group_option}',
+                                 style=Style(color='yellow', bold=True))
+
+        tree = Tree(
+            ':deciduous_tree: Configuration Tree ',
+            style=Style(color='white', bold=True, encircle=True),
+            guide_style=Style(color='bright_green', bold=True),
+            expanded=True,
+            highlight=True,
+        )
+        walk_config(tree, self.config)
+        get_console().print(tree)

@@ -10,6 +10,7 @@ from .utils.utils_loss import *
 from .utils.data_generators import *
 from .utils.helpers import print_cuda_availability
 from .models.SRGAN import *
+from deepdown.config import Config
 
 
 argParser = argparse.ArgumentParser()
@@ -18,7 +19,7 @@ argParser.add_argument("--config_file", help="Path to the .yml config file")
 print_cuda_availability()
 
 
-def main(config):
+def main(conf):
     # Paths
     PATH_DEM = config['PATH_DEM']
     PATH_ERA5_025 = config['PATH_ERA5_025']  # Original ERA5 0.25°
@@ -215,8 +216,7 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
 
 if __name__ == "__main__":
     args = argParser.parse_args()
+    config = Config(args)
+    config.print()
 
-    config = read_config(args.config_file)
-
-    print_config(config)
-    main(config)
+    main(config.config)
