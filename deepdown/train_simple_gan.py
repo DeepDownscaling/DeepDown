@@ -1,110 +1,111 @@
 # Common imports
 import argparse
+import time
 
 # Import torch
 from torch.utils.data import Dataset
 
 # Utils
-from .utils.data_loader import *
-from .utils.utils_loss import *
-from .utils.data_generators import *
-from .utils.helpers import print_cuda_availability
-from .models.SRGAN import *
+from deepdown.utils.data_loader import load_target_data, load_input_data
+from deepdown.utils.loss_fcts import *
+from deepdown.utils.data_generators import DataGenerator
+from deepdown.utils.helpers import print_cuda_availability
+from deepdown.models.srgan import Generator, Discriminator
 from deepdown.config import Config
 
-
+# Allowed arguments
 argParser = argparse.ArgumentParser()
 argParser.add_argument("--config_file", help="Path to the .yml config file")
 
+# To make this notebook's output stable across runs
+np.random.seed(42)
+
+# Check if CUDA is available
 print_cuda_availability()
 
 
 def main(conf):
-    # Paths
-    PATH_DEM = config['PATH_DEM']
-    PATH_ERA5_025 = config['PATH_ERA5_025']  # Original ERA5 0.25°
-    PATH_ERA5_100 = config['PATH_ERA5_100']  # ERA5 1°
-    PATH_MCH = config['PATH_MeteoSwiss']
-
-    NUM_CHANNELS_IN = config['NUM_CHANNELS_IN']
-    NUM_CHANNELS_OUT = config['NUM_CHANNELS_OUT']
-    lr = config['lr']
-
     # Data options
-    DATE_START = config['DATE_START']
-    DATE_END = config['DATE_END']
-    YY_TRAIN = config['YY_TRAIN']
-    YY_TEST = config['YY_TEST']
-    LEVELS = config['LEVELS']
-    RESOL_LOW = config['RESOL_LOW']
-    INPUT_VARIABLES = config['INPUT_VARIABLES']
-    INPUT_PATHS = [PATH_ERA5_025 + '/precipitation', PATH_ERA5_025 + '/temperature']
-    DUMP_DATA_TO_PICKLE = config['DUMP_DATA_TO_PICKLE']
+    date_start = conf.get('DATE_START', '1979-01-01')
+    date_end = conf.get('DATE_END', '2021-12-31')
+    years_train = conf.get('YEARS_TRAIN', [1979, 2015])
+    years_valid = conf.get('YEARS_VALID', [2015, 2018])
+    years_test = conf.get('YEARS_TEST', [2019, 2021])
+    levels = conf.get('LEVELS', [850, 1000])
+    resol_low = conf.get('RESOL_LOW', 0.25)
+    input_variables = conf.get('INPUT_VARIABLES', ['tp', 't'])
+    input_paths = [conf.get('PATH_ERA5_025') + '/precipitation',
+                   conf.get('PATH_ERA5_025') + '/temperature']
 
     # Crop on a smaller region
-    DO_CROP = config['DO_CROP']
-    # I reduce the area of crop now, to avoid NA
-    CROP_X = [2700000, 2760000]  # with NAN: [2720000, 2770000]
-    CROP_Y = [1190000, 1260000]  # with NAN: [1290000, 1320000]
+    do_crop = conf.get('DO_CROP', False)
+    crop_x = conf.get('CROP_X', [2700000, 2760000])
+    crop_y = conf.get('CROP_Y', [1190000, 1260000])
 
-    device = config['device']
-    dtype = config['dtype']
     # Hyperparameters
-    BATCH_SIZE = 32
-    h, w = config['lowres_shape']
+    num_channels_in = conf.get('NUM_CHANNELS_IN')
+    num_channels_out = conf.get('NUM_CHANNELS_OUT')
+    lr = conf.get('LR')
+    batch_size = conf.get('BATCH_SIZE', 32)
+    num_epochs = conf.get('NUM_EPOCHS', 100)
 
     # Load target data
-    target = load_target_data(DATE_START, DATE_END, PATH_MCH)
+    target = load_target_data(date_start, date_end, conf.get('PATH_MCH'),
+                              dump_data_to_pickle=conf.get('DUMP_DATA_TO_PICKLE', True),
+                              path_tmp=conf.get('PATH_TMP'))
 
     # Extract the axes of the final target domain based on temperature 
     x_axis = target.TabsD.x
     y_axis = target.TabsD.y
 
-    input_data = load_input_data(DATE_START, DATE_END, PATH_DEM, INPUT_VARIABLES,
-                                 INPUT_PATHS,
-                                 LEVELS, RESOL_LOW, x_axis, y_axis)
+    input_data = load_input_data(date_start, date_end, conf.get('PAT_DEM'),
+                                 input_variables, input_paths,
+                                 levels, resol_low, x_axis, y_axis,
+                                 path_tmp=conf.get('PATH_TMP'))
 
-    if DO_CROP:
-        input_data = input_data.sel(x=slice(min(CROP_X), max(CROP_X)),
-                                    y=slice(max(CROP_Y), min(CROP_Y)))
-        target = target.sel(x=slice(min(CROP_X), max(CROP_X)),
-                            y=slice(max(CROP_Y), min(CROP_Y)))
+    if do_crop:
+        input_data = input_data.sel(x=slice(min(crop_x), max(crop_x)),
+                                    y=slice(max(crop_y), min(crop_y)))
+        target = target.sel(x=slice(min(crop_x), max(crop_x)),
+                            y=slice(max(crop_y), min(crop_y)))
 
     # Split the data
-    x_train = input_data.sel(time=slice('1999', '2011'))
-    x_valid = input_data.sel(time=slice('2012', '2015'))
-    x_test = input_data.sel(time=slice('2016', '2021'))
+    x_train = input_data.sel(time=slice(years_train[0], years_train[1]))
+    x_valid = input_data.sel(time=slice(years_valid[0], years_valid[1]))
+    x_test = input_data.sel(time=slice(years_test[0], years_test[1]))
 
-    y_train = target.sel(time=slice('1999', '2011'))
-    y_valid = target.sel(time=slice('2012', '2005'))
-    y_test = target.sel(time=slice('2006', '2011'))
+    y_train = target.sel(time=slice(years_train[0], years_train[1]))
+    y_valid = target.sel(time=slice(years_valid[0], years_valid[1]))
+    y_test = target.sel(time=slice(years_test[0], years_test[1]))
 
     # Select the variables to use as input and output
-    input_vars = {'topo': None, 'tp': None, 't': LEVELS}
+    input_vars = {'topo': None, 'tp': None, 't': levels}
     output_vars = ['RhiresD', 'TabsD']  # ['RhiresD', 'TabsD', 'TmaxD', 'TminD']
 
+    # Create the data generators
     training_set = DataGenerator(x_train, y_train, input_vars, output_vars)
-    loader_train = torch.utils.data.DataLoader(training_set, batch_size=32)
-
-    # Validation
+    loader_train = torch.utils.data.DataLoader(training_set, batch_size=batch_size)
     valid_set = DataGenerator(x_valid, y_valid, input_vars, output_vars, shuffle=False,
                               mean=training_set.mean, std=training_set.std)
-    loader_val = torch.utils.data.DataLoader(valid_set, batch_size=32)
-
-    # Test
+    loader_val = torch.utils.data.DataLoader(valid_set, batch_size=batch_size)
     test_set = DataGenerator(x_test, y_test, input_vars, output_vars, shuffle=False,
                              mean=training_set.mean, std=training_set.std)
-    loader_test = torch.utils.data.DataLoader(test_set, batch_size=32)
+    loader_test = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
 
-    # Check to make sure the range on the input and output images is correct, and they're the correct shape
-    testx, testy = training_set.__getitem__(3)
-    print("x shape: ", testx.shape)
-    print("y shape: ", testy.shape)
+    # Check to make sure the range on the input and output images is correct,
+    # and they're the correct shape
+    test_x, test_y = training_set.__getitem__(3)
+    print("x shape: ", test_x.shape)
+    print("y shape: ", test_y.shape)
+    print("x min: ", torch.min(test_x))
+    print("x max: ", torch.max(test_x))
+    print("y min: ", torch.min(test_y))
+    print("y max: ",torch.max(test_y))
     torch.cuda.empty_cache()
 
-    D = Discriminator(num_channels=NUM_CHANNELS_OUT, H=h, W=w)
-    G = Generator(NUM_CHANNELS_IN, input_size=config['lowres_shape'],
-                  output_channels=NUM_CHANNELS_OUT)
+    D = Discriminator(num_channels=num_channels_out, H=h, W=w)
+    G = Generator(num_channels_in, input_size=config['lowres_shape'],
+                  output_channels=num_channels_out)
 
     # Define optimizer for discriminator
     D_solver = torch.optim.Adam(D.parameters(), lr=lr, betas=(0.5, 0.999))
@@ -113,32 +114,46 @@ def main(conf):
 
     num_epochs = config['num_epochs']
     G_iters = config['G_iters']
-    dtype = torch.float32
 
     print('train the SRGAN')
     train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
-                generator_loss, device, dtype, G_iters=1, show_every=250, num_epochs=5)
+                generator_loss, G_iters=1, show_every=250, num_epochs=num_epochs)
 
 
 def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
-                generator_loss, device, dtype, G_iters=1, show_every=250, num_epochs=5):
+                generator_loss, G_iters=1, show_every=250, num_epochs=100):
     """
-    Adapted from CS231
+    Adapted from https://github.com/mantariksh/231n_downscaling/blob/master/SRGAN.ipynb
 
-    Inputs:
-    - D, G: PyTorch models for the discriminator and generator
-    - D_solver, G_solver: torch.optim Optimizers to use for training the
-      discriminator and generator.
-    - discriminator_loss, generator_loss: Functions to use for computing the generator and
-      discriminator loss, respectively.
-    - show_every: Show samples after every show_every iterations.
-    - batch_size: Batch size to use for training.
-    - noise_size: Dimension of the noise to use as input to the generator.
-    - num_epochs: Number of epochs over the training dataset to use for training.
+    Parameters
+    ----------
+    loader_train: DataLoader
+        DataLoader for the training set
+    D: Discriminator
+        PyTorch Discriminator model
+    G: Generator
+        PyTorch Generator model
+    D_solver: torch.optim
+        Optimizer for the discriminator
+    G_solver: torch.optim
+        Optimizer for the generator
+    discriminator_loss: function
+        Function to compute the discriminator loss
+    generator_loss: function
+        Function to compute the generator loss
+    G_iters: int
+        Number of times to update the generator
+    show_every: int
+        Number of iterations to print the loss
+    num_epochs: int
+        Number of epochs to train the model
     """
+    # Check if GPU is available
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     # Move the models to the correct device (GPU if GPU is available)
-    D = D.to(device=device)
-    G = G.to(device=device)
+    D = D.to(device=dev)
+    G = G.to(device=dev)
 
     # Put models in training mode
     D.train()
@@ -155,18 +170,17 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
     for epoch in range(num_epochs):
 
         for x, y in loader_train:
-            high_res_imgs = y.to(device=device, dtype=dtype)
+            high_res_imgs = y.to(device=dev, dtype=dtype)
             logits_real = D(high_res_imgs)
 
             x.requires_grad_()
-            low_res_imgs = x.to(device=device, dtype=dtype)
+            low_res_imgs = x.to(device=dev, dtype=dtype)
             fake_images = G(low_res_imgs)
             logits_fake = D(fake_images)
 
             # Update for the discriminator
-            # d_total_error, D_real_L[iter_count], D_fake_L[iter_count] = discriminator_with_Nan_loss(logits_real, logits_fake)
-            d_total_error, D_real_L[iter_count], D_fake_L[
-                iter_count] = discriminator_loss(logits_real, logits_fake)
+            d_total_error, D_real_L[iter_count], D_fake_L[iter_count] = (
+                discriminator_loss(logits_real, logits_fake))
             print('d_total_error:', d_total_error)
             print('D_real_L[iter_count]:', D_real_L[iter_count])
             print('D_fake_L[iter_count]:', D_fake_L[iter_count])
@@ -180,11 +194,9 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
                 logits_fake = D(fake_images)
                 gen_logits_fake = D(fake_images)
                 weight_param = 1e-1  # Weighting put on adversarial loss
-                g_error, G_content[G_iter_count], G_advers[
-                    G_iter_count] = generator_loss(fake_images, high_res_imgs,
-                                                   gen_logits_fake,
-                                                   weight_param=weight_param)
-                # g_error, G_content[G_iter_count], G_advers[G_iter_count] = generator_withNan_loss(fake_images, high_res_imgs, gen_logits_fake, weight_param=weight_param)
+                g_error, G_content[G_iter_count], G_advers[G_iter_count] = (
+                    generator_loss(fake_images, high_res_imgs, gen_logits_fake,
+                                   weight_param=weight_param))
 
                 G_solver.zero_grad()
                 g_error.backward()
@@ -193,22 +205,21 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
 
             if (iter_count % show_every == 0):
                 toc = time()
-                print(
-                    'Epoch: {}, Iter: {}, D: {:.4}, G: {:.4}, Time since last print (min): {:.4}'.format(
-                        epoch, iter_count, d_total_error.item(), g_error.item(),
-                        (toc - tic) / 60))
+                print(f'Epoch: {epoch}, Iter: {iter_count}, '
+                      f'D: {d_total_error.item():.4}, G: {g_error.item():.4}, '
+                      f'Time since last print (min): {(toc - tic) / 60:.4}')
                 tic = time()
                 # plot_epoch(x, fake_images, y)
                 # plot_loss(G_content, G_advers, D_real_L, D_fake_L, weight_param)
                 print()
             iter_count += 1
 
-        torch.save(D.cpu().state_dict(),
-                   'GAN_Discriminator_checkpoint_adversWP_1e-1.pt')
-        torch.save(G.cpu().state_dict(), 'GAN_Generator_checkpoint_adversWP_1e-1.pt')
+        torch.save(D.cpu().state_dict(), 'GAN_D_checkpoint.pt')
+        torch.save(G.cpu().state_dict(), 'GAN_G_checkpoint.pt')
 
-        D = D.to(device=device)
-        G = G.to(device=device)
+        D = D.to(device=dev)
+        G = G.to(device=dev)
+
         # Put models in training mode
         D.train()
         G.train()
@@ -217,6 +228,6 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
 if __name__ == "__main__":
     args = argParser.parse_args()
     config = Config(args)
-    config.print()
+    # config.print()
 
     main(config.config)

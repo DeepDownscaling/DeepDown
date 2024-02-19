@@ -3,21 +3,26 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+# SRGAN (Super Resolution GAN)
 # Adapted from: https://github.com/mantariksh/231n_downscaling/blob/master/SRGAN.ipynb
+
+
 class ResidualBlock(nn.Module):
-    def __init__(self, num_channels):
+    def __init__(self, in_channels, out_channels=None):
         super().__init__()
+
+        if out_channels is None:
+            out_channels = in_channels
 
         self.layers = nn.Sequential(
             nn.ReflectionPad2d(1),
-            nn.Conv2d(in_channels=num_channels, out_channels=num_channels,
+            nn.Conv2d(in_channels=in_channels, out_channels=out_channels,
                       kernel_size=3, stride=1, padding=0),
-            nn.InstanceNorm2d(num_channels),
+            nn.InstanceNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.ReflectionPad2d(1),
-            nn.Conv2d(num_channels, num_channels, kernel_size=3, stride=1, padding=0),
-            nn.InstanceNorm2d(num_channels)
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=0),
+            nn.InstanceNorm2d(out_channels)
         )
 
     def forward(self, x):
@@ -28,8 +33,8 @@ class UpscaleBlock(nn.Module):
     def __init__(self, in_channels, out_channels, scale_factor):
         super().__init__()
         self.layers = nn.Sequential(
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=3, stride=1,
-                               padding=1),
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=3,
+                               stride=1, padding=1),
             nn.PixelShuffle(scale_factor),
             nn.ReLU(inplace=True)
         )
@@ -40,12 +45,13 @@ class UpscaleBlock(nn.Module):
 
 class Generator(nn.Module):
     def __init__(self, num_channels, input_size, output_channels=4, num_res_blocks=16,
-                 scale_factor=1):
+                 scale_factor=2):
         super().__init__()
 
         self.num_res_blocks = num_res_blocks
         self.input_size = input_size
         self.output = output_channels
+
         self.initial_conv = nn.Sequential(
             nn.ReflectionPad2d(4),
             nn.Conv2d(num_channels, 64, kernel_size=9, stride=1, padding=0),
@@ -62,6 +68,7 @@ class Generator(nn.Module):
         )
 
         self.upscale_blocks = nn.ModuleList()
+
         for _ in range(int(math.log(scale_factor, 2))):
             self.upscale_blocks.append(UpscaleBlock(64, 64 * 4, scale_factor=2))
 
@@ -91,8 +98,8 @@ class Generator(nn.Module):
 
         conv_prelu_out = self.conv_prelu(upscale_out)
         final_out = self.final_conv(conv_prelu_out)
+
         # To get the final desired shape
-        # print(final_out.shape)
         final_out = F.interpolate(final_out, size=self.input_size, mode='bicubic',
                                   align_corners=True)
 
@@ -147,7 +154,6 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2),
             nn.Linear(1024, 1),
             nn.Sigmoid()
-
         )
 
     def forward(self, x):
