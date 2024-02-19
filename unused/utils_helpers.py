@@ -4,12 +4,6 @@ import numpy as np
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def print_cuda_availability():
-    """Prints whether cuda is available and the device being used."""
-    print("Cuda available :", torch.cuda.is_available())
-    print(DEVICE)
-
-
 def test_discriminator(training_set, discriminator, num_channels_out, h, w):
     """
     Test the discriminator model with a sample from the training set.
