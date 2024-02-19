@@ -7,11 +7,6 @@ import pandas as pd
 from pyproj import Transformer
 
 
-# Some constants
-G = 9.80665
-
-
-
 def rename_dimensions_variables(ds):
     """
     Rename dimensions of the given dataset to homogenize data.
@@ -78,10 +73,10 @@ def spatial_slice(ds, lon_bnds, lat_bnds):
     xarray.Dataset
         The dataset with the spatial slice applied.
     """
-    if lon_bnds != None:
+    if lon_bnds is not None:
         ds = ds.sel(lon=slice(min(lon_bnds), max(lon_bnds)))
 
-    if lat_bnds != None:
+    if lat_bnds is not None:
         if ds.lat[0].values < ds.lat[1].values:
             ds = ds.sel(lat=slice(min(lat_bnds), max(lat_bnds)))
         else:
@@ -182,7 +177,7 @@ def load_data(vars, paths, date_start, date_end, lon_bnds, lat_bnds, levels):
             dat = dat.sel(level=l)
 
         if vars[i_var] == 'z':
-            dat.z.values = dat.z.values / G
+            dat.z.values = dat.z.values / 9.80665
 
         dat['time'] = pd.DatetimeIndex(dat.time.dt.date)
 
@@ -348,12 +343,13 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
         topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
         topo = topo.drop_vars(['band', 'spatial_ref'])
 
-        # Get extent of the final domain in lat/lon (EPSG:4326) from the original domain in CH1903+ (EPSG:2056)
+        # Get extent of the final domain in lat/lon (EPSG:4326) from the original
+        # domain in CH1903+ (EPSG:2056)
         x_grid, y_grid = np.meshgrid(x_axis, np.flip(y_axis))
         transformer = Transformer.from_crs("EPSG:2056", "EPSG:4326")
         lat_grid, lon_grid = transformer.transform(x_grid, y_grid)
 
-        # Get the correponding min/max coordinates in the ERA5 grid
+        # Get the corresponding min/max coordinates in the ERA5 grid
         lat_min = np.floor(np.min(lat_grid) * 1 / resol_low) / (1 / resol_low)
         lat_max = np.ceil(np.max(lat_grid) * 1 / resol_low) / (1 / resol_low)
         lon_min = np.floor(np.min(lon_grid) * 1 / resol_low) / (1 / resol_low)
