@@ -21,7 +21,7 @@ class DataGenerator(Dataset):
         input_vars: dict
             Dictionary of input variables. Keys are variable names and values are
             the pressure levels. Use None for variables on a single level.
-        output_vars: dict
+        output_vars: list
             Dictionary of output variables. Keys are variable names and values are
             the pressure levels. Use None for variables on a single level.
         shuffle: bool
