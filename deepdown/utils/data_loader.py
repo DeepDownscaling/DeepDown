@@ -216,7 +216,8 @@ def convert_to_xarray(a, lat, lon, time):
     return mx
 
 
-def load_target_data(date_start, date_end, path, dump_data_to_pickle=True, path_tmp='../tmp/'):
+def load_target_data(date_start, date_end, path, dump_data_to_pickle=True,
+                     path_tmp='../tmp/'):
     """
     Load the target data.
 
