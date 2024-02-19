@@ -26,42 +26,41 @@ print_cuda_availability()
 
 def main(conf):
     # Data options
-    date_start = conf.get('DATE_START', '1979-01-01')
-    date_end = conf.get('DATE_END', '2021-12-31')
-    years_train = conf.get('YEARS_TRAIN', [1979, 2015])
-    years_valid = conf.get('YEARS_VALID', [2015, 2018])
-    years_test = conf.get('YEARS_TEST', [2019, 2021])
-    levels = conf.get('LEVELS', [850, 1000])
-    resol_low = conf.get('RESOL_LOW', 0.25)
-    input_variables = conf.get('INPUT_VARIABLES', ['tp', 't'])
-    input_paths = [conf.get('PATH_ERA5_025') + '/precipitation',
-                   conf.get('PATH_ERA5_025') + '/temperature']
+    date_start = conf.get('date_start', '1979-01-01')
+    date_end = conf.get('date_end', '2021-12-31')
+    years_train = conf.get('years_train', [1979, 2015])
+    years_valid = conf.get('years_valid', [2015, 2018])
+    years_test = conf.get('years_test', [2019, 2021])
+    levels = conf.get('levels', [850, 1000])
+    resol_low = conf.get('resol_low', 0.25)
+    input_variables = conf.get('input_variables', ['tp', 't'])
+    input_paths = [conf.get('path_era5_025') + '/precipitation',
+                   conf.get('path_era5_025') + '/temperature']
 
     # Crop on a smaller region
-    do_crop = conf.get('DO_CROP', False)
-    crop_x = conf.get('CROP_X', [2700000, 2760000])
-    crop_y = conf.get('CROP_Y', [1190000, 1260000])
+    do_crop = conf.get('do_crop', False)
+    crop_x = conf.get('crop_x', [2700000, 2760000])
+    crop_y = conf.get('crop_y', [1190000, 1260000])
 
     # Hyperparameters
-    num_channels_in = conf.get('NUM_CHANNELS_IN')
-    num_channels_out = conf.get('NUM_CHANNELS_OUT')
-    lr = conf.get('LR')
-    batch_size = conf.get('BATCH_SIZE', 32)
-    num_epochs = conf.get('NUM_EPOCHS', 100)
+    num_channels_in = conf.get('num_channels_in')
+    num_channels_out = conf.get('num_channels_out')
+    lr = conf.get('lr')
+    batch_size = conf.get('batch_size', 32)
+    num_epochs = conf.get('num_epochs', 100)
 
     # Load target data
-    target = load_target_data(date_start, date_end, conf.get('PATH_MCH'),
-                              dump_data_to_pickle=conf.get('DUMP_DATA_TO_PICKLE', True),
-                              path_tmp=conf.get('PATH_TMP'))
+    target = load_target_data(date_start, date_end, conf.get('path_mch'),
+                              path_tmp=conf.get('path_tmp'))
 
     # Extract the axes of the final target domain based on temperature 
     x_axis = target.TabsD.x
     y_axis = target.TabsD.y
 
-    input_data = load_input_data(date_start, date_end, conf.get('PAT_DEM'),
+    input_data = load_input_data(date_start, date_end, conf.get('pat_dem'),
                                  input_variables, input_paths,
                                  levels, resol_low, x_axis, y_axis,
-                                 path_tmp=conf.get('PATH_TMP'))
+                                 path_tmp=conf.get('path_tmp'))
 
     if do_crop:
         input_data = input_data.sel(x=slice(min(crop_x), max(crop_x)),
@@ -111,9 +110,6 @@ def main(conf):
     D_solver = torch.optim.Adam(D.parameters(), lr=lr, betas=(0.5, 0.999))
     # Define optimizer for generator
     G_solver = torch.optim.Adam(G.parameters(), lr=lr, betas=(0.5, 0.999))
-
-    num_epochs = config['num_epochs']
-    G_iters = config['G_iters']
 
     print('train the SRGAN')
     train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
