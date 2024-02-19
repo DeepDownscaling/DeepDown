@@ -237,42 +237,40 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True,
 
     # Load from pickle
     target_pkl_file = f'{path_tmp}/target_{date_start}_{date_end}.pkl'
-    target_loaded_from_pickle = False
     if dump_data_to_pickle and os.path.isfile(target_pkl_file):
         with open(target_pkl_file, 'rb') as f:
             target = pickle.load(f)
-            target_loaded_from_pickle = True
             print('Target data loaded from pickle.')
+            return target
 
     # Read data from original files
-    if not target_loaded_from_pickle:
-        print('Extracting target data...')
+    print('Extracting target data...')
 
-        pr = get_nc_data(path + '/RhiresD_v2.0_swiss.lv95/*nc', date_start, date_end)
-        t_abs = get_nc_data(path + '/TabsD_v2.0_swiss.lv95/*nc', date_start, date_end)
-        t_max = get_nc_data(path + '/TmaxD_v2.0_swiss.lv95/*nc', date_start, date_end)
-        t_min = get_nc_data(path + '/TminD_v2.0_swiss.lv95/*nc', date_start, date_end)
+    pr = get_nc_data(path + '/RhiresD_v2.0_swiss.lv95/*nc', date_start, date_end)
+    t_abs = get_nc_data(path + '/TabsD_v2.0_swiss.lv95/*nc', date_start, date_end)
+    t_max = get_nc_data(path + '/TmaxD_v2.0_swiss.lv95/*nc', date_start, date_end)
+    t_min = get_nc_data(path + '/TminD_v2.0_swiss.lv95/*nc', date_start, date_end)
 
-        # Merge the target data
-        target = xr.merge([pr, t_abs, t_max, t_min])
+    # Merge the target data
+    target = xr.merge([pr, t_abs, t_max, t_min])
 
-        # Invert lat axis if needed
-        if target.N[0].values < target.N[1].values:
-            target = target.reindex(N=list(reversed(target.N)))
+    # Invert lat axis if needed
+    if target.N[0].values < target.N[1].values:
+        target = target.reindex(N=list(reversed(target.N)))
 
-        # Crop the target data to the final domain
-        target = target.sel(E=slice(min(t_abs.E), max(t_abs.E)),
-                            N=slice(max(t_abs.N), min(t_abs.N)))
+    # Crop the target data to the final domain
+    target = target.sel(E=slice(min(t_abs.E), max(t_abs.E)),
+                        N=slice(max(t_abs.N), min(t_abs.N)))
 
-        # Rename coordinates
-        target = target.rename({'E': 'x', 'N': 'y'})
-        target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'])
+    # Rename coordinates
+    target = target.rename({'E': 'x', 'N': 'y'})
+    target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'])
 
-        # Save to pickle
-        if dump_data_to_pickle:
-            os.makedirs(os.path.dirname(target_pkl_file), exist_ok=True)
-            with open(target_pkl_file, 'wb') as f:
-                pickle.dump(target, f, protocol=-1)
+    # Save to pickle
+    if dump_data_to_pickle:
+        os.makedirs(os.path.dirname(target_pkl_file), exist_ok=True)
+        with open(target_pkl_file, 'wb') as f:
+            pickle.dump(target, f, protocol=-1)
 
     return target
 
@@ -315,7 +313,6 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
     """
 
     # Load from pickle
-    input_loaded_from_pickle = False
     if dump_data_to_pickle:
         tag = (
                 pickle.dumps(input_vars)
@@ -330,73 +327,72 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
         if os.path.isfile(input_pkl_file):
             with open(input_pkl_file, "rb") as f:
                 input_data = pickle.load(f)
-                input_loaded_from_pickle = True
                 print("Input data loaded from pickle.")
+                return input_data
 
     # Read data from original files
-    if not input_loaded_from_pickle:
-        print("Extracting input data...")
+    print("Extracting input data...")
 
-        # Load the topography
-        topo = xr.open_dataset(path_dem)
-        topo = topo.squeeze('band')
-        topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
-        topo = topo.drop_vars(['band', 'spatial_ref'])
+    # Load the topography
+    topo = xr.open_dataset(path_dem)
+    topo = topo.squeeze('band')
+    topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
+    topo = topo.drop_vars(['band', 'spatial_ref'])
 
-        # Get extent of the final domain in lat/lon (EPSG:4326) from the original
-        # domain in CH1903+ (EPSG:2056)
-        x_grid, y_grid = np.meshgrid(x_axis, np.flip(y_axis))
-        transformer = Transformer.from_crs("EPSG:2056", "EPSG:4326")
-        lat_grid, lon_grid = transformer.transform(x_grid, y_grid)
+    # Get extent of the final domain in lat/lon (EPSG:4326) from the original
+    # domain in CH1903+ (EPSG:2056)
+    x_grid, y_grid = np.meshgrid(x_axis, np.flip(y_axis))
+    transformer = Transformer.from_crs("EPSG:2056", "EPSG:4326")
+    lat_grid, lon_grid = transformer.transform(x_grid, y_grid)
 
-        # Get the corresponding min/max coordinates in the ERA5 grid
-        lat_min = np.floor(np.min(lat_grid) * 1 / resol_low) / (1 / resol_low)
-        lat_max = np.ceil(np.max(lat_grid) * 1 / resol_low) / (1 / resol_low)
-        lon_min = np.floor(np.min(lon_grid) * 1 / resol_low) / (1 / resol_low)
-        lon_max = np.ceil(np.max(lon_grid) * 1 / resol_low) / (1 / resol_low)
+    # Get the corresponding min/max coordinates in the ERA5 grid
+    lat_min = np.floor(np.min(lat_grid) * 1 / resol_low) / (1 / resol_low)
+    lat_max = np.ceil(np.max(lat_grid) * 1 / resol_low) / (1 / resol_low)
+    lon_min = np.floor(np.min(lon_grid) * 1 / resol_low) / (1 / resol_low)
+    lon_max = np.ceil(np.max(lon_grid) * 1 / resol_low) / (1 / resol_low)
 
-        # Load the predictors data
-        era5_lon = [lon_min, lon_max]
-        era5_lat = [lat_min, lat_max]
-        inputs = load_data(input_vars, input_paths, date_start, date_end, era5_lon,
-                           era5_lat, levels)
+    # Load the predictors data
+    era5_lon = [lon_min, lon_max]
+    era5_lat = [lat_min, lat_max]
+    inputs = load_data(input_vars, input_paths, date_start, date_end, era5_lon,
+                       era5_lat, levels)
 
-        # Interpolate low res data
-        # Create a new xarray dataset with the new grid coordinates
-        new_data_format = xr.Dataset(coords={'latitude': (('lat', 'lon'), lat_grid),
-                                             'longitude': (('lat', 'lon'), lon_grid)})
+    # Interpolate low res data
+    # Create a new xarray dataset with the new grid coordinates
+    new_data_format = xr.Dataset(coords={'latitude': (('lat', 'lon'), lat_grid),
+                                         'longitude': (('lat', 'lon'), lon_grid)})
 
-        # Interpolate the original data onto the new grid
-        inputs = inputs.interp(lat=new_data_format.latitude,
-                               lon=new_data_format.longitude, method='nearest')
+    # Interpolate the original data onto the new grid
+    inputs = inputs.interp(lat=new_data_format.latitude,
+                           lon=new_data_format.longitude, method='nearest')
 
-        # Removing duplicate coordinates
-        inputs = inputs.drop_vars(['lat', 'lon'])
+    # Removing duplicate coordinates
+    inputs = inputs.drop_vars(['lat', 'lon'])
 
-        # Add the Swiss coordinates
-        inputs = inputs.assign_coords(x=(('lat', 'lon'), x_grid),
-                                      y=(('lat', 'lon'), y_grid))
-        # Rename variables before merging
-        inputs = inputs.rename({'lon': 'x', 'lat': 'y'})
-        inputs = inputs.drop_vars(['latitude', 'longitude'])
+    # Add the Swiss coordinates
+    inputs = inputs.assign_coords(x=(('lat', 'lon'), x_grid),
+                                  y=(('lat', 'lon'), y_grid))
+    # Rename variables before merging
+    inputs = inputs.rename({'lon': 'x', 'lat': 'y'})
+    inputs = inputs.drop_vars(['latitude', 'longitude'])
 
-        # Squeeze the 2D coordinates
-        x_1d = inputs['x'][0, :]
-        y_1d = inputs['y'][:, 0]
-        inputs = inputs.assign(x=xr.DataArray(x_1d, dims='x'),
-                               y=xr.DataArray(y_1d, dims='y'))
+    # Squeeze the 2D coordinates
+    x_1d = inputs['x'][0, :]
+    y_1d = inputs['y'][:, 0]
+    inputs = inputs.assign(x=xr.DataArray(x_1d, dims='x'),
+                           y=xr.DataArray(y_1d, dims='y'))
 
-        # Invert y axis if needed
-        if inputs.y[0].values < inputs.y[1].values:
-            inputs = inputs.reindex(y=list(reversed(inputs.y)))
+    # Invert y axis if needed
+    if inputs.y[0].values < inputs.y[1].values:
+        inputs = inputs.reindex(y=list(reversed(inputs.y)))
 
-        # Merge with topo
-        input_data = xr.merge([inputs, topo])
+    # Merge with topo
+    input_data = xr.merge([inputs, topo])
 
-        # Save to pickle file
-        if dump_data_to_pickle:
-            os.makedirs(os.path.dirname(input_pkl_file), exist_ok=True)
-            with open(input_pkl_file, 'wb') as f:
-                pickle.dump(input_data, f, protocol=-1)
+    # Save to pickle file
+    if dump_data_to_pickle:
+        os.makedirs(os.path.dirname(input_pkl_file), exist_ok=True)
+        with open(input_pkl_file, 'wb') as f:
+            pickle.dump(input_data, f, protocol=-1)
 
     return input_data
