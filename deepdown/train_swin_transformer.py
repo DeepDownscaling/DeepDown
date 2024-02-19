@@ -11,7 +11,6 @@ from .utils.utils_loss import *
 from .utils.helpers import *
 from .utils.data_generators import *
 from .models.SUNet import *
-from .constants import *
 
 
 warnings.filterwarnings("ignore", category=RuntimeWarning,
