@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 from deepdown.utils.data_loader import load_target_data, load_input_data
 from deepdown.utils.loss_fcts import *
 from deepdown.utils.data_generators import DataGenerator
-from deepdown.utils.helpers import print_cuda_availability
+from deepdown.utils.helpers import print_cuda_availability, DEVICE
 from deepdown.models.srgan import Generator, Discriminator
 from deepdown.config import Config
 
@@ -144,12 +144,9 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
     num_epochs: int
         Number of epochs to train the model
     """
-    # Check if GPU is available
-    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     # Move the models to the correct device (GPU if GPU is available)
-    D = D.to(device=dev)
-    G = G.to(device=dev)
+    D = D.to(device=DEVICE)
+    G = G.to(device=DEVICE)
 
     # Put models in training mode
     D.train()
@@ -166,11 +163,11 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
     for epoch in range(num_epochs):
 
         for x, y in loader_train:
-            high_res_imgs = y.to(device=dev, dtype=dtype)
+            high_res_imgs = y.to(device=DEVICE, dtype=dtype)
             logits_real = D(high_res_imgs)
 
             x.requires_grad_()
-            low_res_imgs = x.to(device=dev, dtype=dtype)
+            low_res_imgs = x.to(device=DEVICE, dtype=dtype)
             fake_images = G(low_res_imgs)
             logits_fake = D(fake_images)
 
@@ -213,8 +210,8 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
         torch.save(D.cpu().state_dict(), 'GAN_D_checkpoint.pt')
         torch.save(G.cpu().state_dict(), 'GAN_G_checkpoint.pt')
 
-        D = D.to(device=dev)
-        G = G.to(device=dev)
+        D = D.to(device=DEVICE)
+        G = G.to(device=DEVICE)
 
         # Put models in training mode
         D.train()
