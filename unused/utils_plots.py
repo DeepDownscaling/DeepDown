@@ -1,12 +1,11 @@
+import os
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
 import seaborn as sns
 import xarray as xr
 import geopandas as gpd
 import pandas as pd
-
-from matplotlib import colors
-import matplotlib.colors as mcolors
 
 
 def plot_prediction_scatter(y_test, y_pred):
@@ -41,13 +40,13 @@ def plot_prediction_ts(test_dates, final_predictions, test_labels):
     sns.lineplot(x='date', y='precip', hue='data', data=dfm, ax=axs[1])
 
 
-def plot_importance(features_importance, attributes, IMAGES_PATH):
+def plot_importance(features_importance, attributes, images_path):
     indices = np.argsort(features_importance)
     plt.barh(range(len(attributes)),
              features_importance[indices], color='b', align='center')
     plt.yticks(range(len(indices)), [attributes[i] for i in indices])
     plt.xlabel('Relative Importance')
-    save_fig("Rela_Importance", IMAGES_PATH)
+    save_fig("Rela_Importance", images_path)
     plt.show()
 
 
@@ -62,10 +61,10 @@ def save_fig(fig_id, IMAGES_PATH, tight_layout=True, fig_extension="png",
 
 def plot_hist(history):
     # plot the train and validation losses
-    N = np.arange(len(history.history['loss']))
+    n = np.arange(len(history.history['loss']))
     plt.figure()
-    plt.plot(N, history.history['loss'], label='train_loss')
-    plt.plot(N, history.history['val_loss'], label='val_loss')
+    plt.plot(n, history.history['loss'], label='train_loss')
+    plt.plot(n, history.history['val_loss'], label='val_loss')
     plt.title('Training Loss and Accuracy')
     plt.xlabel('Epochs')
     plt.ylabel('Loss/Accuracy')
@@ -85,9 +84,10 @@ def plot_map(ax, vals, title=None, vmin=None, vmax=None, cmap=None, show_colorba
 
 
 def plot_relevances(rel):
-    """ plot relevances for each variable, e.g., 31 (5 variables * 6 levels + 1 tpcw)
-        Args: a matrix with the relevances calculated based on a specific method (e.g. LRP)
-        """
+    """
+    Plot relevances for each variable, e.g., 31 (5 variables * 6 levels + 1 tpcw)
+    Args: a matrix with the relevances calculated based on a specific method (e.g. LRP)
+    """
     n_figs = rel.shape[2]
     ncols = 5
     nrows = -(-n_figs // ncols)
@@ -147,3 +147,4 @@ def plot_xr_rel(rel, lats_y, lons_x, vnames, fname, cmap='Reds', vmin=None, vmax
     else:
 
         plt.draw()
+
