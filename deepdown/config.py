@@ -23,7 +23,10 @@ class Config:
             self.config = OmegaConf.create()
 
         # Merge options from CLI
-        self.config = OmegaConf.merge(self.config, OmegaConf.from_cli())
+        cli_args_list = [f'{k}={v}' for k, v in cli_args.__dict__.items() if
+                         v is not None]
+        self.config = OmegaConf.merge(self.config,
+                                      OmegaConf.from_cli(cli_args_list))
 
     def print(self) -> None:
         """Print content of given config using Rich library and its tree structure."""
