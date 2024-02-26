@@ -1,5 +1,5 @@
 # Paths are mandatory and should be set to the correct location on your system
 path_dem: 'path/to/dem/tif/file'
-path_era5_025: 'path/to/era5/at/025/resolution'
+path_era5land: 'path/to/era5land/daily/data'
 path_mch: 'path/to/meteoswiss/data'
 path_tmp: 'path/to/tmp/folder/for/pickle/files'
