@@ -35,8 +35,8 @@ def main(conf):
     levels = conf.get('levels', [850, 1000])
     resol_low = conf.get('resol_low', 0.25)
     input_variables = conf.get('input_variables', ['tp', 't'])
-    input_paths = [conf.get('path_era5_025') + '/precipitation',
-                   conf.get('path_era5_025') + '/temperature']
+    input_paths = [conf.get('path_era5land') + '/precipitation',
+                   conf.get('path_era5land') + '/temperature']
 
     # Crop on a smaller region
     do_crop = conf.get('do_crop', False)
@@ -56,7 +56,7 @@ def main(conf):
     x_axis = target.TabsD.x
     y_axis = target.TabsD.y
 
-    input_data = load_input_data(date_start, date_end, conf.get('pat_dem'),
+    input_data = load_input_data(date_start, date_end, conf.get('path_dem'),
                                  input_variables, input_paths,
                                  levels, resol_low, x_axis, y_axis,
                                  path_tmp=conf.get('path_tmp'))
@@ -77,7 +77,7 @@ def main(conf):
     y_test = target.sel(time=slice(years_test[0], years_test[1]))
 
     # Select the variables to use as input and output
-    input_vars = {'topo': None, 'tp': None, 't': levels}
+    input_vars = {'topo': None, 'tp': None, '2t': None, '2t_min': None, '2t_max': None}
     output_vars = ['RhiresD', 'TabsD']  # ['RhiresD', 'TabsD', 'TmaxD', 'TminD']
 
     # Create the data generators
