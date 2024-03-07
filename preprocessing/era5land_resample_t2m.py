@@ -37,6 +37,11 @@ for year in range(Y_START, Y_END + 1):
     t2m_max = t2m_max.sel(time=t.values[1:])
     t2m_mean = t2m_mean.sel(time=t.values[1:])
 
+    # Drop unnecessary variables/dimensions
+    t2m_min = t2m_min.drop_vars(['surface', 'number'])
+    t2m_max = t2m_max.drop_vars(['surface', 'number'])
+    t2m_mean = t2m_mean.drop_vars(['surface', 'number'])
+
     # Save to NetCDF
     output_path_min = Path(OUTPUT_DIR) / f't2m_min-{year}.nc'
     output_path_max = Path(OUTPUT_DIR) / f't2m_max-{year}.nc'

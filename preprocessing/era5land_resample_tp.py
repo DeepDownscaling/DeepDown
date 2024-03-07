@@ -22,13 +22,16 @@ for year in range(Y_START, Y_END + 1):
     precipitation = ds['tp']
     step = ds['step']
     precipitation = precipitation.sel(step=step.values[-1])
-    
+
     # Remove the step dimension
     precipitation = precipitation.drop_vars('step')
 
     # Drop the last day of the year as it is incomplete
     t = ds['time']
     precipitation = precipitation.sel(time=t.values[0:-1])
+
+    # Drop unnecessary variables/dimensions
+    precipitation = precipitation.drop_vars(['surface', 'number', 'valid_time'])
 
     # Save to NetCDF
     output_path = Path(OUTPUT_DIR) / f'tp-{year}.nc'
