@@ -93,30 +93,29 @@ def main(conf):
                                    pd.Timestamp(years_test[1], 12, 31)))
 
     # Create the data generators
-    training_set = DataGenerator(x_train, y_train, input_vars, output_vars)
-    loader_train = torch.utils.data.DataLoader(training_set, batch_size=batch_size)
-    valid_set = DataGenerator(x_valid, y_valid, input_vars, output_vars, shuffle=False,
-                              mean=training_set.mean, std=training_set.std)
-    loader_val = torch.utils.data.DataLoader(valid_set, batch_size=batch_size)
-    test_set = DataGenerator(x_test, y_test, input_vars, output_vars, shuffle=False,
-                             mean=training_set.mean, std=training_set.std)
-    loader_test = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
+    dg_train = DataGenerator(x_train, y_train, input_vars, output_vars)
+    loader_train = torch.utils.data.DataLoader(dg_train, batch_size=batch_size)
+    dg_valid = DataGenerator(x_valid, y_valid, input_vars, output_vars, shuffle=False,
+                             mean=dg_train.mean, std=dg_train.std)
+    loader_valid = torch.utils.data.DataLoader(dg_valid, batch_size=batch_size)
+    dg_test = DataGenerator(x_test, y_test, input_vars, output_vars, shuffle=False,
+                            mean=dg_train.mean, std=dg_train.std)
+    loader_test = torch.utils.data.DataLoader(dg_test, batch_size=batch_size)
 
     # Check to make sure the range on the input and output images is correct,
     # and they're the correct shape
-    test_x, test_y = training_set.__getitem__(3)
-    print("x shape: ", test_x.shape)
-    print("y shape: ", test_y.shape)
-    print("x min: ", torch.min(test_x))
-    print("x max: ", torch.max(test_x))
-    print("y min: ", torch.min(test_y))
-    print("y max: ",torch.max(test_y))
+    check_x, check_y = dg_train.__getitem__(3)
+    print("x shape: ", check_x.shape)
+    print("y shape: ", check_y.shape)
+    print("x min: ", torch.min(check_x))
+    print("x max: ", torch.max(check_x))
+    print("y min: ", torch.min(check_y))
+    print("y max: ", torch.max(check_y))
     torch.cuda.empty_cache()
 
-    h, w = test_y.shape
-    lowres_shape = test_x.shape
-    num_channels_in = test_x.shape[0]
-    num_channels_out = test_y.shape[0]
+    num_channels_out, h, w = check_y.shape
+    lowres_shape = check_x.shape
+    num_channels_in = check_x.shape[0]
 
     D = Discriminator(num_channels=num_channels_out, H=h, W=w)
     G = Generator(num_channels_in, input_size=lowres_shape,
@@ -175,7 +174,7 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
 
     iter_count = 0
     G_iter_count = 0
-    tic = time()
+    tic = time.time()
     for epoch in range(num_epochs):
 
         for x, y in loader_train:
@@ -213,11 +212,11 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
                 G_iter_count += 1
 
             if (iter_count % show_every == 0):
-                toc = time()
+                toc = time.time()
                 print(f'Epoch: {epoch}, Iter: {iter_count}, '
                       f'D: {d_total_error.item():.4}, G: {g_error.item():.4}, '
                       f'Time since last print (min): {(toc - tic) / 60:.4}')
-                tic = time()
+                tic = time.time()
                 # plot_epoch(x, fake_images, y)
                 # plot_loss(G_content, G_advers, D_real_L, D_fake_L, weight_param)
                 print()

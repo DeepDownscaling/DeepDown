@@ -6,7 +6,7 @@ import xarray as xr
 
 # Create data generator in pytorch - Adapted from the keras class
 class DataGenerator(Dataset):
-    def __init__(self, x, y, input_vars, output_vars, shuffle=True, load=True,
+    def __init__(self, x, y, input_vars, output_vars, shuffle=True, load=False,
                  mean=None, std=None, tp_log=None):
         """
         Data generator. Template from:
@@ -65,9 +65,9 @@ class DataGenerator(Dataset):
 
         # Normalize
         print('Computing mean and std...')
-        self.mean = self.x.mean(
+        self.mean = self.x.nanmean(
             ('time', 'y', 'x')).compute() if mean is None else mean
-        self.std = self.x.std(
+        self.std = self.x.nanstd(
             ('time', 'y', 'x')).compute() if std is None else std
         self.x = (self.x - self.mean) / self.std
 
