@@ -27,16 +27,21 @@ print_cuda_availability()
 
 def main(conf):
     # Data options
-    date_start = conf.get('date_start', '1979-01-01')
-    date_end = conf.get('date_end', '2021-12-31')
-    years_train = conf.get('years_train', [1979, 2015])
-    years_valid = conf.get('years_valid', [2015, 2018])
-    years_test = conf.get('years_test', [2019, 2021])
-    levels = conf.get('levels', [850, 1000])
-    resol_low = conf.get('resol_low', 0.25)
-    input_variables = conf.get('input_variables', ['tp', 't'])
+    date_start = conf.get('date_start', '1961-01-01')
+    date_end = conf.get('date_end', '2022-12-31')
+    years_train = conf.get('years_train', [1961, 2000])
+    years_valid = conf.get('years_valid', [2001, 2010])
+    years_test = conf.get('years_test', [2011, 2022])
+    levels = conf.get('levels', [])
+    resol_low = conf.get('resol_low', 0.1)
     input_paths = [conf.get('path_era5land') + '/precipitation',
-                   conf.get('path_era5land') + '/temperature']
+                   conf.get('path_era5land') + '/temperature',
+                   conf.get('path_era5land') + '/min_temperature',
+                   conf.get('path_era5land') + '/max_temperature']
+    target_paths = [conf.get('path_mch') + '/RhiresD_v2.0_swiss.lv95',
+                    conf.get('path_mch') + '/TabsD_v2.0_swiss.lv95',
+                    conf.get('path_mch') + '/TminD_v2.0_swiss.lv95',
+                    conf.get('path_mch') + '/TmaxD_v2.0_swiss.lv95']
 
     # Crop on a smaller region
     do_crop = conf.get('do_crop', False)
@@ -49,16 +54,15 @@ def main(conf):
     num_epochs = conf.get('num_epochs', 100)
 
     # Load target data
-    target = load_target_data(date_start, date_end, conf.get('path_mch'),
+    target = load_target_data(date_start, date_end, target_paths,
                               path_tmp=conf.get('path_tmp'))
 
-    # Extract the axes of the final target domain based on temperature 
-    x_axis = target.TabsD.x
-    y_axis = target.TabsD.y
+    # Extract the axes of the final target domain based on temperature
+    x_axis = target.x.to_numpy()
+    y_axis = target.y.to_numpy()
 
-    input_data = load_input_data(date_start, date_end, conf.get('path_dem'),
-                                 input_variables, input_paths,
-                                 levels, resol_low, x_axis, y_axis,
+    input_data = load_input_data(date_start, date_end, input_paths, levels, resol_low,
+                                 x_axis, y_axis, path_dem=conf.get('path_dem'),
                                  path_tmp=conf.get('path_tmp'))
 
     if do_crop:
