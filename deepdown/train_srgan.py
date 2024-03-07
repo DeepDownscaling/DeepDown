@@ -107,10 +107,10 @@ def main(conf):
     check_x, check_y = dg_train.__getitem__(3)
     print("x shape: ", check_x.shape)
     print("y shape: ", check_y.shape)
-    print("x min: ", torch.min(check_x))
-    print("x max: ", torch.max(check_x))
-    print("y min: ", torch.min(check_y))
-    print("y max: ", torch.max(check_y))
+    print("x min: ", np.nanmin(check_x.to('cpu').numpy()))
+    print("x max: ", np.nanmax(check_x.to('cpu').numpy()))
+    print("y min: ", np.nanmin(check_y.to('cpu').numpy()))
+    print("y max: ", np.nanmax(check_y.to('cpu').numpy()))
     torch.cuda.empty_cache()
 
     num_channels_out, h, w = check_y.shape

@@ -64,7 +64,7 @@ class DataGenerator(Dataset):
         self.x = xr.concat(data, 'level').transpose('level', 'y', 'x', 'time')
 
         # Normalize
-        print('Computing mean and std...')
+        print('Computing/assigning mean and std...')
         self.mean = self.x.mean(
             ('time', 'y', 'x')).compute() if mean is None else mean
         self.std = self.x.std(
