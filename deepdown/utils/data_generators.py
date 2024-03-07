@@ -65,9 +65,9 @@ class DataGenerator(Dataset):
 
         # Normalize
         print('Computing mean and std...')
-        self.mean = self.x.nanmean(
+        self.mean = self.x.mean(
             ('time', 'y', 'x')).compute() if mean is None else mean
-        self.std = self.x.nanstd(
+        self.std = self.x.std(
             ('time', 'y', 'x')).compute() if std is None else std
         self.x = (self.x - self.mean) / self.std
 
