@@ -45,8 +45,8 @@ def main(conf):
                     conf.get('path_mch') + '/TmaxD_v2.0_swiss.lv95']
 
     # Select the variables to use as input (with the corresponding levels) and output
-    input_vars = conf.get('input_vars', {'topo': None, 'tp': None, '2t': None,
-                                         '2t_min': None, '2t_max': None})
+    input_vars = conf.get('input_vars', {'tp': None, 't2m': None, 't2m_min': None,
+                                         't2m_max': None, 'topo': None, })
     output_vars = conf.get('output_vars', ['tp', 't', 't_min', 't_max'])  # Renamed
 
     # Crop on a smaller region
