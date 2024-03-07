@@ -2,6 +2,7 @@
 import argparse
 import time
 import numpy as np
+import pandas as pd
 
 # Import torch
 from torch.utils.data import Dataset
@@ -43,6 +44,11 @@ def main(conf):
                     conf.get('path_mch') + '/TminD_v2.0_swiss.lv95',
                     conf.get('path_mch') + '/TmaxD_v2.0_swiss.lv95']
 
+    # Select the variables to use as input (with the corresponding levels) and output
+    input_vars = conf.get('input_vars', {'topo': None, 'tp': None, '2t': None,
+                                         '2t_min': None, '2t_max': None})
+    output_vars = conf.get('output_vars', ['tp', 't', 't_min', 't_max'])  # Renamed
+
     # Crop on a smaller region
     do_crop = conf.get('do_crop', False)
     crop_x = conf.get('crop_x', [2700000, 2760000])
@@ -72,17 +78,19 @@ def main(conf):
                             y=slice(max(crop_y), min(crop_y)))
 
     # Split the data
-    x_train = input_data.sel(time=slice(years_train[0], years_train[1]))
-    x_valid = input_data.sel(time=slice(years_valid[0], years_valid[1]))
-    x_test = input_data.sel(time=slice(years_test[0], years_test[1]))
+    x_train = input_data.sel(time=slice(pd.Timestamp(years_train[0], 1, 1),
+                                        pd.Timestamp(years_train[1], 12, 31)))
+    x_valid = input_data.sel(time=slice(pd.Timestamp(years_valid[0], 1, 1),
+                                        pd.Timestamp(years_valid[1], 12, 31)))
+    x_test = input_data.sel(time=slice(pd.Timestamp(years_test[0], 1, 1),
+                                       pd.Timestamp(years_test[1], 12, 31)))
 
-    y_train = target.sel(time=slice(years_train[0], years_train[1]))
-    y_valid = target.sel(time=slice(years_valid[0], years_valid[1]))
-    y_test = target.sel(time=slice(years_test[0], years_test[1]))
-
-    # Select the variables to use as input and output
-    input_vars = {'topo': None, 'tp': None, '2t': None, '2t_min': None, '2t_max': None}
-    output_vars = ['RhiresD', 'TabsD']  # ['RhiresD', 'TabsD', 'TmaxD', 'TminD']
+    y_train = target.sel(time=slice(pd.Timestamp(years_train[0], 1, 1),
+                                    pd.Timestamp(years_train[1], 12, 31)))
+    y_valid = target.sel(time=slice(pd.Timestamp(years_valid[0], 1, 1),
+                                    pd.Timestamp(years_valid[1], 12, 31)))
+    y_test = target.sel(time=slice(pd.Timestamp(years_test[0], 1, 1),
+                                   pd.Timestamp(years_test[1], 12, 31)))
 
     # Create the data generators
     training_set = DataGenerator(x_train, y_train, input_vars, output_vars)
