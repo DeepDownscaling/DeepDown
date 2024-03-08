@@ -6,7 +6,7 @@ import xarray as xr
 
 # Create data generator in pytorch - Adapted from the keras class
 class DataGenerator(Dataset):
-    def __init__(self, dx, dy, input_vars, output_vars, shuffle=True, load=True,
+    def __init__(self, x, y, input_vars, output_vars, shuffle=True, load=False,
                  mean=None, std=None, tp_log=None):
         """
         Data generator. Template from:
@@ -14,9 +14,9 @@ class DataGenerator(Dataset):
 
         Parameters
         ----------
-        dx: xarray Dataset
+        x: xarray Dataset
             Input data.
-        dy: xarray Dataset
+        y: xarray Dataset
             Data to predict.
         input_vars: dict
             Dictionary of input variables. Keys are variable names and values are
@@ -39,10 +39,6 @@ class DataGenerator(Dataset):
             given value as a threshold.
         """
 
-        self.dx = dx
-        self.dy = dy
-        self.input_vars = input_vars
-        self.output_vars = output_vars
         self.shuffle = shuffle
         self.idxs = None
 
@@ -52,42 +48,43 @@ class DataGenerator(Dataset):
         for var, levels in input_vars.items():
             # Variables transformation
             if var == 'tp' and tp_log:
-                data = self.log_trans(dx[var], tp_log)
+                data = self.log_trans(x[var], tp_log)
 
             # Handle dimensions
             if var == 'topo':
-                data.append(dx[var].expand_dims(
-                    {'level': generic_level, 'time': dx.time}, (1, 0)
+                data.append(x[var].expand_dims(
+                    {'level': generic_level, 'time': x.time}, (1, 0)
                 ))
             elif levels is None:
-                data.append(dx[var].expand_dims({'level': generic_level}, 1))
+                data.append(x[var].expand_dims({'level': generic_level}, 1))
             else:
-                data.append(dx[var].sel(level=levels))
+                data.append(x[var].sel(level=levels))
 
         # In PyTorch we must transpose (C,H,W,B)
-        self.data = xr.concat(data, 'level').transpose('level', 'y', 'x', 'time')
+        self.x = xr.concat(data, 'level').transpose('level', 'y', 'x', 'time')
 
-        # Normalize 
-        self.mean = self.data.mean(
+        # Normalize
+        print('Computing/assigning mean and std...')
+        self.mean = self.x.mean(
             ('time', 'y', 'x')).compute() if mean is None else mean
-        self.std = self.data.std(
+        self.std = self.x.std(
             ('time', 'y', 'x')).compute() if std is None else std
-        self.data = (self.data - self.mean) / self.std
+        self.x = (self.x - self.mean) / self.std
 
         # Get indices of samples
-        self.n_samples = self.data.shape[3]
+        self.n_samples = self.x.shape[3]
         self.on_epoch_end()
 
         # Prepare the target
-        self.dy = [self.dy[var] for var in self.output_vars]
+        self.y = [y[var] for var in output_vars]
 
         # Concatenate the DataArray objects along a new dimension
-        self.dy = xr.concat(self.dy, dim='level').transpose('level', 'y', 'x', 'time')
+        self.y = xr.concat(self.y, dim='level').transpose('level', 'y', 'x', 'time')
 
         if load:
-            print('Loading data into RAM')
-            self.data.load()
-            self.dy.load()
+            print('Loading data into RAM...')
+            self.x.load()
+            self.y.load()
 
     def __len__(self):
         """Denotes the number of samples"""
@@ -96,8 +93,8 @@ class DataGenerator(Dataset):
     def __getitem__(self, idx):
         """Loads and returns a sample from the dataset"""
         idxs = self.idxs[idx]
-        X = (torch.Tensor(self.data.isel(time=idxs).values))
-        y = (torch.Tensor(self.dy.isel(time=idxs).values))
+        X = (torch.Tensor(self.x.isel(time=idxs).values))
+        y = (torch.Tensor(self.y.isel(time=idxs).values))
 
         if y.ndim == 2:
             # Expand dimensions

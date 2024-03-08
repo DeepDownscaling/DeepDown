@@ -21,10 +21,25 @@ def rename_dimensions_variables(ds):
     xarray.Dataset
         The dataset with renamed dimensions.
     """
+    # Rename dimensions
     if 'latitude' in ds.dims:
         ds = ds.rename({'latitude': 'lat'})
     if 'longitude' in ds.dims:
         ds = ds.rename({'longitude': 'lon'})
+    if 'E' in ds.dims:
+        ds = ds.rename({'E': 'x'})
+    if 'N' in ds.dims:
+        ds = ds.rename({'N': 'y'})
+
+    # Rename variables
+    if 'RhiresD' in ds.variables:
+        ds = ds.rename({'RhiresD': 'tp'})
+    if 'TabsD' in ds.variables:
+        ds = ds.rename({'TabsD': 't'})
+    if 'TmaxD' in ds.variables:
+        ds = ds.rename({'TmaxD': 't_max'})
+    if 'TminD' in ds.variables:
+        ds = ds.rename({'TminD': 't_min'})
 
     return ds
 
@@ -139,13 +154,11 @@ def precip_exceedance(precip, qt=0.95):
     return out
 
 
-def load_data(vars, paths, date_start, date_end, lon_bnds, lat_bnds, levels):
+def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
     """Load the data.
 
     Parameters
     ----------
-    vars : list
-        The variables to load.
     paths : list
         The paths to the data.
     date_start : str
@@ -165,7 +178,7 @@ def load_data(vars, paths, date_start, date_end, lon_bnds, lat_bnds, levels):
         The data.
     """
     data = []
-    for i_var in range(0, len(vars)):
+    for i_var in range(0, len(paths)):
 
         dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end, lon_bnds,
                           lat_bnds)
@@ -176,7 +189,7 @@ def load_data(vars, paths, date_start, date_end, lon_bnds, lat_bnds, levels):
             l = [x for x in lev if x in levels]
             dat = dat.sel(level=l)
 
-        if vars[i_var] == 'z':
+        if 'z' in dat.variables:
             dat.z.values = dat.z.values / 9.80665
 
         dat['time'] = pd.DatetimeIndex(dat.time.dt.date)
@@ -211,7 +224,7 @@ def convert_to_xarray(a, lat, lon, time):
     return mx
 
 
-def load_target_data(date_start, date_end, path, dump_data_to_pickle=True,
+def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
                      path_tmp='../tmp/'):
     """
     Load the target data.
@@ -222,8 +235,8 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True,
         The starting date ('YYYY-MM-DD').
     date_end : str
         The end date ('YYYY-MM-DD').
-    path : str
-        The path to the data main directory.
+    paths : list
+        The paths to the data.
     dump_data_to_pickle : bool
         Whether to dump the data to pickle or not.
     path_tmp : str
@@ -235,8 +248,14 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True,
         The target data.
     """
 
-    # Load from pickle
-    target_pkl_file = f'{path_tmp}/target_{date_start}_{date_end}.pkl'
+    # Pickle tag
+    tag = (
+            pickle.dumps(date_start)
+            + pickle.dumps(date_end)
+            + pickle.dumps(paths)
+    )
+
+    target_pkl_file = f'{path_tmp}/target_{hashlib.md5(tag).hexdigest()}.pkl'
     if dump_data_to_pickle and os.path.isfile(target_pkl_file):
         with open(target_pkl_file, 'rb') as f:
             target = pickle.load(f)
@@ -246,24 +265,29 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True,
     # Read data from original files
     print('Extracting target data...')
 
-    pr = get_nc_data(path + '/RhiresD_v2.0_swiss.lv95/*nc', date_start, date_end)
-    t_abs = get_nc_data(path + '/TabsD_v2.0_swiss.lv95/*nc', date_start, date_end)
-    t_max = get_nc_data(path + '/TmaxD_v2.0_swiss.lv95/*nc', date_start, date_end)
-    t_min = get_nc_data(path + '/TminD_v2.0_swiss.lv95/*nc', date_start, date_end)
+    target = []
+    for i_var in range(0, len(paths)):
+        dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end)
+        target.append(dat)
 
-    # Merge the target data
-    target = xr.merge([pr, t_abs, t_max, t_min])
+    # Extract the min/max coordinates of the common domain
+    min_x = max([ds.x.min() for ds in target])
+    max_x = min([ds.x.max() for ds in target])
+    min_y = max([ds.y.min() for ds in target])
+    max_y = min([ds.y.max() for ds in target])
+
+    # Convert to xarray
+    target = xr.merge(target)
 
     # Invert lat axis if needed
-    if target.N[0].values < target.N[1].values:
-        target = target.reindex(N=list(reversed(target.N)))
+    if target.y[0].values < target.y[1].values:
+        target = target.reindex(N=list(reversed(target.y)))
 
     # Crop the target data to the final domain
-    target = target.sel(E=slice(min(t_abs.E), max(t_abs.E)),
-                        N=slice(max(t_abs.N), min(t_abs.N)))
+    target = target.sel(x=slice(min_x, max_x),
+                        y=slice(min_y, max_y))
 
-    # Rename coordinates
-    target = target.rename({'E': 'x', 'N': 'y'})
+    # Drop unnecessary variables
     target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'])
 
     # Save to pickle
@@ -275,8 +299,8 @@ def load_target_data(date_start, date_end, path, dump_data_to_pickle=True,
     return target
 
 
-def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
-                    levels, resol_low, x_axis, y_axis, dump_data_to_pickle=True,
+def load_input_data(date_start, date_end, paths, levels, resol_low,
+                    x_axis, y_axis, path_dem=None, dump_data_to_pickle=True,
                     path_tmp='../tmp/'):
     """
     Load the input data.
@@ -287,11 +311,7 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
         The starting date ('YYYY-MM-DD').
     date_end : str
         The end date ('YYYY-MM-DD').
-    path_dem : str
-        The path to the DEM data.
-    input_vars : list
-        The variables to load.
-    input_paths : list
+    paths : list
         The paths to the data.
     levels : list
         The levels to extract.
@@ -301,6 +321,8 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
         The x coordinates of the final domain.
     y_axis : numpy.ndarray
         The y coordinates of the final domain.
+    path_dem : str
+        The path to the DEM data. If None, the topography will not be added.
     dump_data_to_pickle : bool
         Whether to dump the data to pickle or not.
     path_tmp : str
@@ -315,8 +337,7 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
     # Load from pickle
     if dump_data_to_pickle:
         tag = (
-                pickle.dumps(input_vars)
-                + pickle.dumps(input_paths)
+                pickle.dumps(paths)
                 + pickle.dumps(date_start)
                 + pickle.dumps(date_end)
                 + pickle.dumps(levels)
@@ -334,10 +355,12 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
     print("Extracting input data...")
 
     # Load the topography
-    topo = xr.open_dataset(path_dem)
-    topo = topo.squeeze('band')
-    topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
-    topo = topo.drop_vars(['band', 'spatial_ref'])
+    topo = None
+    if path_dem is not None:
+        topo = xr.open_dataset(path_dem)
+        topo = topo.squeeze('band')
+        topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
+        topo = topo.drop_vars(['band', 'spatial_ref'])
 
     # Get extent of the final domain in lat/lon (EPSG:4326) from the original
     # domain in CH1903+ (EPSG:2056)
@@ -354,8 +377,7 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
     # Load the predictors data
     era5_lon = [lon_min, lon_max]
     era5_lat = [lat_min, lat_max]
-    inputs = load_data(input_vars, input_paths, date_start, date_end, era5_lon,
-                       era5_lat, levels)
+    inputs = load_data(paths, date_start, date_end, era5_lon, era5_lat, levels)
 
     # Interpolate low res data
     # Create a new xarray dataset with the new grid coordinates
@@ -387,12 +409,13 @@ def load_input_data(date_start, date_end, path_dem, input_vars, input_paths,
         inputs = inputs.reindex(y=list(reversed(inputs.y)))
 
     # Merge with topo
-    input_data = xr.merge([inputs, topo])
+    if topo is not None:
+        inputs = xr.merge([inputs, topo])
 
     # Save to pickle file
     if dump_data_to_pickle:
         os.makedirs(os.path.dirname(input_pkl_file), exist_ok=True)
         with open(input_pkl_file, 'wb') as f:
-            pickle.dump(input_data, f, protocol=-1)
+            pickle.dump(inputs, f, protocol=-1)
 
-    return input_data
+    return inputs

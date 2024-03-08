@@ -2,6 +2,7 @@
 import argparse
 import time
 import numpy as np
+import pandas as pd
 
 # Import torch
 from torch.utils.data import Dataset
@@ -27,16 +28,26 @@ print_cuda_availability()
 
 def main(conf):
     # Data options
-    date_start = conf.get('date_start', '1979-01-01')
-    date_end = conf.get('date_end', '2021-12-31')
-    years_train = conf.get('years_train', [1979, 2015])
-    years_valid = conf.get('years_valid', [2015, 2018])
-    years_test = conf.get('years_test', [2019, 2021])
-    levels = conf.get('levels', [850, 1000])
-    resol_low = conf.get('resol_low', 0.25)
-    input_variables = conf.get('input_variables', ['tp', 't'])
+    date_start = conf.get('date_start', '1961-01-01')
+    date_end = conf.get('date_end', '2022-12-31')
+    years_train = conf.get('years_train', [1961, 2000])
+    years_valid = conf.get('years_valid', [2001, 2010])
+    years_test = conf.get('years_test', [2011, 2022])
+    levels = conf.get('levels', [])
+    resol_low = conf.get('resol_low', 0.1)
     input_paths = [conf.get('path_era5land') + '/precipitation',
-                   conf.get('path_era5land') + '/temperature']
+                   conf.get('path_era5land') + '/temperature',
+                   conf.get('path_era5land') + '/min_temperature',
+                   conf.get('path_era5land') + '/max_temperature']
+    target_paths = [conf.get('path_mch') + '/RhiresD_v2.0_swiss.lv95',
+                    conf.get('path_mch') + '/TabsD_v2.0_swiss.lv95',
+                    conf.get('path_mch') + '/TminD_v2.0_swiss.lv95',
+                    conf.get('path_mch') + '/TmaxD_v2.0_swiss.lv95']
+
+    # Select the variables to use as input (with the corresponding levels) and output
+    input_vars = conf.get('input_vars', {'tp': None, 't2m': None, 't2m_min': None,
+                                         't2m_max': None, 'topo': None, })
+    output_vars = conf.get('output_vars', ['tp', 't', 't_min', 't_max'])  # Renamed
 
     # Crop on a smaller region
     do_crop = conf.get('do_crop', False)
@@ -49,16 +60,15 @@ def main(conf):
     num_epochs = conf.get('num_epochs', 100)
 
     # Load target data
-    target = load_target_data(date_start, date_end, conf.get('path_mch'),
+    target = load_target_data(date_start, date_end, target_paths,
                               path_tmp=conf.get('path_tmp'))
 
-    # Extract the axes of the final target domain based on temperature 
-    x_axis = target.TabsD.x
-    y_axis = target.TabsD.y
+    # Extract the axes of the final target domain based on temperature
+    x_axis = target.x.to_numpy()
+    y_axis = target.y.to_numpy()
 
-    input_data = load_input_data(date_start, date_end, conf.get('path_dem'),
-                                 input_variables, input_paths,
-                                 levels, resol_low, x_axis, y_axis,
+    input_data = load_input_data(date_start, date_end, input_paths, levels, resol_low,
+                                 x_axis, y_axis, path_dem=conf.get('path_dem'),
                                  path_tmp=conf.get('path_tmp'))
 
     if do_crop:
@@ -68,43 +78,44 @@ def main(conf):
                             y=slice(max(crop_y), min(crop_y)))
 
     # Split the data
-    x_train = input_data.sel(time=slice(years_train[0], years_train[1]))
-    x_valid = input_data.sel(time=slice(years_valid[0], years_valid[1]))
-    x_test = input_data.sel(time=slice(years_test[0], years_test[1]))
+    x_train = input_data.sel(time=slice(pd.Timestamp(years_train[0], 1, 1),
+                                        pd.Timestamp(years_train[1], 12, 31)))
+    x_valid = input_data.sel(time=slice(pd.Timestamp(years_valid[0], 1, 1),
+                                        pd.Timestamp(years_valid[1], 12, 31)))
+    x_test = input_data.sel(time=slice(pd.Timestamp(years_test[0], 1, 1),
+                                       pd.Timestamp(years_test[1], 12, 31)))
 
-    y_train = target.sel(time=slice(years_train[0], years_train[1]))
-    y_valid = target.sel(time=slice(years_valid[0], years_valid[1]))
-    y_test = target.sel(time=slice(years_test[0], years_test[1]))
-
-    # Select the variables to use as input and output
-    input_vars = {'topo': None, 'tp': None, '2t': None, '2t_min': None, '2t_max': None}
-    output_vars = ['RhiresD', 'TabsD']  # ['RhiresD', 'TabsD', 'TmaxD', 'TminD']
+    y_train = target.sel(time=slice(pd.Timestamp(years_train[0], 1, 1),
+                                    pd.Timestamp(years_train[1], 12, 31)))
+    y_valid = target.sel(time=slice(pd.Timestamp(years_valid[0], 1, 1),
+                                    pd.Timestamp(years_valid[1], 12, 31)))
+    y_test = target.sel(time=slice(pd.Timestamp(years_test[0], 1, 1),
+                                   pd.Timestamp(years_test[1], 12, 31)))
 
     # Create the data generators
-    training_set = DataGenerator(x_train, y_train, input_vars, output_vars)
-    loader_train = torch.utils.data.DataLoader(training_set, batch_size=batch_size)
-    valid_set = DataGenerator(x_valid, y_valid, input_vars, output_vars, shuffle=False,
-                              mean=training_set.mean, std=training_set.std)
-    loader_val = torch.utils.data.DataLoader(valid_set, batch_size=batch_size)
-    test_set = DataGenerator(x_test, y_test, input_vars, output_vars, shuffle=False,
-                             mean=training_set.mean, std=training_set.std)
-    loader_test = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
+    dg_train = DataGenerator(x_train, y_train, input_vars, output_vars)
+    loader_train = torch.utils.data.DataLoader(dg_train, batch_size=batch_size)
+    dg_valid = DataGenerator(x_valid, y_valid, input_vars, output_vars, shuffle=False,
+                             mean=dg_train.mean, std=dg_train.std)
+    loader_valid = torch.utils.data.DataLoader(dg_valid, batch_size=batch_size)
+    dg_test = DataGenerator(x_test, y_test, input_vars, output_vars, shuffle=False,
+                            mean=dg_train.mean, std=dg_train.std)
+    loader_test = torch.utils.data.DataLoader(dg_test, batch_size=batch_size)
 
     # Check to make sure the range on the input and output images is correct,
     # and they're the correct shape
-    test_x, test_y = training_set.__getitem__(3)
-    print("x shape: ", test_x.shape)
-    print("y shape: ", test_y.shape)
-    print("x min: ", torch.min(test_x))
-    print("x max: ", torch.max(test_x))
-    print("y min: ", torch.min(test_y))
-    print("y max: ",torch.max(test_y))
+    check_x, check_y = dg_train.__getitem__(3)
+    print("x shape: ", check_x.shape)
+    print("y shape: ", check_y.shape)
+    print("x min: ", np.nanmin(check_x.to('cpu').numpy()))
+    print("x max: ", np.nanmax(check_x.to('cpu').numpy()))
+    print("y min: ", np.nanmin(check_y.to('cpu').numpy()))
+    print("y max: ", np.nanmax(check_y.to('cpu').numpy()))
     torch.cuda.empty_cache()
 
-    h, w = test_y.shape
-    lowres_shape = test_x.shape
-    num_channels_in = test_x.shape[0]
-    num_channels_out = test_y.shape[0]
+    num_channels_out, h, w = check_y.shape
+    lowres_shape = check_x.shape
+    num_channels_in = check_x.shape[0]
 
     D = Discriminator(num_channels=num_channels_out, H=h, W=w)
     G = Generator(num_channels_in, input_size=lowres_shape,
@@ -163,7 +174,7 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
 
     iter_count = 0
     G_iter_count = 0
-    tic = time()
+    tic = time.time()
     for epoch in range(num_epochs):
 
         for x, y in loader_train:
@@ -201,11 +212,11 @@ def train_srgan(loader_train, D, G, D_solver, G_solver, discriminator_loss,
                 G_iter_count += 1
 
             if (iter_count % show_every == 0):
-                toc = time()
+                toc = time.time()
                 print(f'Epoch: {epoch}, Iter: {iter_count}, '
                       f'D: {d_total_error.item():.4}, G: {g_error.item():.4}, '
                       f'Time since last print (min): {(toc - tic) / 60:.4}')
-                tic = time()
+                tic = time.time()
                 # plot_epoch(x, fake_images, y)
                 # plot_loss(G_content, G_advers, D_real_L, D_fake_L, weight_param)
                 print()
