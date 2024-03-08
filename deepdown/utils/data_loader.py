@@ -192,12 +192,17 @@ def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
         if 'z' in dat.variables:
             dat.z.values = dat.z.values / 9.80665
 
+        if vars[i_var] == 'tp':
+            # we need to remove unwanted variables
+            dat = dat.drop('surface')
+            dat = dat.drop('number')
+            dat = dat.drop('valid_time')
         dat['time'] = pd.DatetimeIndex(dat.time.dt.date)
 
         data.append(dat)
 
     return xr.merge(data)
-
+    
 
 def convert_to_xarray(a, lat, lon, time):
     """
@@ -355,12 +360,10 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     print("Extracting input data...")
 
     # Load the topography
-    topo = None
-    if path_dem is not None:
-        topo = xr.open_dataset(path_dem)
-        topo = topo.squeeze('band')
-        topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
-        topo = topo.drop_vars(['band', 'spatial_ref'])
+    topo = xr.open_dataset(path_dem)
+    topo = topo.squeeze('band')
+    #topo = topo.rename({'__xarray_dataarray_variable__': 'topo'}) # this gives me error now
+    topo = topo.drop_vars(['band', 'spatial_ref'])
 
     # Get extent of the final domain in lat/lon (EPSG:4326) from the original
     # domain in CH1903+ (EPSG:2056)
@@ -379,43 +382,45 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     era5_lat = [lat_min, lat_max]
     inputs = load_data(paths, date_start, date_end, era5_lon, era5_lat, levels)
 
+
+
     # Interpolate low res data
     # Create a new xarray dataset with the new grid coordinates
     new_data_format = xr.Dataset(coords={'latitude': (('lat', 'lon'), lat_grid),
-                                         'longitude': (('lat', 'lon'), lon_grid)})
+                                          'longitude': (('lat', 'lon'), lon_grid)})
 
-    # Interpolate the original data onto the new grid
+    # # Interpolate the original input data onto the new grid
     inputs = inputs.interp(lat=new_data_format.latitude,
-                           lon=new_data_format.longitude, method='nearest')
+                            lon=new_data_format.longitude, method='nearest')
 
-    # Removing duplicate coordinates
+    # # Removing duplicate coordinates
     inputs = inputs.drop_vars(['lat', 'lon'])
 
-    # Add the Swiss coordinates
+    # # Add the Swiss coordinates
     inputs = inputs.assign_coords(x=(('lat', 'lon'), x_grid),
-                                  y=(('lat', 'lon'), y_grid))
-    # Rename variables before merging
+                                   y=(('lat', 'lon'), y_grid))
+    # # Rename variables before merging
     inputs = inputs.rename({'lon': 'x', 'lat': 'y'})
     inputs = inputs.drop_vars(['latitude', 'longitude'])
 
-    # Squeeze the 2D coordinates
+    # # Squeeze the 2D coordinates
     x_1d = inputs['x'][0, :]
     y_1d = inputs['y'][:, 0]
     inputs = inputs.assign(x=xr.DataArray(x_1d, dims='x'),
-                           y=xr.DataArray(y_1d, dims='y'))
+                            y=xr.DataArray(y_1d, dims='y'))
 
-    # Invert y axis if needed
+    # # Invert y axis if needed
     if inputs.y[0].values < inputs.y[1].values:
         inputs = inputs.reindex(y=list(reversed(inputs.y)))
 
-    # Merge with topo
-    if topo is not None:
-        inputs = xr.merge([inputs, topo])
+    # # Merge with topo
+    input_data = xr.merge([inputs, topo])
 
-    # Save to pickle file
+    # # Save to pickle file
     if dump_data_to_pickle:
         os.makedirs(os.path.dirname(input_pkl_file), exist_ok=True)
         with open(input_pkl_file, 'wb') as f:
             pickle.dump(inputs, f, protocol=-1)
 
-    return inputs
+    return input_data
+    

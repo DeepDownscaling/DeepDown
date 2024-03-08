@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from deepdown.utils.helpers import DEVICE
+from utils.helpers import DEVICE # not need to add deepdown.
 
 
 def generator_loss(gen_img, true_img, logits_fake, weight_param=1e-3):
