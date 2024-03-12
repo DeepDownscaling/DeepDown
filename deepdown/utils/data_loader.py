@@ -179,10 +179,11 @@ def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
     """
     data = []
     for i_var in range(0, len(paths)):
+       
 
         dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end, lon_bnds,
                           lat_bnds)
-
+        
         if 'level' in list(dat.coords):
             print("Selecting level")
             lev = np.array(dat.level)
@@ -192,11 +193,6 @@ def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
         if 'z' in dat.variables:
             dat.z.values = dat.z.values / 9.80665
 
-        if vars[i_var] == 'tp':
-            # we need to remove unwanted variables
-            dat = dat.drop('surface')
-            dat = dat.drop('number')
-            dat = dat.drop('valid_time')
         dat['time'] = pd.DatetimeIndex(dat.time.dt.date)
 
         data.append(dat)
@@ -420,7 +416,7 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     if dump_data_to_pickle:
         os.makedirs(os.path.dirname(input_pkl_file), exist_ok=True)
         with open(input_pkl_file, 'wb') as f:
-            pickle.dump(inputs, f, protocol=-1)
+            pickle.dump(input_data, f, protocol=-1)
 
     return input_data
     
