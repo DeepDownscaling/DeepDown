@@ -52,6 +52,8 @@ class DataGenerator(Dataset):
         self.shuffle = shuffle
         self.idxs = None
 
+        self.inputs = self.rev_lat(self.inputs)
+        self.outputs = self.rev_lat(self.outputs)
         # crop option
         if do_crop:
     
@@ -109,6 +111,14 @@ class DataGenerator(Dataset):
             print('Loading data into RAM...')
             self.x.load()
             self.y.load()
+
+    def rev_lat(self, data):
+        if data['y'][0].values < data['y'][1].values:
+            # If the first latitude is less than the second, reverse the order
+            data['y'] = data['y'][data['y'].argsort()[::-1]] 
+        return data
+
+
 
     def __len__(self):
         """Denotes the number of samples"""

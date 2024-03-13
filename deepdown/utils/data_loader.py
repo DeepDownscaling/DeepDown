@@ -288,9 +288,11 @@ def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
     target = target.sel(x=slice(min_x, max_x),
                         y=slice(min_y, max_y))
 
+    # sort the latitudes
+    target = target.y[target.y.argsort()[::-1]]
     # Drop unnecessary variables
     target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'])
-
+    
     # Save to pickle
     if dump_data_to_pickle:
         os.makedirs(os.path.dirname(target_pkl_file), exist_ok=True)
