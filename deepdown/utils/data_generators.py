@@ -73,7 +73,7 @@ class DataGenerator(Dataset):
             # Handle dimensions
             if var == 'topo':
                 data.append(self.inputs[var].expand_dims(
-                    {'level': generic_level, 'time': x.time}, (1, 0)
+                    {'level': generic_level, 'time': self.inputs.time}, (1, 0)
                 ))
             elif levels is None:
                 data.append(self.inputs[var].expand_dims({'level': generic_level}, 1))
