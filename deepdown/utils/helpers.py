@@ -11,10 +11,8 @@ def print_cuda_availability():
     print("Device used:", DEVICE)
 
 
-def split_function(data, years_train, years_valid, years_test):
+def split_data(data, years):
+    subset = data.sel(time=slice(datetime(years[0], 1, 1),
+                                 datetime(years[1], 12, 31)))
 
-    train = data.sel(time=slice( datetime(years_train[0],1,1), datetime(years_train[1], 12, 31)))
-    valid = data.sel(time=slice( datetime(years_valid[0],1,1), datetime(years_valid[1], 12, 31)))
-    test = data.sel(time=slice( datetime(years_test[0],1,1), datetime(years_test[1], 12, 31)))
-
-    return train, valid, test
+    return subset

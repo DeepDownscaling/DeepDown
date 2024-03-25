@@ -12,7 +12,7 @@ import datetime
 from deepdown.utils.data_loader import load_target_data, load_input_data
 from deepdown.utils.loss_fcts import generator_loss
 from deepdown.utils.data_generators import DataGenerator
-from deepdown.utils.helpers import print_cuda_availability, DEVICE, split_function
+from deepdown.utils.helpers import print_cuda_availability, DEVICE, split_data
 from deepdown.models.srgan import Generator, Discriminator
 from deepdown.config import Config
 from deepdown.models.srgan_train import srgan_train
@@ -56,9 +56,12 @@ def train(conf):
 
 
     # Split the data
-    x_train, x_valid, x_test = split_function(input_data, conf.config.years_train, conf.config.years_valid, conf.config.years_test)
-    y_train, y_valid, y_test = split_function(target, conf.config.years_train, conf.config.years_valid, conf.config.years_test)
-  
+    x_train = split_data(input_data, conf.config.years_train)
+    x_valid = split_data(input_data, conf.config.years_valid)
+    x_test = split_data(input_data, conf.config.years_test)
+    y_train = split_data(target, conf.config.years_train)
+    y_valid = split_data(target, conf.config.years_valid)
+    y_test = split_data(target, conf.config.years_test)
 
     logger.info("Creating data loaders")
     training_set = DataGenerator(inputs=x_train, outputs=y_train, input_vars=conf.input_vars, 
