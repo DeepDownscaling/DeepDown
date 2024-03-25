@@ -49,11 +49,12 @@ def train(conf):
     # Load target data
     target = load_target_data(conf.date_start, conf.date_end, target_paths,
                               path_tmp=conf.path_tmp)
-  
-    input_data = load_input_data(date_start=conf.date_start, date_end=conf.date_end, levels = conf.levels, 
-                                 resol_low = conf.resol_low, x_axis = target.x, y_axis= target.y, 
-                                 paths = input_paths, path_dem=conf.path_dem, dump_data_to_pickle=True, path_tmp='../tmp/')
 
+    input_data = load_input_data(
+        date_start=conf.date_start, date_end=conf.date_end, levels=conf.levels,
+        resol_low=conf.resol_low, x_axis=target.x, y_axis=target.y,
+        paths=input_paths, path_dem=conf.path_dem, dump_data_to_pickle=True,
+        path_tmp='../tmp/')
 
     # Split the data
     x_train = split_data(input_data, conf.config.years_train)
@@ -64,15 +65,21 @@ def train(conf):
     y_test = split_data(target, conf.config.years_test)
 
     logger.info("Creating data loaders")
-    training_set = DataGenerator(inputs=x_train, outputs=y_train, input_vars=conf.input_vars, 
-                 output_vars=conf.target_vars, do_crop= conf.do_crop, crop_x = conf.lon_limits, crop_y=conf.lat_limits, shuffle=True, load=False,
-                 mean=None, std=None, y_mean=None, y_std=None, tp_log=None)
+    training_set = DataGenerator(
+        inputs=x_train, outputs=y_train, input_vars=conf.input_vars,
+        output_vars=conf.target_vars, do_crop=conf.do_crop,
+        crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=True, load=False,
+        x_mean=None, x_std=None, y_mean=None, y_std=None, tp_log=None)
     loader_train = torch.utils.data.DataLoader(training_set, batch_size=conf.batch_size)
-    valid_set = DataGenerator(x_valid, y_valid, conf.input_vars, conf.target_vars, do_crop= conf.do_crop, crop_x = conf.lon_limits, crop_y= conf.config.lat_limits, shuffle=False, load=False,
-                                mean=training_set.mean, std=training_set.std)
+    valid_set = DataGenerator(
+        x_valid, y_valid, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
+        crop_x=conf.lon_limits, crop_y=conf.config.lat_limits, shuffle=False,
+        load=False, x_mean=training_set.x_mean, x_std=training_set.x_std)
     loader_val = torch.utils.data.DataLoader(valid_set, batch_size=conf.batch_size)
-    test_set = DataGenerator(x_test, y_test, conf.input_vars, conf.target_vars, do_crop= conf.do_crop, crop_x = conf.lon_limits, crop_y=conf.config.lat_limits, shuffle=False, load=False,
-                                mean=training_set.mean, std=training_set.std)
+    test_set = DataGenerator(
+        x_test, y_test, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
+        crop_x=conf.lon_limits, crop_y=conf.config.lat_limits, shuffle=False,
+        load=False, x_mean=training_set.x_mean, x_std=training_set.x_std)
     loader_test = torch.utils.data.DataLoader(test_set, batch_size=conf.batch_size)
 
     torch.cuda.empty_cache()

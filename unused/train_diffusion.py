@@ -56,12 +56,12 @@ loader_train = torch.utils.data.DataLoader(training_set, batch_size=32)
 
 # Validation
 valid_set = DataGenerator(x_valid, y_valid, input_vars, output_vars, shuffle=False,
-                          mean=training_set.mean, std=training_set.std)
+                          x_mean=training_set.x_mean, x_std=training_set.x_std)
 loader_val = torch.utils.data.DataLoader(valid_set, batch_size=32)
 
 # Test
 test_set = DataGenerator(x_test, y_test, input_vars, output_vars, shuffle=False,
-                         mean=training_set.mean, std=training_set.std)
+                         x_mean=training_set.x_mean, x_std=training_set.x_std)
 loader_test = torch.utils.data.DataLoader(test_set, batch_size=32)
 
 torch.cuda.empty_cache()
