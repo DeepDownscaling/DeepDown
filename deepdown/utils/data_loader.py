@@ -355,11 +355,13 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     print("Extracting input data...")
 
     # Load the topography
-    topo = xr.open_dataset(path_dem)
-    topo = topo.squeeze('band')
-    if '__xarray_dataarray_variable__' in topo.variables:
-        topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
-    topo = topo.drop_vars(['band', 'spatial_ref'])
+    topo = None
+    if path_dem is not None:
+        topo = xr.open_dataset(path_dem)
+        topo = topo.squeeze('band')
+        if '__xarray_dataarray_variable__' in topo.variables:
+            topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
+        topo = topo.drop_vars(['band', 'spatial_ref'])
 
     # Get extent of the final domain in lat/lon (EPSG:4326) from the original
     # domain in CH1903+ (EPSG:2056)
@@ -408,12 +410,13 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
         inputs = inputs.reindex(y=list(reversed(inputs.y)))
 
     # Merge with topo
-    input_data = xr.merge([inputs, topo])
+    if topo is not None:
+        inputs = xr.merge([inputs, topo])
 
     # Save to pickle file
     if dump_data_to_pickle:
         os.makedirs(os.path.dirname(input_pkl_file), exist_ok=True)
         with open(input_pkl_file, 'wb') as f:
-            pickle.dump(input_data, f, protocol=-1)
+            pickle.dump(inputs, f, protocol=-1)
 
-    return input_data
+    return inputs
