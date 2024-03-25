@@ -3,6 +3,7 @@ from pathlib import Path
 from rich import get_console
 from rich.style import Style
 from rich.tree import Tree
+import typing
 
 """
 Class to handle the configuration, such as path to data and directories.
@@ -12,15 +13,19 @@ Class to handle the configuration, such as path to data and directories.
 class Config:
 
     def __init__(self, cli_args):
-        # Load options from config file
+        # Load options from default config file
+        self.config = OmegaConf.load('../config.default.yaml')
+
+        # Merge options from custom config file
         if cli_args.config_file:
-            self.config = OmegaConf.load(cli_args.config_file)
+            self.config = OmegaConf.merge(self.config,
+                                          OmegaConf.load(cli_args.config_file))
         elif Path('config.yaml').exists():
-            self.config = OmegaConf.load('config.yaml')
+            self.config = OmegaConf.merge(self.config,
+                                          OmegaConf.load('config.yaml'))
         elif Path('../config.yaml').exists():
-            self.config = OmegaConf.load('../config.yaml')
-        else:
-            self.config = OmegaConf.create()
+            self.config = OmegaConf.merge(self.config,
+                                          OmegaConf.load('../config.yaml'))
 
         # Merge options from CLI
         cli_args_list = [f'{k}={v}' for k, v in cli_args.__dict__.items() if
@@ -62,3 +67,7 @@ class Config:
         )
         walk_config(tree, self.config)
         get_console().print(tree)
+
+    def get(self):
+        """Return the configuration."""
+        return self.config

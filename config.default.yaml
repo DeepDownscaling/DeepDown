@@ -1,0 +1,26 @@
+# Paths are mandatory and should be set to the correct location on your system
+path_dem: ''
+path_era5land: ''
+path_mch: ''
+path_tmp: ''
+
+# Temporal selection
+date_start: '1961-01-01'
+date_end: '2022-12-31'
+years_train: [1961, 2000]
+years_valid: [2001, 2010]
+years_test: [2011, 2022]
+
+# Data properties
+levels: []
+resol_low: 0.1
+input_vars: {'tp': None, 't2m': None, 't2m_min': None, 't2m_max': None, 'topo': None, }
+output_vars: ['tp', 't', 't_min', 't_max']
+do_crop: False
+crop_x: []
+crop_y: []
+
+# Hyperparameters
+lr: 0.0002
+batch_size: 32
+num_epochs: 100

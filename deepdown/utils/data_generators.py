@@ -49,14 +49,13 @@ class DataGenerator(Dataset):
         y_std: xarray Dataset
             Standard deviation to subtract from target data for normalization.
             If None, it is computed from the data.
-        tp_log: float
+        tp_log: ?float
             If not None, applies a log transformation to the variable 'tp' using the
             given value as a threshold.
         """
 
         self.shuffle = shuffle
         self.idxs = None
-        self.standardize_y = standardize_y
 
         inputs = self.rev_lat(inputs)
         outputs = self.rev_lat(outputs)
