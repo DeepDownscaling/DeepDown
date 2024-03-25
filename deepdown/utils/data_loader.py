@@ -179,7 +179,6 @@ def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
     """
     data = []
     for i_var in range(0, len(paths)):
-       
 
         dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end, lon_bnds,
                           lat_bnds)
@@ -250,13 +249,13 @@ def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
     """
 
     # Pickle tag
-    tag = (
+    tag = hashlib.md5(
             pickle.dumps(date_start)
             + pickle.dumps(date_end)
             + pickle.dumps(paths)
-    )
+    ).hexdigest()
 
-    target_pkl_file = f'{path_tmp}/target_{hashlib.md5(tag).hexdigest()}.pkl'
+    target_pkl_file = f'{path_tmp}/target_{tag}.pkl'
     if dump_data_to_pickle and os.path.isfile(target_pkl_file):
         with open(target_pkl_file, 'rb') as f:
             target = pickle.load(f)
@@ -288,10 +287,8 @@ def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
     target = target.sel(x=slice(min_x, max_x),
                         y=slice(min_y, max_y))
 
-    # sort the latitudes
-    target = target.y[target.y.argsort()[::-1]]
     # Drop unnecessary variables
-    target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'])
+    target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'], errors='ignore')
     
     # Save to pickle
     if dump_data_to_pickle:
@@ -339,15 +336,15 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
 
     # Load from pickle
     if dump_data_to_pickle:
-        tag = (
+        tag = hashlib.md5(
                 pickle.dumps(paths)
                 + pickle.dumps(date_start)
                 + pickle.dumps(date_end)
                 + pickle.dumps(levels)
                 + pickle.dumps(resol_low)
-        )
+        ).hexdigest()
 
-        input_pkl_file = f"{path_tmp}/input_{hashlib.md5(tag).hexdigest()}.pkl"
+        input_pkl_file = f"{path_tmp}/input_{tag}.pkl"
         if os.path.isfile(input_pkl_file):
             with open(input_pkl_file, "rb") as f:
                 input_data = pickle.load(f)
@@ -360,7 +357,8 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     # Load the topography
     topo = xr.open_dataset(path_dem)
     topo = topo.squeeze('band')
-    #topo = topo.rename({'__xarray_dataarray_variable__': 'topo'}) # this gives me error now
+    if '__xarray_dataarray_variable__' in topo.variables:
+        topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
     topo = topo.drop_vars(['band', 'spatial_ref'])
 
     # Get extent of the final domain in lat/lon (EPSG:4326) from the original
@@ -380,41 +378,39 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     era5_lat = [lat_min, lat_max]
     inputs = load_data(paths, date_start, date_end, era5_lon, era5_lat, levels)
 
-
-
     # Interpolate low res data
     # Create a new xarray dataset with the new grid coordinates
     new_data_format = xr.Dataset(coords={'latitude': (('lat', 'lon'), lat_grid),
-                                          'longitude': (('lat', 'lon'), lon_grid)})
+                                         'longitude': (('lat', 'lon'), lon_grid)})
 
-    # # Interpolate the original input data onto the new grid
+    # Interpolate the original input data onto the new grid
     inputs = inputs.interp(lat=new_data_format.latitude,
-                            lon=new_data_format.longitude, method='nearest')
+                           lon=new_data_format.longitude, method='nearest')
 
-    # # Removing duplicate coordinates
+    # Removing duplicate coordinates
     inputs = inputs.drop_vars(['lat', 'lon'])
 
-    # # Add the Swiss coordinates
+    # Add the Swiss coordinates
     inputs = inputs.assign_coords(x=(('lat', 'lon'), x_grid),
-                                   y=(('lat', 'lon'), y_grid))
-    # # Rename variables before merging
+                                  y=(('lat', 'lon'), y_grid))
+    # Rename variables before merging
     inputs = inputs.rename({'lon': 'x', 'lat': 'y'})
     inputs = inputs.drop_vars(['latitude', 'longitude'])
 
-    # # Squeeze the 2D coordinates
+    # Squeeze the 2D coordinates
     x_1d = inputs['x'][0, :]
     y_1d = inputs['y'][:, 0]
     inputs = inputs.assign(x=xr.DataArray(x_1d, dims='x'),
-                            y=xr.DataArray(y_1d, dims='y'))
+                           y=xr.DataArray(y_1d, dims='y'))
 
-    # # Invert y axis if needed
+    # Invert y axis if needed
     if inputs.y[0].values < inputs.y[1].values:
         inputs = inputs.reindex(y=list(reversed(inputs.y)))
 
-    # # Merge with topo
+    # Merge with topo
     input_data = xr.merge([inputs, topo])
 
-    # # Save to pickle file
+    # Save to pickle file
     if dump_data_to_pickle:
         os.makedirs(os.path.dirname(input_pkl_file), exist_ok=True)
         with open(input_pkl_file, 'wb') as f:
