@@ -182,7 +182,7 @@ def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
 
         dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end, lon_bnds,
                           lat_bnds)
-        
+
         if 'level' in list(dat.coords):
             print("Selecting level")
             lev = np.array(dat.level)
@@ -197,7 +197,7 @@ def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
         data.append(dat)
 
     return xr.merge(data)
-    
+
 
 def convert_to_xarray(a, lat, lon, time):
     """
@@ -250,9 +250,9 @@ def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
 
     # Pickle tag
     tag = hashlib.md5(
-            pickle.dumps(date_start)
-            + pickle.dumps(date_end)
-            + pickle.dumps(paths)
+        pickle.dumps(date_start)
+        + pickle.dumps(date_end)
+        + pickle.dumps(paths)
     ).hexdigest()
 
     target_pkl_file = f'{path_tmp}/target_{tag}.pkl'
@@ -289,7 +289,7 @@ def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
 
     # Drop unnecessary variables
     target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'], errors='ignore')
-    
+
     # Save to pickle
     if dump_data_to_pickle:
         os.makedirs(os.path.dirname(target_pkl_file), exist_ok=True)
@@ -337,11 +337,11 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     # Load from pickle
     if dump_data_to_pickle:
         tag = hashlib.md5(
-                pickle.dumps(paths)
-                + pickle.dumps(date_start)
-                + pickle.dumps(date_end)
-                + pickle.dumps(levels)
-                + pickle.dumps(resol_low)
+            pickle.dumps(paths)
+            + pickle.dumps(date_start)
+            + pickle.dumps(date_end)
+            + pickle.dumps(levels)
+            + pickle.dumps(resol_low)
         ).hexdigest()
 
         input_pkl_file = f"{path_tmp}/input_{tag}.pkl"
@@ -417,4 +417,3 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
             pickle.dump(input_data, f, protocol=-1)
 
     return input_data
-    
