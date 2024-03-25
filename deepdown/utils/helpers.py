@@ -12,7 +12,7 @@ def print_cuda_availability():
 
 
 def split_data(data, years):
-    subset = data.sel(time=slice(datetime(years[0], 1, 1),
-                                 datetime(years[1], 12, 31)))
+    subset = data.sel(time=slice(datetime.datetime(years[0], 1, 1),
+                                 datetime.datetime(years[1], 12, 31)))
 
     return subset

@@ -78,7 +78,7 @@ class DataGenerator(Dataset):
                 data.append(inputs[var].expand_dims(
                     {'level': generic_level, 'time': inputs.time}, (1, 0)
                 ))
-            elif levels is None:
+            elif levels is None or isinstance(levels, str) and levels == 'None':
                 data.append(inputs[var].expand_dims({'level': generic_level}, 1))
             else:
                 data.append(inputs[var].sel(level=levels))
