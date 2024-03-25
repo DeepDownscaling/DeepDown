@@ -5,12 +5,12 @@ import numpy as np
 import pandas as pd
 
 # Import torch
+import torch
 from torch.utils.data import Dataset
-import datetime
 
 # Utils
 from deepdown.utils.data_loader import load_target_data, load_input_data
-from deepdown.utils.loss_fcts import generator_loss
+from deepdown.utils.loss_fcts import generator_loss, discriminator_loss
 from deepdown.utils.data_generators import DataGenerator
 from deepdown.utils.helpers import print_cuda_availability, DEVICE, split_data
 from deepdown.models.srgan import Generator, Discriminator
@@ -54,15 +54,15 @@ def train(conf):
         date_start=conf.date_start, date_end=conf.date_end, levels=conf.levels,
         resol_low=conf.resol_low, x_axis=target.x, y_axis=target.y,
         paths=input_paths, path_dem=conf.path_dem, dump_data_to_pickle=True,
-        path_tmp='../tmp/')
+        path_tmp=conf.path_tmp)
 
     # Split the data
-    x_train = split_data(input_data, conf.config.years_train)
-    x_valid = split_data(input_data, conf.config.years_valid)
-    x_test = split_data(input_data, conf.config.years_test)
-    y_train = split_data(target, conf.config.years_train)
-    y_valid = split_data(target, conf.config.years_valid)
-    y_test = split_data(target, conf.config.years_test)
+    x_train = split_data(input_data, conf.years_train)
+    x_valid = split_data(input_data, conf.years_valid)
+    x_test = split_data(input_data, conf.years_test)
+    y_train = split_data(target, conf.years_train)
+    y_valid = split_data(target, conf.years_valid)
+    y_test = split_data(target, conf.years_test)
 
     logger.info("Creating data loaders")
     training_set = DataGenerator(
@@ -73,20 +73,22 @@ def train(conf):
     loader_train = torch.utils.data.DataLoader(training_set, batch_size=conf.batch_size)
     valid_set = DataGenerator(
         x_valid, y_valid, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
-        crop_x=conf.lon_limits, crop_y=conf.config.lat_limits, shuffle=False,
+        crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=False,
         load=False, x_mean=training_set.x_mean, x_std=training_set.x_std)
     loader_val = torch.utils.data.DataLoader(valid_set, batch_size=conf.batch_size)
     test_set = DataGenerator(
         x_test, y_test, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
-        crop_x=conf.lon_limits, crop_y=conf.config.lat_limits, shuffle=False,
+        crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=False,
         load=False, x_mean=training_set.x_mean, x_std=training_set.x_std)
     loader_test = torch.utils.data.DataLoader(test_set, batch_size=conf.batch_size)
 
-    torch.cuda.empty_cache()
-    # hyperparameters
+    # Initializing models
     logger.info("Initializing models and optimizers")
-    D = Discriminator(num_channels=conf.n_channels_out, H=conf.input_size[0], W=conf.input_size[1])
-    G = Generator(num_channels = conf.n_channels_in, input_size=conf.input_size,
+    D = Discriminator(num_channels=conf.n_channels_out,
+                      H=conf.input_size[0],
+                      W=conf.input_size[1])
+    G = Generator(num_channels=conf.n_channels_in,
+                  input_size=conf.input_size,
                   output_channels=conf.n_channels_out)
 
     # Define optimizer for discriminator
@@ -99,12 +101,10 @@ def train(conf):
                 generator_loss, G_iters=1, show_every=250, num_epochs=conf.num_epochs)
 
 
-
-
 if __name__ == "__main__":
-
     argParser = argparse.ArgumentParser()
-    argParser.add_argument("--config_file", default = '../config.yaml', help="Path to the .yml config file")
+    argParser.add_argument("--config_file", default='../config.yaml',
+                           help="Path to the .yml config file")
     args = argParser.parse_args()
 
     logger.info("Loading configuration...")
@@ -112,4 +112,4 @@ if __name__ == "__main__":
     conf.print()
 
     logger.info("Starting training process")
-    train(conf)
+    train(conf.get())
