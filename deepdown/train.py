@@ -68,18 +68,17 @@ def train(conf):
     training_set = DataGenerator(
         inputs=x_train, outputs=y_train, input_vars=conf.input_vars,
         output_vars=conf.target_vars, do_crop=conf.do_crop,
-        crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=True, load=False,
-        x_mean=None, x_std=None, y_mean=None, y_std=None, tp_log=None)
+        crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=True, tp_log=None)
     loader_train = torch.utils.data.DataLoader(training_set, batch_size=conf.batch_size)
     valid_set = DataGenerator(
         x_valid, y_valid, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
         crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=False,
-        load=False, x_mean=training_set.x_mean, x_std=training_set.x_std)
+        x_mean=training_set.x_mean, x_std=training_set.x_std)
     loader_val = torch.utils.data.DataLoader(valid_set, batch_size=conf.batch_size)
     test_set = DataGenerator(
         x_test, y_test, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
         crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=False,
-        load=False, x_mean=training_set.x_mean, x_std=training_set.x_std)
+        x_mean=training_set.x_mean, x_std=training_set.x_std)
     loader_test = torch.utils.data.DataLoader(test_set, batch_size=conf.batch_size)
 
     # Initializing models

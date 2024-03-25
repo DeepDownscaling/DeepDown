@@ -7,8 +7,8 @@ import xarray as xr
 # Create data generator in pytorch - Adapted from the keras class
 class DataGenerator(Dataset):
     def __init__(self, inputs, outputs, input_vars, output_vars, do_crop=True,
-                 crop_x=None, crop_y=None, shuffle=True, load=False, x_mean=None,
-                 x_std=None, standardize_y=False, y_mean=None, y_std=None, tp_log=None):
+                 crop_x=None, crop_y=None, shuffle=True, x_mean=None, x_std=None,
+                 standardize_y=False, y_mean=None, y_std=None, tp_log=None):
         """
         Data generator. Template from:
         https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
@@ -33,8 +33,6 @@ class DataGenerator(Dataset):
             List with the minimum and maximum y coordinates to crop.
         shuffle: bool
             If True, the data is shuffled.
-        load: bool
-            If True, the data is loaded into memory.
         x_mean: xarray Dataset
             Mean to subtract from input data for normalization.
             If None, it is computed from the data.
@@ -112,12 +110,6 @@ class DataGenerator(Dataset):
         self.n_samples = len(self.x)
         print("Number of samples", self.n_samples)
         self.on_epoch_end()
-
-        # we might not need this ?
-        if load:
-            print("Loading data into RAM...")
-            self.x.load()
-            self.y.load()
 
     @staticmethod
     def rev_lat(data):
