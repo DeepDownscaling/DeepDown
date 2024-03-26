@@ -12,12 +12,17 @@ Class to handle the configuration, such as path to data and directories.
 
 class Config:
 
-    def __init__(self, cli_args):
+    def __init__(self, cli_args=None):
         # Load options from default config file
-        self.config = OmegaConf.load('../config.default.yaml')
+        if Path('config.default.yaml').exists():
+            self.config = OmegaConf.load('config.default.yaml')
+        elif Path('../config.default.yaml').exists():
+            self.config = OmegaConf.load('../config.default.yaml')
+        else:
+            raise FileNotFoundError('Default config file not found.')
 
         # Merge options from custom config file
-        if cli_args.config_file:
+        if cli_args and cli_args.config_file:
             self.config = OmegaConf.merge(self.config,
                                           OmegaConf.load(cli_args.config_file))
         elif Path('config.yaml').exists():
@@ -28,10 +33,11 @@ class Config:
                                           OmegaConf.load('../config.yaml'))
 
         # Merge options from CLI
-        cli_args_list = [f'{k}={v}' for k, v in cli_args.__dict__.items() if
-                         v is not None]
-        self.config = OmegaConf.merge(self.config,
-                                      OmegaConf.from_cli(cli_args_list))
+        if cli_args:
+            cli_args_list = [f'{k}={v}' for k, v in cli_args.__dict__.items() if
+                             v is not None]
+            self.config = OmegaConf.merge(self.config,
+                                          OmegaConf.from_cli(cli_args_list))
 
     def print(self) -> None:
         """Print content of given config using Rich library and its tree structure."""
