@@ -15,7 +15,7 @@ years_test: [2011, 2022]
 levels: []
 resol_low: 0.1
 input_vars: {'tp': None, 't2m': None, 't2m_min': None, 't2m_max': None, 'topo': None, }
-output_vars: ['tp', 't', 't_min', 't_max']
+target_vars: ['tp', 't', 't_min', 't_max']
 do_crop: False
 crop_x: []
 crop_y: []

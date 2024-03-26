@@ -1,8 +1,6 @@
 # Common imports
 import argparse
-import time
 import numpy as np
-import pandas as pd
 
 # Import torch
 import torch
@@ -12,7 +10,7 @@ from torch.utils.data import Dataset
 from deepdown.utils.data_loader import load_target_data, load_input_data
 from deepdown.utils.loss_fcts import generator_loss, discriminator_loss
 from deepdown.utils.data_generators import DataGenerator
-from deepdown.utils.helpers import print_cuda_availability, DEVICE, split_data
+from deepdown.utils.helpers import print_cuda_availability, split_data
 from deepdown.models.srgan import Generator, Discriminator
 from deepdown.config import Config
 from deepdown.models.srgan_train import srgan_train
@@ -66,20 +64,18 @@ def train(conf):
 
     logger.info("Creating data loaders")
     training_set = DataGenerator(
-        inputs=x_train, outputs=y_train, input_vars=conf.input_vars,
-        output_vars=conf.target_vars, do_crop=conf.do_crop,
-        crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=True, load=False,
-        x_mean=None, x_std=None, y_mean=None, y_std=None, tp_log=None)
+        x_train, y_train, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
+        crop_x=conf.crop_x, crop_y=conf.crop_y, shuffle=True, tp_log=None)
     loader_train = torch.utils.data.DataLoader(training_set, batch_size=conf.batch_size)
     valid_set = DataGenerator(
         x_valid, y_valid, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
-        crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=False,
-        load=False, x_mean=training_set.x_mean, x_std=training_set.x_std)
+        crop_x=conf.crop_x, crop_y=conf.crop_y, shuffle=False,
+        x_mean=training_set.x_mean, x_std=training_set.x_std)
     loader_val = torch.utils.data.DataLoader(valid_set, batch_size=conf.batch_size)
     test_set = DataGenerator(
         x_test, y_test, conf.input_vars, conf.target_vars, do_crop=conf.do_crop,
-        crop_x=conf.lon_limits, crop_y=conf.lat_limits, shuffle=False,
-        load=False, x_mean=training_set.x_mean, x_std=training_set.x_std)
+        crop_x=conf.crop_x, crop_y=conf.crop_y, shuffle=False,
+        x_mean=training_set.x_mean, x_std=training_set.x_std)
     loader_test = torch.utils.data.DataLoader(test_set, batch_size=conf.batch_size)
 
     # Initializing models
