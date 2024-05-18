@@ -281,11 +281,11 @@ def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
 
     # Invert lat axis if needed
     if target.y[0].values < target.y[1].values:
-        target = target.reindex(N=list(reversed(target.y)))
+        target = target.reindex(y=list(reversed(target.y)))
 
     # Crop the target data to the final domain
     target = target.sel(x=slice(min_x, max_x),
-                        y=slice(min_y, max_y))
+                        y=slice(max_y, min_y))
 
     # Drop unnecessary variables
     target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'], errors='ignore')
@@ -317,9 +317,9 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
         The levels to extract.
     resol_low : float
         The resolution of the low resolution data.
-    x_axis : numpy.ndarray
+    x_axis : numpy.ndarray|xr.DataArray
         The x coordinates of the final domain.
-    y_axis : numpy.ndarray
+    y_axis : numpy.ndarray|xr.DataArray
         The y coordinates of the final domain.
     path_dem : str
         The path to the DEM data. If None, the topography will not be added.
@@ -333,6 +333,10 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     xarray.Dataset
         The input data.
     """
+    if isinstance(x_axis, xr.DataArray):
+        x_axis = x_axis.values
+    if isinstance(y_axis, xr.DataArray):
+        y_axis = y_axis.values
 
     # Load from pickle
     if dump_data_to_pickle:
@@ -342,6 +346,8 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
             + pickle.dumps(date_end)
             + pickle.dumps(levels)
             + pickle.dumps(resol_low)
+            + pickle.dumps(x_axis)
+            + pickle.dumps(y_axis)
         ).hexdigest()
 
         input_pkl_file = f"{path_tmp}/input_{tag}.pkl"
@@ -365,7 +371,7 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
 
     # Get extent of the final domain in lat/lon (EPSG:4326) from the original
     # domain in CH1903+ (EPSG:2056)
-    x_grid, y_grid = np.meshgrid(x_axis, np.flip(y_axis))
+    x_grid, y_grid = np.meshgrid(x_axis, y_axis)
     transformer = Transformer.from_crs("EPSG:2056", "EPSG:4326")
     lat_grid, lon_grid = transformer.transform(x_grid, y_grid)
 
