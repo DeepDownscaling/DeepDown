@@ -4,22 +4,28 @@ path_dem: ''
 path_inputs: [
   'path/to/precipitation',
   'path/to/temperature',
-  'path/to/max_temperature/',
-  'path/to/min_temperature/'
+  'path/to/max_temperature',
+  'path/to/min_temperature'
 ]
 path_targets: [
   'path/to/precipitation',
   'path/to/temperature',
-  'path/to/max_temperature/',
-  'path/to/min_temperature/'
+  'path/to/max_temperature',
+  'path/to/min_temperature'
 ]
 
-# Temporal selection
+# Temporal selection for training/testing
 date_start: '1961-01-01'
 date_end: '2022-12-31'
 years_train: [1961, 2000]
 years_valid: [2001, 2010]
 years_test: [2011, 2022]
+
+# Temporal selection for using the models (bias correction and downscaling)
+period_hist_start: '1961-01-01'  # Start of the historical period for bias correction
+period_hist_end: '2009-12-31'  # End of the historical period for bias correction
+period_clim_start: '2010-01-01'  # Start of the period of interest (e.g. future)
+period_clim_end: '2022-12-31'  # End of the period of interest (e.g. future)
 
 # Data properties
 levels: []
