@@ -21,7 +21,7 @@ def correct_bias(conf):
         path_tmp=conf.path_tmp)
 
     # Coarsen the target data to the resolution of the input data
-    target_data_hist.coarsen(...)
+    target_data_hist = coarsen_data(target_data_hist)
 
     # Load input data (e.g. climate model) for the historical period
     input_data_hist = load_input_data(

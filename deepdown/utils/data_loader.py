@@ -382,9 +382,9 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     lon_max = np.ceil(np.max(lon_grid) * 1 / resol_low) / (1 / resol_low)
 
     # Load the predictors data
-    era5_lon = [lon_min, lon_max]
-    era5_lat = [lat_min, lat_max]
-    inputs = load_data(paths, date_start, date_end, era5_lon, era5_lat, levels)
+    lons = [lon_min, lon_max]
+    lats = [lat_min, lat_max]
+    inputs = load_data(paths, date_start, date_end, lons, lats, levels)
 
     # Interpolate low res data
     # Create a new xarray dataset with the new grid coordinates
@@ -392,6 +392,7 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
                                          'longitude': (('lat', 'lon'), lon_grid)})
 
     # Interpolate the original input data onto the new grid
+    # (increase in resolution => nearest neighbor interpolation is OK)
     inputs = inputs.interp(lat=new_data_format.latitude,
                            lon=new_data_format.longitude, method='nearest')
 
