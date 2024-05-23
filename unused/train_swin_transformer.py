@@ -21,7 +21,7 @@ print_cuda_availability()
 
 def main():
     # Load target data
-    target = load_target_data(DATE_START, DATE_END, path_target)
+    target = load_target_data(DATE_START, DATE_END, path_targets)
     # Extract the axes of the final target domain based on temperature 
     x_axis = target.TabsD.x
     y_axis = target.TabsD.y

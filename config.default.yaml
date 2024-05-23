@@ -1,8 +1,18 @@
 # Paths are mandatory and should be set to the correct location on your system
-path_dem: ''
-path_input: ''
-path_target: ''
 path_tmp: ''
+path_dem: ''
+path_inputs: [
+  'path/to/precipitation',
+  'path/to/temperature',
+  'path/to/max_temperature/',
+  'path/to/min_temperature/'
+]
+path_targets: [
+  'path/to/precipitation',
+  'path/to/temperature',
+  'path/to/max_temperature/',
+  'path/to/min_temperature/'
+]
 
 # Temporal selection
 date_start: '1961-01-01'
@@ -14,7 +24,7 @@ years_test: [2011, 2022]
 # Data properties
 levels: []
 resol_low: 0.1
-input_vars: {'tp': None, 't2m': None, 't2m_min': None, 't2m_max': None, 'topo': None, }
+input_vars: {'tp': None, 't2m': None, 't2m_min': None, 't2m_max': None }
 target_vars: ['tp', 't', 't_min', 't_max']
 do_crop: False
 crop_x: []

@@ -24,7 +24,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning, message="divide by ze
 
 print_cuda_availability()
 
-target = load_target_data(DATE_START, DATE_END, path_target)
+target = load_target_data(DATE_START, DATE_END, path_targets)
 x_axis = target.TabsD.x
 y_axis = target.TabsD.y
 

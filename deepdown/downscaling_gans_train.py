@@ -26,39 +26,25 @@ print_cuda_availability()
 
 
 def train(conf):
-
+    # Load data
     logger.info("Loading input and targets data")
-    input_paths = [
-        conf.path_input + '/precipitation',
-        conf.path_input + '/temperature',
-        conf.path_input + '/max_temperature/',
-        conf.path_input + '/min_temperature/'
-    ]
-    
-    target_paths = [
-        conf.path_target + '/RhiresD_v2.0_swiss.lv95/',
-        conf.path_target + '/TabsD_v2.0_swiss.lv95/',
-        conf.path_target + '/TmaxD_v2.0_swiss.lv95/',
-        conf.path_target + '/TminD_v2.0_swiss.lv95/'
-    ]
-  
-    # Load target data
-    target = load_target_data(conf.date_start, conf.date_end, target_paths,
-                              path_tmp=conf.path_tmp)
+    target_data = load_target_data(
+        conf.date_start, conf.date_end, conf.path_targets,
+        path_tmp=conf.path_tmp)
 
     input_data = load_input_data(
         date_start=conf.date_start, date_end=conf.date_end, levels=conf.levels,
-        resol_low=conf.resol_low, x_axis=target.x, y_axis=target.y,
-        paths=input_paths, path_dem=conf.path_dem, dump_data_to_pickle=True,
+        resol_low=conf.resol_low, x_axis=target_data.x, y_axis=target_data.y,
+        paths=conf.path_inputs, path_dem=conf.path_dem, dump_data_to_pickle=True,
         path_tmp=conf.path_tmp)
 
     # Split the data
     x_train = split_data(input_data, conf.years_train)
     x_valid = split_data(input_data, conf.years_valid)
     x_test = split_data(input_data, conf.years_test)
-    y_train = split_data(target, conf.years_train)
-    y_valid = split_data(target, conf.years_valid)
-    y_test = split_data(target, conf.years_test)
+    y_train = split_data(target_data, conf.years_train)
+    y_valid = split_data(target_data, conf.years_valid)
+    y_test = split_data(target_data, conf.years_test)
 
     logger.info("Creating data loaders")
     training_set = DataGenerator(
