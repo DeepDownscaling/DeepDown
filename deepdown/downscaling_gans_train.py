@@ -1,10 +1,10 @@
 # Common imports
 import argparse
+import logging
 import numpy as np
 
 # Import torch
 import torch
-from torch.utils.data import Dataset
 
 # Utils
 from deepdown.utils.data_loader import load_target_data, load_input_data
@@ -14,8 +14,6 @@ from deepdown.utils.helpers import print_cuda_availability, split_data
 from deepdown.models.srgan import Generator, Discriminator
 from deepdown.config import Config
 from deepdown.models.srgan_train import srgan_train
-# adding logs
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,17 +29,17 @@ def train(conf):
 
     logger.info("Loading input and targets data")
     input_paths = [
-        conf.path_era5land + '/precipitation',
-        conf.path_era5land + '/temperature',
-        conf.path_era5land + '/max_temperature/',
-        conf.path_era5land + '/min_temperature/'
+        conf.path_input + '/precipitation',
+        conf.path_input + '/temperature',
+        conf.path_input + '/max_temperature/',
+        conf.path_input + '/min_temperature/'
     ]
     
     target_paths = [
-        conf.path_mch + '/RhiresD_v2.0_swiss.lv95/',
-        conf.path_mch + '/TabsD_v2.0_swiss.lv95/',
-        conf.path_mch + '/TmaxD_v2.0_swiss.lv95/',
-        conf.path_mch + '/TminD_v2.0_swiss.lv95/'
+        conf.path_target + '/RhiresD_v2.0_swiss.lv95/',
+        conf.path_target + '/TabsD_v2.0_swiss.lv95/',
+        conf.path_target + '/TmaxD_v2.0_swiss.lv95/',
+        conf.path_target + '/TminD_v2.0_swiss.lv95/'
     ]
   
     # Load target data

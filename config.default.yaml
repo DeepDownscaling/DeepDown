@@ -1,7 +1,7 @@
 # Paths are mandatory and should be set to the correct location on your system
 path_dem: ''
-path_era5land: ''
-path_mch: ''
+path_input: ''
+path_target: ''
 path_tmp: ''
 
 # Temporal selection
