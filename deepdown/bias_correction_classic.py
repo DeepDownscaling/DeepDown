@@ -5,7 +5,7 @@ import logging
 from ibicus.debias import QuantileMapping
 
 # Utils
-from deepdown.utils.data_loader import load_target_data, load_input_data
+from deepdown.utils.data_loader import DataLoader
 from deepdown.config import Config
 
 logging.basicConfig(level=logging.INFO)

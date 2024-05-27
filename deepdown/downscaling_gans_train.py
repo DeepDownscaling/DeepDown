@@ -7,9 +7,9 @@ import numpy as np
 import torch
 
 # Utils
-from deepdown.utils.data_loader import load_target_data, load_input_data
+from deepdown.utils.data_loader import DataLoader
+from deepdown.utils.data_generator import DataGenerator
 from deepdown.utils.loss_fcts import generator_loss, discriminator_loss
-from deepdown.utils.data_generators import DataGenerator
 from deepdown.utils.helpers import print_cuda_availability, split_data
 from deepdown.models.srgan import Generator, Discriminator
 from deepdown.config import Config

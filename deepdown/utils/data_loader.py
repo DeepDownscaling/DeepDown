@@ -7,151 +7,236 @@ import pandas as pd
 from pyproj import Transformer
 
 
-def rename_dimensions_variables(ds):
-    """
-    Rename dimensions of the given dataset to homogenize data.
+class DataLoader:
+    def __init__(self, lon_bnds=None, lat_bnds=None,
+                 path_tmp='../tmp/'):
+        """
+        Initialize the DataLoader.
 
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        The dataset to rename the dimensions of.
+        Parameters
+        ----------
+        lon_bnds : list
+            The desired longitude bounds ([min, max]) or full longitude array.
+        lat_bnds : list
+            The desired latitude bounds ([min, max]) or full latitude array.
+        path_tmp : str
+            The path to the temporary directory to save pickle files.
+        """
+        self.data = None
+        self.lon_bnds = lon_bnds
+        self.lat_bnds = lat_bnds
+        self.path_tmp = path_tmp
 
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with renamed dimensions.
-    """
-    # Rename dimensions
-    if 'latitude' in ds.dims:
-        ds = ds.rename({'latitude': 'lat'})
-    if 'longitude' in ds.dims:
-        ds = ds.rename({'longitude': 'lon'})
-    if 'E' in ds.dims:
-        ds = ds.rename({'E': 'x'})
-    if 'N' in ds.dims:
-        ds = ds.rename({'N': 'y'})
+    def load(self, date_start, date_end, paths, dump_data_to_pickle=True):
+        """
+        Load the target data.
 
-    # Rename variables
-    if 'RhiresD' in ds.variables:
-        ds = ds.rename({'RhiresD': 'tp'})
-    if 'TabsD' in ds.variables:
-        ds = ds.rename({'TabsD': 't'})
-    if 'TmaxD' in ds.variables:
-        ds = ds.rename({'TmaxD': 't_max'})
-    if 'TminD' in ds.variables:
-        ds = ds.rename({'TminD': 't_min'})
+        Parameters
+        ----------
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+        paths : list
+            The paths to the data.
+        dump_data_to_pickle : bool
+            Whether to dump the data to pickle or not.
 
-    return ds
+        Returns
+        -------
+        xarray.Dataset
+            The target data.
+        """
+        # Load from pickle
+        pkl_filename = self._get_pickle_filename(paths, date_start, date_end)
+        if dump_data_to_pickle and os.path.isfile(pkl_filename):
+            with open(pkl_filename, 'rb') as f:
+                data = pickle.load(f)
+                print('Data loaded from pickle.')
+                return data
+
+        # Read data from original files
+        print('Extracting data from files...')
+        data = []
+        for i_var in range(0, len(paths)):
+            dat = self._get_nc_data(paths[i_var] + '/*nc', date_start, date_end)
+            data.append(dat)
+
+        # Extract the min/max coordinates of the common domain
+        min_x = max([ds.x.min() for ds in data])
+        max_x = min([ds.x.max() for ds in data])
+        min_y = max([ds.y.min() for ds in data])
+        max_y = min([ds.y.max() for ds in data])
+
+        # Convert to xarray
+        self.data = xr.merge(data)
+
+        # Invert lat axis if needed
+        if self.data.y[0].values < self.data.y[1].values:
+            self.data = self.data.reindex(y=list(reversed(self.data.y)))
+
+        # Crop the target data to the final domain
+        self.data = self.data.sel(x=slice(min_x, max_x),
+                                  y=slice(max_y, min_y))
+
+        # Drop unnecessary variables
+        self.data = self.data.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'],
+                                        errors='ignore')
+
+        # Save to pickle
+        if dump_data_to_pickle:
+            os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+            with open(pkl_filename, 'wb') as f:
+                pickle.dump(self.data, f, protocol=-1)
+
+        return self.data
+
+    def _get_nc_data(self, files, date_start, date_end):
+        """
+        Extract netCDF data for the given file(s) pattern/path.
+
+        Parameters
+        ----------
+        files : str or list
+            The file(s) pattern/path to extract data from.
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+
+        Returns
+        -------
+        xarray.Dataset
+            The extracted data.
+        """
+        print('Extracting data for {} - {}'.format(date_start, date_end))
+        ds = xr.open_mfdataset(files, combine='by_coords')
+        ds = self._rename_dimensions_variables(ds)
+        ds = self._temporal_slice(ds, date_start, date_end)
+        ds = self._spatial_slice(ds)
+
+        return ds
+
+    def _get_pickle_filename(self, paths, date_start, date_end):
+        """
+        Get the pickle filename for the given paths.
+
+        Parameters
+        ----------
+        paths : list
+            The paths to the data.
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+
+        Returns
+        -------
+        str
+            The pickle filename.
+        """
+        tag = hashlib.md5(
+            pickle.dumps(paths)
+            + pickle.dumps(date_start)
+            + pickle.dumps(date_end)
+            + pickle.dumps(self.lon_bnds)
+            + pickle.dumps(self.lat_bnds)
+        ).hexdigest()
+
+        return f'{self.path_tmp}/data_{tag}.pkl'
+
+    @staticmethod
+    def _rename_dimensions_variables(ds):
+        """
+        Rename dimensions of the given dataset to homogenize data.
+
+        Parameters
+        ----------
+        ds : xarray.Dataset
+            The dataset to rename dimensions and variables.
+
+        Returns
+        -------
+        xarray.Dataset
+            The dataset with renamed dimensions and variables.
+        """
+        # Rename dimensions
+        if 'latitude' in ds.dims:
+            ds = ds.rename({'latitude': 'lat'})
+        if 'longitude' in ds.dims:
+            ds = ds.rename({'longitude': 'lon'})
+        if 'E' in ds.dims:
+            ds = ds.rename({'E': 'x'})
+        if 'N' in ds.dims:
+            ds = ds.rename({'N': 'y'})
+
+        # Rename variables
+        if 'RhiresD' in ds.variables:
+            ds = ds.rename({'RhiresD': 'tp'})
+        if 'TabsD' in ds.variables:
+            ds = ds.rename({'TabsD': 't'})
+        if 'TmaxD' in ds.variables:
+            ds = ds.rename({'TmaxD': 't_max'})
+        if 'TminD' in ds.variables:
+            ds = ds.rename({'TminD': 't_min'})
+
+        return ds
+
+    @staticmethod
+    def _temporal_slice(ds, date_start, date_end):
+        """
+        Slice along the temporal dimension.
+
+        Parameters
+        ----------
+        ds : xarray.Dataset
+            The dataset to slice.
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+
+        Returns
+        -------
+        xarray.Dataset
+            The dataset with the temporal slice.
+        """
+        ds = ds.sel(time=slice(date_start, date_end))
+
+        if 'time_bnds' in ds.variables:
+            ds = ds.drop('time_bnds')
+
+        return ds
+
+    def _spatial_slice(self, ds):
+        """
+        Slice along the spatial dimension.
+
+        Parameters
+        ----------
+        ds : xarray.Dataset
+            The dataset to slice.
+
+        Returns
+        -------
+        xarray.Dataset
+            The dataset with the spatial slice.
+        """
+        if self.lon_bnds is not None:
+            ds = ds.sel(lon=slice(min(self.lon_bnds), max(self.lon_bnds)))
+
+        if self.lat_bnds is not None:
+            if ds.lat[0].values < ds.lat[1].values:
+                ds = ds.sel(lat=slice(min(self.lat_bnds), max(self.lat_bnds)))
+            else:
+                ds = ds.sel(lat=slice(max(self.lat_bnds), min(self.lat_bnds)))
+
+        return ds
 
 
-def temporal_slice(ds, start, end):
-    """
-    Slice along the temporal dimension.
-
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        The dataset to slice.
-    start : str
-        The start date of the slice.
-    end : str
-        The end date of the slice.
-    
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with the temporal slice applied.
-    """
-    ds = ds.sel(time=slice(start, end))
-
-    if 'time_bnds' in ds.variables:
-        ds = ds.drop('time_bnds')
-
-    return ds
 
 
-def spatial_slice(ds, lon_bnds, lat_bnds):
-    """
-    Slice along the spatial dimension.
 
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        The dataset to slice.
-    lon_bnds : list
-        The desired longitude bounds of the data ([min, max]) or full longitude array.
-    lat_bnds : list
-        The desired latitude bounds of the data ([min, max]) or full latitude array.
-
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with the spatial slice applied.
-    """
-    if lon_bnds is not None:
-        ds = ds.sel(lon=slice(min(lon_bnds), max(lon_bnds)))
-
-    if lat_bnds is not None:
-        if ds.lat[0].values < ds.lat[1].values:
-            ds = ds.sel(lat=slice(min(lat_bnds), max(lat_bnds)))
-        else:
-            ds = ds.sel(lat=slice(max(lat_bnds), min(lat_bnds)))
-
-    return ds
-
-
-def get_nc_data(files, start, end, lon_bnds=None, lat_bnds=None):
-    """
-    Extract netCDF data for the given file(s) pattern/path.
-
-    Parameters
-    ----------
-    files : str or list
-        The file(s) pattern/path to extract data from.
-    start : str
-        The desired start date of the data.
-    end : str
-        The desired end date of the data.
-    lon_bnds : list
-        The desired longitude bounds of the data ([min, max]) or full longitude array.
-    lat_bnds : list
-        The desired latitude bounds of the data ([min, max]) or full latitude array.
-
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with the extracted data.
-    """
-    print('Extracting data for the period {} - {}'.format(start, end))
-    ds = xr.open_mfdataset(files, combine='by_coords')
-    ds = rename_dimensions_variables(ds)
-    ds = temporal_slice(ds, start, end)
-    ds = spatial_slice(ds, lon_bnds, lat_bnds)
-
-    return ds
-
-
-def precip_exceedance(precip, qt=0.95):
-    """
-    Computes exceedances of precipitation.
-
-    Parameters
-    ----------
-    precip : xarray.DataArray
-        The precipitation data.
-    qt : float
-        The quantile to compute the exceedances for.
-
-    Returns
-    -------
-    xarray.DataArray
-        The exceedances of the precipitation data.
-    """
-    qq = xr.DataArray(precip).quantile(qt, dim='time')
-    out = xr.DataArray(precip > qq)
-    out = out * 1
-
-    return out
 
 
 def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
@@ -198,109 +283,8 @@ def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
 
     return xr.merge(data)
 
-
-def convert_to_xarray(a, lat, lon, time):
-    """
-    Convert a numpy array into a Dataarray.
-    
-    Parameters
-    ----------
-    a : numpy.ndarray
-        The array to convert.
-    lat : numpy.ndarray
-        The latitude values.
-    lon : numpy.ndarray
-        The longitude values.
-    time : numpy.ndarray
-        The time values.
-
-    Returns
-    -------
-    xarray.DataArray
-        The converted array.
-    """
-    mx = xr.DataArray(a, dims=["time", "lat", "lon"],
-                      coords=dict(time=time, lat=lat, lon=lon))
-    return mx
-
-
-def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
-                     path_tmp='../tmp/'):
-    """
-    Load the target data.
-
-    Parameters
-    ----------
-    date_start : str
-        The starting date ('YYYY-MM-DD').
-    date_end : str
-        The end date ('YYYY-MM-DD').
-    paths : list
-        The paths to the data.
-    dump_data_to_pickle : bool
-        Whether to dump the data to pickle or not.
-    path_tmp : str
-        The path to the temporary directory to save pickle files.
-
-    Returns
-    -------
-    xarray.Dataset
-        The target data.
-    """
-
-    # Pickle tag
-    tag = hashlib.md5(
-        pickle.dumps(date_start)
-        + pickle.dumps(date_end)
-        + pickle.dumps(paths)
-    ).hexdigest()
-
-    target_pkl_file = f'{path_tmp}/target_{tag}.pkl'
-    if dump_data_to_pickle and os.path.isfile(target_pkl_file):
-        with open(target_pkl_file, 'rb') as f:
-            target = pickle.load(f)
-            print('Target data loaded from pickle.')
-            return target
-
-    # Read data from original files
-    print('Extracting target data...')
-
-    target = []
-    for i_var in range(0, len(paths)):
-        dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end)
-        target.append(dat)
-
-    # Extract the min/max coordinates of the common domain
-    min_x = max([ds.x.min() for ds in target])
-    max_x = min([ds.x.max() for ds in target])
-    min_y = max([ds.y.min() for ds in target])
-    max_y = min([ds.y.max() for ds in target])
-
-    # Convert to xarray
-    target = xr.merge(target)
-
-    # Invert lat axis if needed
-    if target.y[0].values < target.y[1].values:
-        target = target.reindex(y=list(reversed(target.y)))
-
-    # Crop the target data to the final domain
-    target = target.sel(x=slice(min_x, max_x),
-                        y=slice(max_y, min_y))
-
-    # Drop unnecessary variables
-    target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'], errors='ignore')
-
-    # Save to pickle
-    if dump_data_to_pickle:
-        os.makedirs(os.path.dirname(target_pkl_file), exist_ok=True)
-        with open(target_pkl_file, 'wb') as f:
-            pickle.dump(target, f, protocol=-1)
-
-    return target
-
-
 def load_input_data(date_start, date_end, paths, levels, resol_low,
-                    x_axis, y_axis, path_dem=None, dump_data_to_pickle=True,
+                    x_axis=None, y_axis=None, path_dem=None, dump_data_to_pickle=True,
                     path_tmp='../tmp/'):
     """
     Load the input data.
@@ -319,8 +303,10 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
         The resolution of the low resolution data.
     x_axis : numpy.ndarray|xr.DataArray
         The x coordinates of the final domain.
+        If None, the data will not be interpolated.
     y_axis : numpy.ndarray|xr.DataArray
         The y coordinates of the final domain.
+        If None, the data will not be interpolated.
     path_dem : str
         The path to the DEM data. If None, the topography will not be added.
     dump_data_to_pickle : bool
@@ -333,10 +319,11 @@ def load_input_data(date_start, date_end, paths, levels, resol_low,
     xarray.Dataset
         The input data.
     """
-    if isinstance(x_axis, xr.DataArray):
-        x_axis = x_axis.values
-    if isinstance(y_axis, xr.DataArray):
-        y_axis = y_axis.values
+    if x_axis is not None and y_axis is not None:
+        if isinstance(x_axis, xr.DataArray):
+            x_axis = x_axis.values
+        if isinstance(y_axis, xr.DataArray):
+            y_axis = y_axis.values
 
     # Load from pickle
     if dump_data_to_pickle:

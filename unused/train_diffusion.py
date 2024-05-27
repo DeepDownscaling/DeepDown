@@ -12,7 +12,7 @@ from transformers import AutoImageProcessor, Swin2SRForImageSuperResolution
 
 # Utils
 from deepdown.utils.data_loader import *
-from deepdown.utils.data_generators import *
+from deepdown.utils.data_generator import *
 from deepdown.utils.helpers import *
 from deepdown.constants import *
 
