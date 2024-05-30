@@ -28,9 +28,7 @@ period_clim_start: '2010-01-01'  # Start of the period of interest (e.g. future)
 period_clim_end: '2022-12-31'  # End of the period of interest (e.g. future)
 
 # Data properties
-levels: []
-resol_low: 0.1
-input_vars: {'tp': None, 't': None, 't_min': None, 't_max': None }
+input_vars: ['tp', 't', 't_min', 't_max']
 target_vars: ['tp', 't', 't_min', 't_max']
 do_crop: False
 crop_x: []
