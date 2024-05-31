@@ -1,428 +1,532 @@
 import os
 import pickle
 import hashlib
+import dask
 import numpy as np
 import xarray as xr
 import pandas as pd
 from pyproj import Transformer
 
 
-def rename_dimensions_variables(ds):
-    """
-    Rename dimensions of the given dataset to homogenize data.
+class DataLoader:
+    def __init__(self, x_bnds=None, y_bnds=None, path_tmp='../tmp/',
+                 dump_data_to_pickle=True):
+        """
+        Initialize the DataLoader.
 
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        The dataset to rename the dimensions of.
+        Parameters
+        ----------
+        x_bnds : list
+            The desired bounds for the x axis ([min, max]) or full x array.
+        y_bnds : list
+            The desired bounds for the y axis ([min, max]) or full y array.
+        path_tmp : str
+            The path to the temporary directory to save pickle files.
+        dump_data_to_pickle : bool
+            Whether to save the data to a pickle file.
+        """
+        self.data = None
+        self.paths = None
+        self.x_bnds = x_bnds
+        self.y_bnds = y_bnds
+        self.path_tmp = path_tmp
+        self.dump_data_to_pickle = dump_data_to_pickle
 
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with renamed dimensions.
-    """
-    # Rename dimensions
-    if 'latitude' in ds.dims:
-        ds = ds.rename({'latitude': 'lat'})
-    if 'longitude' in ds.dims:
-        ds = ds.rename({'longitude': 'lon'})
-    if 'E' in ds.dims:
-        ds = ds.rename({'E': 'x'})
-    if 'N' in ds.dims:
-        ds = ds.rename({'N': 'y'})
+    def load(self, date_start, date_end, paths, load_in_memory=False):
+        """
+        Load the target data.
 
-    # Rename variables
-    if 'RhiresD' in ds.variables:
-        ds = ds.rename({'RhiresD': 'tp'})
-    if 'TabsD' in ds.variables:
-        ds = ds.rename({'TabsD': 't'})
-    if 'TmaxD' in ds.variables:
-        ds = ds.rename({'TmaxD': 't_max'})
-    if 'TminD' in ds.variables:
-        ds = ds.rename({'TminD': 't_min'})
+        Parameters
+        ----------
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+        paths : list
+            The paths to the data.
+        load_in_memory : bool
+            Whether to load the data in memory.
 
-    return ds
+        Returns
+        -------
+        xarray.Dataset
+            The data array.
+        """
+        self.paths = paths
 
+        # Load from pickle
+        pkl_filename = self._get_pickle_filename(date_start, date_end)
+        if self.dump_data_to_pickle and os.path.isfile(pkl_filename):
+            with open(pkl_filename, 'rb') as f:
+                self.data = pickle.load(f)
+                print('Data loaded from pickle.')
+                return self.data
 
-def temporal_slice(ds, start, end):
-    """
-    Slice along the temporal dimension.
+        # Read data from original files
+        print('Extracting data from files...')
+        data = []
+        for i_var in range(0, len(paths)):
+            dat = self._get_nc_data(paths[i_var] + '/*nc', date_start, date_end)
+            data.append(dat)
 
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        The dataset to slice.
-    start : str
-        The start date of the slice.
-    end : str
-        The end date of the slice.
-    
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with the temporal slice applied.
-    """
-    ds = ds.sel(time=slice(start, end))
+        # Extract the min/max coordinates of the common domain
+        min_x = float(max([ds.x.min() for ds in data]).values)
+        max_x = float(min([ds.x.max() for ds in data]).values)
+        min_y = float(max([ds.y.min() for ds in data]).values)
+        max_y = float(min([ds.y.max() for ds in data]).values)
 
-    if 'time_bnds' in ds.variables:
-        ds = ds.drop('time_bnds')
+        with dask.config.set(**{"array.slicing.split_large_chunks": True}):
 
-    return ds
+            # Convert to xarray
+            self.data = xr.merge(data)
 
+            # Invert y axis if needed
+            if self.data.y[0].values < self.data.y[1].values:
+                self.data = self.data.reindex(y=list(reversed(self.data.y)))
 
-def spatial_slice(ds, lon_bnds, lat_bnds):
-    """
-    Slice along the spatial dimension.
+            # Crop the target data to the final domain
+            self.data = self.data.sel(x=slice(min_x, max_x),
+                                      y=slice(max_y, min_y))
 
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        The dataset to slice.
-    lon_bnds : list
-        The desired longitude bounds of the data ([min, max]) or full longitude array.
-    lat_bnds : list
-        The desired latitude bounds of the data ([min, max]) or full latitude array.
+            if load_in_memory:
+                self.data.load()
 
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with the spatial slice applied.
-    """
-    if lon_bnds is not None:
-        ds = ds.sel(lon=slice(min(lon_bnds), max(lon_bnds)))
+            # Save to pickle
+            if self.dump_data_to_pickle:
+                os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+                with open(pkl_filename, 'wb') as f:
+                    pickle.dump(self.data, f, protocol=-1)
 
-    if lat_bnds is not None:
-        if ds.lat[0].values < ds.lat[1].values:
-            ds = ds.sel(lat=slice(min(lat_bnds), max(lat_bnds)))
-        else:
-            ds = ds.sel(lat=slice(max(lat_bnds), min(lat_bnds)))
+        return self.data
 
-    return ds
+    def load_topography(self, path_dem=None):
+        """
+        Load the topography data.
 
+        Parameters
+        ----------
+        path_dem : str
+            The path to the DEM data.
+        """
+        if path_dem is None:
+            return
 
-def get_nc_data(files, start, end, lon_bnds=None, lat_bnds=None):
-    """
-    Extract netCDF data for the given file(s) pattern/path.
-
-    Parameters
-    ----------
-    files : str or list
-        The file(s) pattern/path to extract data from.
-    start : str
-        The desired start date of the data.
-    end : str
-        The desired end date of the data.
-    lon_bnds : list
-        The desired longitude bounds of the data ([min, max]) or full longitude array.
-    lat_bnds : list
-        The desired latitude bounds of the data ([min, max]) or full latitude array.
-
-    Returns
-    -------
-    xarray.Dataset
-        The dataset with the extracted data.
-    """
-    print('Extracting data for the period {} - {}'.format(start, end))
-    ds = xr.open_mfdataset(files, combine='by_coords')
-    ds = rename_dimensions_variables(ds)
-    ds = temporal_slice(ds, start, end)
-    ds = spatial_slice(ds, lon_bnds, lat_bnds)
-
-    return ds
-
-
-def precip_exceedance(precip, qt=0.95):
-    """
-    Computes exceedances of precipitation.
-
-    Parameters
-    ----------
-    precip : xarray.DataArray
-        The precipitation data.
-    qt : float
-        The quantile to compute the exceedances for.
-
-    Returns
-    -------
-    xarray.DataArray
-        The exceedances of the precipitation data.
-    """
-    qq = xr.DataArray(precip).quantile(qt, dim='time')
-    out = xr.DataArray(precip > qq)
-    out = out * 1
-
-    return out
-
-
-def load_data(paths, date_start, date_end, lon_bnds, lat_bnds, levels):
-    """Load the data.
-
-    Parameters
-    ----------
-    paths : list
-        The paths to the data.
-    date_start : str
-        The starting date.
-    date_end : str
-        The end date.
-    lon_bnds : list
-        The desired longitude bounds of the data ([min, max]) or full longitude array.
-    lat_bnds : list
-        The desired latitude bounds of the data ([min, max]) or full latitude array.
-    levels : list
-        The levels to extract.
-
-    Returns
-    -------
-    xarray.Dataset
-        The data.
-    """
-    data = []
-    for i_var in range(0, len(paths)):
-
-        dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end, lon_bnds,
-                          lat_bnds)
-
-        if 'level' in list(dat.coords):
-            print("Selecting level")
-            lev = np.array(dat.level)
-            l = [x for x in lev if x in levels]
-            dat = dat.sel(level=l)
-
-        if 'z' in dat.variables:
-            dat.z.values = dat.z.values / 9.80665
-
-        dat['time'] = pd.DatetimeIndex(dat.time.dt.date)
-
-        data.append(dat)
-
-    return xr.merge(data)
-
-
-def convert_to_xarray(a, lat, lon, time):
-    """
-    Convert a numpy array into a Dataarray.
-    
-    Parameters
-    ----------
-    a : numpy.ndarray
-        The array to convert.
-    lat : numpy.ndarray
-        The latitude values.
-    lon : numpy.ndarray
-        The longitude values.
-    time : numpy.ndarray
-        The time values.
-
-    Returns
-    -------
-    xarray.DataArray
-        The converted array.
-    """
-    mx = xr.DataArray(a, dims=["time", "lat", "lon"],
-                      coords=dict(time=time, lat=lat, lon=lon))
-    return mx
-
-
-def load_target_data(date_start, date_end, paths, dump_data_to_pickle=True,
-                     path_tmp='../tmp/'):
-    """
-    Load the target data.
-
-    Parameters
-    ----------
-    date_start : str
-        The starting date ('YYYY-MM-DD').
-    date_end : str
-        The end date ('YYYY-MM-DD').
-    paths : list
-        The paths to the data.
-    dump_data_to_pickle : bool
-        Whether to dump the data to pickle or not.
-    path_tmp : str
-        The path to the temporary directory to save pickle files.
-
-    Returns
-    -------
-    xarray.Dataset
-        The target data.
-    """
-
-    # Pickle tag
-    tag = hashlib.md5(
-        pickle.dumps(date_start)
-        + pickle.dumps(date_end)
-        + pickle.dumps(paths)
-    ).hexdigest()
-
-    target_pkl_file = f'{path_tmp}/target_{tag}.pkl'
-    if dump_data_to_pickle and os.path.isfile(target_pkl_file):
-        with open(target_pkl_file, 'rb') as f:
-            target = pickle.load(f)
-            print('Target data loaded from pickle.')
-            return target
-
-    # Read data from original files
-    print('Extracting target data...')
-
-    target = []
-    for i_var in range(0, len(paths)):
-        dat = get_nc_data(paths[i_var] + '/*nc', date_start, date_end)
-        target.append(dat)
-
-    # Extract the min/max coordinates of the common domain
-    min_x = max([ds.x.min() for ds in target])
-    max_x = min([ds.x.max() for ds in target])
-    min_y = max([ds.y.min() for ds in target])
-    max_y = min([ds.y.max() for ds in target])
-
-    # Convert to xarray
-    target = xr.merge(target)
-
-    # Invert lat axis if needed
-    if target.y[0].values < target.y[1].values:
-        target = target.reindex(y=list(reversed(target.y)))
-
-    # Crop the target data to the final domain
-    target = target.sel(x=slice(min_x, max_x),
-                        y=slice(max_y, min_y))
-
-    # Drop unnecessary variables
-    target = target.drop_vars(['lat', 'lon', 'swiss_lv95_coordinates'], errors='ignore')
-
-    # Save to pickle
-    if dump_data_to_pickle:
-        os.makedirs(os.path.dirname(target_pkl_file), exist_ok=True)
-        with open(target_pkl_file, 'wb') as f:
-            pickle.dump(target, f, protocol=-1)
-
-    return target
-
-
-def load_input_data(date_start, date_end, paths, levels, resol_low,
-                    x_axis, y_axis, path_dem=None, dump_data_to_pickle=True,
-                    path_tmp='../tmp/'):
-    """
-    Load the input data.
-
-    Parameters
-    ----------
-    date_start : str
-        The starting date ('YYYY-MM-DD').
-    date_end : str
-        The end date ('YYYY-MM-DD').
-    paths : list
-        The paths to the data.
-    levels : list
-        The levels to extract.
-    resol_low : float
-        The resolution of the low resolution data.
-    x_axis : numpy.ndarray|xr.DataArray
-        The x coordinates of the final domain.
-    y_axis : numpy.ndarray|xr.DataArray
-        The y coordinates of the final domain.
-    path_dem : str
-        The path to the DEM data. If None, the topography will not be added.
-    dump_data_to_pickle : bool
-        Whether to dump the data to pickle or not.
-    path_tmp : str
-        The path to the temporary directory to save pickle files.
-
-    Returns
-    -------
-    xarray.Dataset
-        The input data.
-    """
-    if isinstance(x_axis, xr.DataArray):
-        x_axis = x_axis.values
-    if isinstance(y_axis, xr.DataArray):
-        y_axis = y_axis.values
-
-    # Load from pickle
-    if dump_data_to_pickle:
-        tag = hashlib.md5(
-            pickle.dumps(paths)
-            + pickle.dumps(date_start)
-            + pickle.dumps(date_end)
-            + pickle.dumps(levels)
-            + pickle.dumps(resol_low)
-            + pickle.dumps(x_axis)
-            + pickle.dumps(y_axis)
-        ).hexdigest()
-
-        input_pkl_file = f"{path_tmp}/input_{tag}.pkl"
-        if os.path.isfile(input_pkl_file):
-            with open(input_pkl_file, "rb") as f:
-                input_data = pickle.load(f)
-                print("Input data loaded from pickle.")
-                return input_data
-
-    # Read data from original files
-    print("Extracting input data...")
-
-    # Load the topography
-    topo = None
-    if path_dem is not None:
+        # Load the topography
         topo = xr.open_dataset(path_dem)
         topo = topo.squeeze('band')
         if '__xarray_dataarray_variable__' in topo.variables:
             topo = topo.rename({'__xarray_dataarray_variable__': 'topo'})
         topo = topo.drop_vars(['band', 'spatial_ref'])
 
-    # Get extent of the final domain in lat/lon (EPSG:4326) from the original
-    # domain in CH1903+ (EPSG:2056)
-    x_grid, y_grid = np.meshgrid(x_axis, y_axis)
-    transformer = Transformer.from_crs("EPSG:2056", "EPSG:4326")
-    lat_grid, lon_grid = transformer.transform(x_grid, y_grid)
+        # Extract the min/max coordinates of the common domain
+        min_x = self.data.x.min()
+        max_x = self.data.x.max()
+        min_y = self.data.y.min()
+        max_y = self.data.y.max()
 
-    # Get the corresponding min/max coordinates in the ERA5 grid
-    lat_min = np.floor(np.min(lat_grid) * 1 / resol_low) / (1 / resol_low)
-    lat_max = np.ceil(np.max(lat_grid) * 1 / resol_low) / (1 / resol_low)
-    lon_min = np.floor(np.min(lon_grid) * 1 / resol_low) / (1 / resol_low)
-    lon_max = np.ceil(np.max(lon_grid) * 1 / resol_low) / (1 / resol_low)
+        # Crop the topography data to the final domain
+        topo = topo.sel(x=slice(min_x, max_x),
+                        y=slice(max_y, min_y))
 
-    # Load the predictors data
-    era5_lon = [lon_min, lon_max]
-    era5_lat = [lat_min, lat_max]
-    inputs = load_data(paths, date_start, date_end, era5_lon, era5_lat, levels)
+        self.data = xr.merge([self.data, topo])
 
-    # Interpolate low res data
-    # Create a new xarray dataset with the new grid coordinates
-    new_data_format = xr.Dataset(coords={'latitude': (('lat', 'lon'), lat_grid),
-                                         'longitude': (('lat', 'lon'), lon_grid)})
+    def coarsen(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+',
+                load_in_memory=False):
+        """
+        Coarsen the data to the given axes.
 
-    # Interpolate the original input data onto the new grid
-    inputs = inputs.interp(lat=new_data_format.latitude,
-                           lon=new_data_format.longitude, method='nearest')
+        Parameters
+        ----------
+        x_axis : numpy.ndarray|xr.DataArray
+            The x coordinates of the final domain.
+        y_axis : numpy.ndarray|xr.DataArray
+            The y coordinates of the final domain.
+        from_proj : str
+            The original projection of the data (as EPSG or projection name).
+        to_proj : str
+            The desired projection of the data (as EPSG or projection name).
+        load_in_memory : bool
+            Whether to load the data in memory.
+        """
+        if isinstance(x_axis, xr.DataArray):
+            x_axis = x_axis.values
+        if isinstance(y_axis, xr.DataArray):
+            y_axis = y_axis.values
 
-    # Removing duplicate coordinates
-    inputs = inputs.drop_vars(['lat', 'lon'])
+        # Convert the projection to EPSG format
+        from_proj = self._proj_to_epsg(from_proj)
+        to_proj = self._proj_to_epsg(to_proj)
 
-    # Add the Swiss coordinates
-    inputs = inputs.assign_coords(x=(('lat', 'lon'), x_grid),
-                                  y=(('lat', 'lon'), y_grid))
-    # Rename variables before merging
-    inputs = inputs.rename({'lon': 'x', 'lat': 'y'})
-    inputs = inputs.drop_vars(['latitude', 'longitude'])
+        # Load from pickle
+        pkl_filename = self._get_regridded_pickle_filename(
+            x_axis, y_axis, from_proj, to_proj, 'coarsen')
+        if self.dump_data_to_pickle and os.path.isfile(pkl_filename):
+            with open(pkl_filename, 'rb') as f:
+                self.data = pickle.load(f)
+                print('Regridded data loaded from pickle.')
+                return
 
-    # Squeeze the 2D coordinates
-    x_1d = inputs['x'][0, :]
-    y_1d = inputs['y'][:, 0]
-    inputs = inputs.assign(x=xr.DataArray(x_1d, dims='x'),
-                           y=xr.DataArray(y_1d, dims='y'))
+        # Get x/y axes in the desired projection for a high-res grid +- compatible with
+        # the coarsening (multiple of the final grid), but not larger
+        x_pts = int(np.round(len(self.data.x) / x_axis.size) * x_axis.size)
+        x_axis_hi = np.linspace(x_axis[0], x_axis[-1], x_pts)
+        y_pts = int(np.round(len(self.data.y) / y_axis.size) * y_axis.size)
+        y_axis_hi = np.linspace(y_axis[0], y_axis[-1], y_pts)
 
-    # Invert y axis if needed
-    if inputs.y[0].values < inputs.y[1].values:
-        inputs = inputs.reindex(y=list(reversed(inputs.y)))
+        # Get extent in desired projection from the original one
+        x_dest_grid_hi, y_dest_grid_hi = np.meshgrid(x_axis_hi, y_axis_hi)
+        transformer = Transformer.from_crs(to_proj, from_proj, always_xy=True)
+        x_orig_grid_hi, y_orig_grid_hi = transformer.transform(
+            x_dest_grid_hi, y_dest_grid_hi)
 
-    # Merge with topo
-    if topo is not None:
-        inputs = xr.merge([inputs, topo])
+        # Create a new xarray dataset with the new grid coordinates
+        new_data_format_hi = xr.Dataset(
+            coords={'y_tmp': (('y2', 'x2'), y_orig_grid_hi),
+                    'x_tmp': (('y2', 'x2'), x_orig_grid_hi)})
 
-    # Save to pickle file
-    if dump_data_to_pickle:
-        os.makedirs(os.path.dirname(input_pkl_file), exist_ok=True)
-        with open(input_pkl_file, 'wb') as f:
-            pickle.dump(inputs, f, protocol=-1)
+        with dask.config.set(**{"array.slicing.split_large_chunks": False}):
+            self.data = self.data.interp(
+                y=new_data_format_hi.y_tmp,
+                x=new_data_format_hi.x_tmp, method='linear')
 
-    return inputs
+            # Coarsen the data
+            coarsen_x = int(x_orig_grid_hi.shape[1] / x_axis.size)
+            coarsen_y = int(y_orig_grid_hi.shape[0] / y_axis.size)
+            self.data = self.data.coarsen(y2=coarsen_y, x2=coarsen_x,
+                                          boundary='trim').mean()
+
+        # Removing duplicate coordinates
+        self.data = self.data.drop_vars(['y', 'x'])
+
+        # Add the new coordinates
+        x_dest_grid, y_dest_grid = np.meshgrid(x_axis, y_axis)
+        self.data = self.data.assign_coords(x=(('y2', 'x2'), x_dest_grid),
+                                            y=(('y2', 'x2'), y_dest_grid))
+        # Rename variables before merging
+        self.data = self.data.rename({'x2': 'x', 'y2': 'y'})
+        self.data = self.data.drop_vars(['y_tmp', 'x_tmp'])
+
+        # Squeeze the 2D coordinates
+        x_1d = self.data['x'][0, :]
+        y_1d = self.data['y'][:, 0]
+        self.data = self.data.assign(x=xr.DataArray(x_1d, dims='x'),
+                                     y=xr.DataArray(y_1d, dims='y'))
+
+        if load_in_memory:
+            self.data.load()
+
+        # Save to pickle
+        if self.dump_data_to_pickle:
+            os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+            with open(pkl_filename, 'wb') as f:
+                pickle.dump(self.data, f, protocol=-1)
+
+    def interpolate(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+',
+                    method='nearest', load_in_memory=False):
+        """
+        Interpolate the data to the given axes.
+
+        Parameters
+        ----------
+        x_axis : numpy.ndarray|xr.DataArray
+            The x coordinates of the final domain.
+        y_axis : numpy.ndarray|xr.DataArray
+            The y coordinates of the final domain.
+        from_proj : str
+            The original projection of the data (as EPSG or projection name).
+        to_proj : str
+            The desired projection of the data (as EPSG or projection name).
+        method : str
+            The interpolation method. Options are: "linear", "nearest", "zero",
+            "slinear", "quadratic", "cubic", "polynomial".
+        load_in_memory : bool
+            Whether to load the data in memory.
+        """
+        if isinstance(x_axis, xr.DataArray):
+            x_axis = x_axis.values
+        if isinstance(y_axis, xr.DataArray):
+            y_axis = y_axis.values
+
+        # Convert the projection to EPSG format
+        from_proj = self._proj_to_epsg(from_proj)
+        to_proj = self._proj_to_epsg(to_proj)
+
+        # Load from pickle
+        pkl_filename = self._get_regridded_pickle_filename(
+            x_axis, y_axis, from_proj, to_proj, method)
+        if self.dump_data_to_pickle and os.path.isfile(pkl_filename):
+            with open(pkl_filename, 'rb') as f:
+                self.data = pickle.load(f)
+                print('Regridded data loaded from pickle.')
+                return
+
+        # Get extent of the final domain in desired projection from the original one
+        x_dest_grid, y_dest_grid = np.meshgrid(x_axis, y_axis)
+        transformer = Transformer.from_crs(to_proj, from_proj, always_xy=True)  # reverted
+        x_orig_grid, y_orig_grid = transformer.transform(x_dest_grid, y_dest_grid)
+
+        # Get the corresponding min/max coordinates in the original grid
+        y_min = np.floor(np.min(y_orig_grid))
+        y_max = np.ceil(np.max(y_orig_grid))
+        x_min = np.floor(np.min(x_orig_grid))
+        x_max = np.ceil(np.max(x_orig_grid))
+        self.x_bnds = [x_min, x_max]
+        self.y_bnds = [y_min, y_max]
+
+        # Create a new xarray dataset with the new grid coordinates
+        new_data_format = xr.Dataset(coords={'y_tmp': (('y2', 'x2'), y_orig_grid),
+                                             'x_tmp': (('y2', 'x2'), x_orig_grid)})
+
+        # Interpolate the original input data onto the new grid
+        self.data = self.data.interp(y=new_data_format.y_tmp,
+                                     x=new_data_format.x_tmp, method=method)
+
+        # Removing duplicate coordinates
+        self.data = self.data.drop_vars(['y', 'x'])
+
+        # Add the new coordinates
+        self.data = self.data.assign_coords(x=(('y2', 'x2'), x_dest_grid),
+                                            y=(('y2', 'x2'), y_dest_grid))
+        # Rename variables before merging
+        self.data = self.data.rename({'x2': 'x', 'y2': 'y'})
+        self.data = self.data.drop_vars(['y_tmp', 'x_tmp'])
+
+        # Squeeze the 2D coordinates
+        x_1d = self.data['x'][0, :]
+        y_1d = self.data['y'][:, 0]
+        self.data = self.data.assign(x=xr.DataArray(x_1d, dims='x'),
+                                     y=xr.DataArray(y_1d, dims='y'))
+
+        if load_in_memory:
+            self.data.load()
+
+        # Save to pickle
+        if self.dump_data_to_pickle:
+            os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+            with open(pkl_filename, 'wb') as f:
+                pickle.dump(self.data, f, protocol=-1)
+
+    @staticmethod
+    def _proj_to_epsg(proj):
+        """
+        Convert the projection to the EPSG format.
+        """
+        if 'EPSG' in proj:
+            return proj
+
+        if proj in ['CH1903', 'CH1903+', 'CH1903_LV95']:
+            return 'EPSG:2056'
+        elif proj in ['WGS84', 'WGS_84']:
+            return 'EPSG:4326'
+
+        raise ValueError('Unknown projection for from_proj.')
+
+    def _get_nc_data(self, files, date_start, date_end):
+        """
+        Extract netCDF data for the given file(s) pattern/path.
+
+        Parameters
+        ----------
+        files : str or list
+            The file(s) pattern/path to extract data from.
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+
+        Returns
+        -------
+        xarray.Dataset
+            The extracted data.
+        """
+        print('Extracting data for {} - {}'.format(date_start, date_end))
+        ds = xr.open_mfdataset(files, combine='by_coords')
+        ds = self._rename_dimensions_variables(ds)
+        ds = self._remove_unused_variables(ds)
+        ds = self._temporal_slice(ds, date_start, date_end)
+        ds = self._spatial_slice(ds)
+
+        return ds
+
+    def _get_pickle_filename(self, date_start, date_end):
+        """
+        Get the pickle filename for the given paths.
+
+        Returns
+        -------
+        str
+            The pickle filename.
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+        """
+        tag = hashlib.md5(
+            pickle.dumps(self.paths)
+            + pickle.dumps(self.x_bnds)
+            + pickle.dumps(self.y_bnds)
+            + pickle.dumps(date_start)
+            + pickle.dumps(date_end)
+        ).hexdigest()
+
+        return f'{self.path_tmp}/data_{tag}.pkl'
+
+    def _get_regridded_pickle_filename(self, x_axis, y_axis, crs_from, crs_to, method):
+        """
+        Get the pickle filename for the regridded data.
+
+        Parameters
+        ----------
+        x_axis : numpy.ndarray
+            The x coordinates of the final domain.
+        y_axis : numpy.ndarray
+            The y coordinates of the final domain.
+        crs_from : str
+            The original CRS of the data.
+        crs_to : str
+            The desired CRS of the data.
+        method : str
+            The interpolation method.
+
+        Returns
+        -------
+        str
+            The pickle filename.
+        """
+        tag = hashlib.md5(
+            pickle.dumps(self.paths)
+            + pickle.dumps(self.data.sizes)  # property of the original data
+            + pickle.dumps(self.data.x)  # property of the original data
+            + pickle.dumps(self.data.y)  # property of the original data
+            + pickle.dumps(self.data.time[0].values)  # property of the original data
+            + pickle.dumps(self.data.time[-1].values)  # property of the original data
+            + pickle.dumps(x_axis)  # axis of the final data
+            + pickle.dumps(y_axis)  # axis of the final data
+            + pickle.dumps(crs_from)
+            + pickle.dumps(crs_to)
+            + pickle.dumps(method)
+        ).hexdigest()
+
+        return f'{self.path_tmp}/data_regridded_{tag}.pkl'
+
+    @staticmethod
+    def _rename_dimensions_variables(ds):
+        """
+        Rename dimensions of the given dataset to homogenize data.
+
+        Parameters
+        ----------
+        ds : xarray.Dataset
+            The dataset to rename dimensions and variables.
+
+        Returns
+        -------
+        xarray.Dataset
+            The dataset with renamed dimensions and variables.
+        """
+        # Rename dimensions
+        if 'longitude' in ds.dims:
+            ds = ds.rename({'longitude': 'x'})
+        if 'latitude' in ds.dims:
+            ds = ds.rename({'latitude': 'y'})
+        if 'lon' in ds.dims:
+            ds = ds.rename({'lon': 'x'})
+        if 'lat' in ds.dims:
+            ds = ds.rename({'lat': 'y'})
+        if 'E' in ds.dims:
+            ds = ds.rename({'E': 'x'})
+            ds = ds.drop_vars(['lon'], errors='ignore')
+        if 'N' in ds.dims:
+            ds = ds.rename({'N': 'y'})
+            ds = ds.drop_vars(['lat'], errors='ignore')
+
+        # Rename variables
+        if 'RhiresD' in ds.variables:
+            ds = ds.rename({'RhiresD': 'tp'})
+        if 'TabsD' in ds.variables:
+            ds = ds.rename({'TabsD': 't'})
+        if 'TmaxD' in ds.variables:
+            ds = ds.rename({'TmaxD': 't_max'})
+        if 'TminD' in ds.variables:
+            ds = ds.rename({'TminD': 't_min'})
+
+        return ds
+
+    @staticmethod
+    def _remove_unused_variables(ds):
+        """
+        Remove unused variables from the dataset.
+
+        Parameters
+        ----------
+        ds : xarray.Dataset
+            The dataset to remove unused variables.
+
+        Returns
+        -------
+        xarray.Dataset
+            The dataset without unused variables.
+        """
+        vars_to_remove = ['swiss_lv95_coordinates', 'time_bnds']
+        ds = ds.drop_vars(vars_to_remove, errors='ignore')
+
+        return ds
+
+    @staticmethod
+    def _temporal_slice(ds, date_start, date_end):
+        """
+        Slice along the temporal dimension.
+
+        Parameters
+        ----------
+        ds : xarray.Dataset
+            The dataset to slice.
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+
+        Returns
+        -------
+        xarray.Dataset
+            The dataset with the temporal slice.
+        """
+        ds['time'] = pd.to_datetime(ds.time.values)
+        ds = ds.sel(time=slice(date_start, date_end))
+
+        return ds
+
+    def _spatial_slice(self, ds):
+        """
+        Slice along the spatial dimension.
+
+        Parameters
+        ----------
+        ds : xarray.Dataset
+            The dataset to slice.
+
+        Returns
+        -------
+        xarray.Dataset
+            The dataset with the spatial slice.
+        """
+        if self.x_bnds is not None:
+            x_min = min(self.x_bnds)
+            x_min = ds.x.where(ds.x <= x_min, drop=True).max().item()
+            x_max = max(self.x_bnds)
+            x_max = ds.x.where(ds.x >= x_max, drop=True).min().item()
+
+            ds = ds.sel(x=slice(x_min, x_max))
+
+        if self.y_bnds is not None:
+            y_min = min(self.y_bnds)
+            y_min = ds.y.where(ds.y <= y_min, drop=True).max().item()
+            y_max = max(self.y_bnds)
+            y_max = ds.y.where(ds.y >= y_max, drop=True).min().item()
+
+            if ds.y[0].values < ds.y[1].values:
+                ds = ds.sel(y=slice(y_min, y_max))
+            else:
+                ds = ds.sel(y=slice(y_max, y_min))
+
+        return ds

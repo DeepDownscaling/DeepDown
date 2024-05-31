@@ -1,21 +1,15 @@
-# Common imports
 import argparse
+import logging
 import numpy as np
-
-# Import torch
 import torch
-from torch.utils.data import Dataset
 
-# Utils
-from deepdown.utils.data_loader import load_target_data, load_input_data
+from deepdown.utils.data_loader import DataLoader
+from deepdown.utils.data_generator import DataGenerator
 from deepdown.utils.loss_fcts import generator_loss, discriminator_loss
-from deepdown.utils.data_generators import DataGenerator
 from deepdown.utils.helpers import print_cuda_availability, split_data
 from deepdown.models.srgan import Generator, Discriminator
 from deepdown.config import Config
 from deepdown.models.srgan_train import srgan_train
-# adding logs
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,39 +22,23 @@ print_cuda_availability()
 
 
 def train(conf):
-
+    # Load data
     logger.info("Loading input and targets data")
-    input_paths = [
-        conf.path_era5land + '/precipitation',
-        conf.path_era5land + '/temperature',
-        conf.path_era5land + '/max_temperature/',
-        conf.path_era5land + '/min_temperature/'
-    ]
-    
-    target_paths = [
-        conf.path_mch + '/RhiresD_v2.0_swiss.lv95/',
-        conf.path_mch + '/TabsD_v2.0_swiss.lv95/',
-        conf.path_mch + '/TmaxD_v2.0_swiss.lv95/',
-        conf.path_mch + '/TminD_v2.0_swiss.lv95/'
-    ]
-  
-    # Load target data
-    target = load_target_data(conf.date_start, conf.date_end, target_paths,
-                              path_tmp=conf.path_tmp)
+    target_data = DataLoader(path_tmp=conf.path_tmp)
+    target_data.load(conf.date_start, conf.date_end, conf.path_targets)
 
-    input_data = load_input_data(
-        date_start=conf.date_start, date_end=conf.date_end, levels=conf.levels,
-        resol_low=conf.resol_low, x_axis=target.x, y_axis=target.y,
-        paths=input_paths, path_dem=conf.path_dem, dump_data_to_pickle=True,
-        path_tmp=conf.path_tmp)
+    input_data = DataLoader(path_tmp=conf.path_tmp)
+    input_data.load(conf.date_start, conf.date_end, conf.path_inputs)
+    input_data.interpolate(x_axis=target_data.data.x, y_axis=target_data.data.y,
+                           from_proj='WGS84', to_proj='CH1903_LV95', method='nearest')
 
     # Split the data
-    x_train = split_data(input_data, conf.years_train)
-    x_valid = split_data(input_data, conf.years_valid)
-    x_test = split_data(input_data, conf.years_test)
-    y_train = split_data(target, conf.years_train)
-    y_valid = split_data(target, conf.years_valid)
-    y_test = split_data(target, conf.years_test)
+    x_train = split_data(input_data.data, conf.years_train)
+    x_valid = split_data(input_data.data, conf.years_valid)
+    x_test = split_data(input_data.data, conf.years_test)
+    y_train = split_data(target_data.data, conf.years_train)
+    y_valid = split_data(target_data.data, conf.years_valid)
+    y_test = split_data(target_data.data, conf.years_test)
 
     logger.info("Creating data loaders")
     training_set = DataGenerator(

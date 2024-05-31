@@ -1,20 +1,34 @@
 # Paths are mandatory and should be set to the correct location on your system
-path_dem: ''
-path_era5land: ''
-path_mch: ''
 path_tmp: ''
+path_dem: ''
+path_inputs: [
+  'path/to/precipitation',
+  'path/to/temperature',
+  'path/to/max_temperature',
+  'path/to/min_temperature'
+]
+path_targets: [
+  'path/to/precipitation',
+  'path/to/temperature',
+  'path/to/max_temperature',
+  'path/to/min_temperature'
+]
 
-# Temporal selection
+# Temporal selection for training/testing
 date_start: '1961-01-01'
 date_end: '2022-12-31'
 years_train: [1961, 2000]
 years_valid: [2001, 2010]
 years_test: [2011, 2022]
 
+# Temporal selection for using the models (bias correction and downscaling)
+period_hist_start: '1961-01-01'  # Start of the historical period for bias correction
+period_hist_end: '2009-12-31'  # End of the historical period for bias correction
+period_clim_start: '2010-01-01'  # Start of the period of interest (e.g. future)
+period_clim_end: '2022-12-31'  # End of the period of interest (e.g. future)
+
 # Data properties
-levels: []
-resol_low: 0.1
-input_vars: {'tp': None, 't2m': None, 't2m_min': None, 't2m_max': None, 'topo': None, }
+input_vars: ['tp', 't', 't_min', 't_max']
 target_vars: ['tp', 't', 't_min', 't_max']
 do_crop: False
 crop_x: []

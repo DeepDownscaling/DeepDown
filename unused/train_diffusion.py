@@ -12,7 +12,7 @@ from transformers import AutoImageProcessor, Swin2SRForImageSuperResolution
 
 # Utils
 from deepdown.utils.data_loader import *
-from deepdown.utils.data_generators import *
+from deepdown.utils.data_generator import *
 from deepdown.utils.helpers import *
 from deepdown.constants import *
 
@@ -24,7 +24,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning, message="divide by ze
 
 print_cuda_availability()
 
-target = load_target_data(DATE_START, DATE_END, PATH_MCH)
+target = load_target_data(DATE_START, DATE_END, path_targets)
 x_axis = target.TabsD.x
 y_axis = target.TabsD.y
 
