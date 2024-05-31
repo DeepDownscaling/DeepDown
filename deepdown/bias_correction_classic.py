@@ -1,5 +1,6 @@
 import argparse
 import logging
+import numpy as np
 from ibicus.debias import QuantileMapping
 
 from deepdown.utils.data_loader import DataLoader
@@ -44,11 +45,20 @@ def correct_bias(conf):
         elif var_target == 't_max':
             var_ibicus = 'tasmax'
 
+        target_array_hist = target_data_hist.data[var_target].values
+        input_array_hist = input_data_hist.data[var_input].values,
+        input_array_clim = input_data_clim.data[var_input].values
+
+        # Replace NaNs with zeros
+        target_array_hist = np.nan_to_num(target_array_hist)
+        input_array_hist = np.nan_to_num(input_array_hist)
+        input_array_clim = np.nan_to_num(input_array_clim)
+
         debiaser = QuantileMapping.from_variable(var_ibicus)
         debiased_ts = debiaser.apply(
-            target_data_hist.data[var_target].values,
-            input_data_hist.data[var_input].values,
-            input_data_clim.data[var_input].values)
+            target_array_hist,
+            input_array_hist,
+            input_array_clim)
         input_data_clim.data[var_input] = debiased_ts
 
 
