@@ -33,11 +33,22 @@ def correct_bias(conf):
     # Bias correct each input variable
     for var_target, var_input in zip(conf.target_vars, conf.input_vars):
         logger.info(f"Bias correcting variable {var_target}")
-        debiaser = QuantileMapping.from_variable(var_target)
+        # Map to the ibicus variable names
+        var_ibicus = var_target
+        if var_target == 'tp':
+            var_ibicus = 'pr'
+        elif var_target == 't':
+            var_ibicus = 'tas'
+        elif var_target == 't_min':
+            var_ibicus = 'tasmin'
+        elif var_target == 't_max':
+            var_ibicus = 'tasmax'
+
+        debiaser = QuantileMapping.from_variable(var_ibicus)
         debiased_ts = debiaser.apply(
-            target_data_hist.data[var_target],
-            input_data_hist.data[var_input],
-            input_data_clim.data[var_input])
+            target_data_hist.data[var_target].values,
+            input_data_hist.data[var_input].values,
+            input_data_clim.data[var_input].values)
         input_data_clim.data[var_input] = debiased_ts
 
 
