@@ -1,6 +1,7 @@
 import os
 import pickle
 import hashlib
+import dask
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -72,23 +73,25 @@ class DataLoader:
         min_y = float(max([ds.y.min() for ds in data]).values)
         max_y = float(min([ds.y.max() for ds in data]).values)
 
-        # Convert to xarray
-        self.data = xr.merge(data)
+        with dask.config.set(**{"array.slicing.split_large_chunks": True}):
 
-        # Invert y axis if needed
-        if self.data.y[0].values < self.data.y[1].values:
-            self.data = self.data.reindex(y=list(reversed(self.data.y)))
+            # Convert to xarray
+            self.data = xr.merge(data)
 
-        # Crop the target data to the final domain
-        self.data = self.data.sel(x=slice(min_x, max_x),
-                                  y=slice(max_y, min_y))
+            # Invert y axis if needed
+            if self.data.y[0].values < self.data.y[1].values:
+                self.data = self.data.reindex(y=list(reversed(self.data.y)))
 
-        # Save to pickle
-        if self.dump_data_to_pickle:
-            os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
-            self.data.load()
-            with open(pkl_filename, 'wb') as f:
-                pickle.dump(self.data, f, protocol=-1)
+            # Crop the target data to the final domain
+            self.data = self.data.sel(x=slice(min_x, max_x),
+                                      y=slice(max_y, min_y))
+
+            # Save to pickle
+            if self.dump_data_to_pickle:
+                os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+                self.data.load()
+                with open(pkl_filename, 'wb') as f:
+                    pickle.dump(self.data, f, protocol=-1)
 
         return self.data
 
