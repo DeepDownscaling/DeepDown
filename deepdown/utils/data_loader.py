@@ -166,11 +166,11 @@ class DataLoader:
                 print('Regridded data loaded from pickle.')
                 return
 
-        # Get x/y axes in the desired projection for a high-res grid compatible with
-        # the coarsening (multiple of the final grid)
-        x_pts = int(np.ceil(len(self.data.x) / x_axis.size) * x_axis.size)
+        # Get x/y axes in the desired projection for a high-res grid +- compatible with
+        # the coarsening (multiple of the final grid), but not larger
+        x_pts = int(np.round(len(self.data.x) / x_axis.size) * x_axis.size)
         x_axis_hi = np.linspace(x_axis[0], x_axis[-1], x_pts)
-        y_pts = int(np.ceil(len(self.data.y) / y_axis.size) * y_axis.size)
+        y_pts = int(np.round(len(self.data.y) / y_axis.size) * y_axis.size)
         y_axis_hi = np.linspace(y_axis[0], y_axis[-1], y_pts)
 
         # Get extent in desired projection from the original one
