@@ -184,14 +184,16 @@ class DataLoader:
             coords={'y_tmp': (('y2', 'x2'), y_orig_grid_hi),
                     'x_tmp': (('y2', 'x2'), x_orig_grid_hi)})
 
-        self.data = self.data.interp(y=new_data_format_hi.y_tmp,
-                                     x=new_data_format_hi.x_tmp, method='linear')
+        with dask.config.set(**{"array.slicing.split_large_chunks": False}):
+            self.data = self.data.interp(
+                y=new_data_format_hi.y_tmp,
+                x=new_data_format_hi.x_tmp, method='linear')
 
-        # Coarsen the data
-        coarsen_x = int(x_orig_grid_hi.shape[1] / x_axis.size)
-        coarsen_y = int(y_orig_grid_hi.shape[0] / y_axis.size)
-        self.data = self.data.coarsen(y2=coarsen_y, x2=coarsen_x,
-                                      boundary='trim').mean()
+            # Coarsen the data
+            coarsen_x = int(x_orig_grid_hi.shape[1] / x_axis.size)
+            coarsen_y = int(y_orig_grid_hi.shape[0] / y_axis.size)
+            self.data = self.data.coarsen(y2=coarsen_y, x2=coarsen_x,
+                                          boundary='trim').mean()
 
         # Removing duplicate coordinates
         self.data = self.data.drop_vars(['y', 'x'])
