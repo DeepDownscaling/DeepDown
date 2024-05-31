@@ -28,23 +28,21 @@ print_cuda_availability()
 def train(conf):
     # Load data
     logger.info("Loading input and targets data")
-    target_data = load_target_data(
-        conf.date_start, conf.date_end, conf.path_targets,
-        path_tmp=conf.path_tmp)
+    target_data = DataLoader(path_tmp=conf.path_tmp)
+    target_data.load(conf.date_start, conf.date_end, conf.path_targets)
 
-    input_data = load_input_data(
-        date_start=conf.date_start, date_end=conf.date_end, levels=conf.levels,
-        resol_low=conf.resol_low, x_axis=target_data.x, y_axis=target_data.y,
-        paths=conf.path_inputs, path_dem=conf.path_dem, dump_data_to_pickle=True,
-        path_tmp=conf.path_tmp)
+    input_data = DataLoader(path_tmp=conf.path_tmp)
+    input_data.load(conf.date_start, conf.date_end, conf.path_inputs)
+    input_data.regrid(x_axis=target_data.data.x, y_axis=target_data.data.y,
+                      from_proj='WGS84', to_proj='CH1903_LV95', method='nearest')
 
     # Split the data
-    x_train = split_data(input_data, conf.years_train)
-    x_valid = split_data(input_data, conf.years_valid)
-    x_test = split_data(input_data, conf.years_test)
-    y_train = split_data(target_data, conf.years_train)
-    y_valid = split_data(target_data, conf.years_valid)
-    y_test = split_data(target_data, conf.years_test)
+    x_train = split_data(input_data.data, conf.years_train)
+    x_valid = split_data(input_data.data, conf.years_valid)
+    x_test = split_data(input_data.data, conf.years_test)
+    y_train = split_data(target_data.data, conf.years_train)
+    y_valid = split_data(target_data.data, conf.years_valid)
+    y_test = split_data(target_data.data, conf.years_test)
 
     logger.info("Creating data loaders")
     training_set = DataGenerator(

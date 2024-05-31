@@ -1,12 +1,10 @@
 # Import torch
-from torch.utils.data import Dataset
 import numpy as np
 import torch
-# Utils
-from deepdown.utils.data_loader import load_target_data, load_input_data
-from deepdown.utils.loss_fcts import *
-from deepdown.utils.helpers import print_cuda_availability, DEVICE
 import time
+
+from deepdown.utils.loss_fcts import *
+from deepdown.utils.helpers import DEVICE
 
 
 def srgan_train(loader_train, D, G, D_solver, G_solver, discriminator_loss,
