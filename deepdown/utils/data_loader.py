@@ -51,6 +51,14 @@ class DataLoader:
         """
         self.paths = paths
 
+        # Load from pickle
+        pkl_filename = self._get_pickle_filename(date_start, date_end)
+        if self.dump_data_to_pickle and os.path.isfile(pkl_filename):
+            with open(pkl_filename, 'rb') as f:
+                self.data = pickle.load(f)
+                print('Data loaded from pickle.')
+                return self.data
+
         # Read data from original files
         print('Extracting data from files...')
         data = []
@@ -59,10 +67,10 @@ class DataLoader:
             data.append(dat)
 
         # Extract the min/max coordinates of the common domain
-        min_x = max([ds.x.min() for ds in data])
-        max_x = min([ds.x.max() for ds in data])
-        min_y = max([ds.y.min() for ds in data])
-        max_y = min([ds.y.max() for ds in data])
+        min_x = float(max([ds.x.min() for ds in data]).values)
+        max_x = float(min([ds.x.max() for ds in data]).values)
+        min_y = float(max([ds.y.min() for ds in data]).values)
+        max_y = float(min([ds.y.max() for ds in data]).values)
 
         # Convert to xarray
         self.data = xr.merge(data)
@@ -74,14 +82,6 @@ class DataLoader:
         # Crop the target data to the final domain
         self.data = self.data.sel(x=slice(min_x, max_x),
                                   y=slice(max_y, min_y))
-
-        # Load from pickle
-        pkl_filename = self._get_pickle_filename()
-        if self.dump_data_to_pickle and os.path.isfile(pkl_filename):
-            with open(pkl_filename, 'rb') as f:
-                self.data = pickle.load(f)
-                print('Data loaded from pickle.')
-                return self.data
 
         # Save to pickle
         if self.dump_data_to_pickle:
@@ -122,7 +122,7 @@ class DataLoader:
 
         self.data = xr.merge([self.data, topo])
 
-    def regrid(self, x_axis, y_axis, crs_from='EPSG:2056', crs_to='EPSG:4326',
+    def regrid(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+',
                method='nearest'):
         """
         Regrid the data to the given axes.
@@ -133,10 +133,10 @@ class DataLoader:
             The x coordinates of the final domain.
         y_axis : numpy.ndarray|xr.DataArray
             The y coordinates of the final domain.
-        crs_from : str
-            The original CRS of the data.
-        crs_to : str
-            The desired CRS of the data.
+        from_proj : str
+            The original projection of the data (as EPSG or projection name).
+        to_proj : str
+            The desired projection of the data (as EPSG or projection name).
         method : str
             The interpolation method. Nearest neighbour is OK for an increase in
             resolution. Other options: 'linear', 'cubic'.
@@ -146,9 +146,13 @@ class DataLoader:
         if isinstance(y_axis, xr.DataArray):
             y_axis = y_axis.values
 
+        # Convert the projection to EPSG format
+        from_proj = self._proj_to_epsg(from_proj)
+        to_proj = self._proj_to_epsg(to_proj)
+
         # Load from pickle
         pkl_filename = self._get_regridded_pickle_filename(
-            x_axis, y_axis, crs_from, crs_to, method)
+            x_axis, y_axis, from_proj, to_proj, method)
         if self.dump_data_to_pickle and os.path.isfile(pkl_filename):
             with open(pkl_filename, 'rb') as f:
                 self.data = pickle.load(f)
@@ -157,7 +161,7 @@ class DataLoader:
 
         # Get extent of the final domain in desired projection from the original one
         x_dest_grid, y_dest_grid = np.meshgrid(x_axis, y_axis)
-        transformer = Transformer.from_crs(crs_from, crs_to)
+        transformer = Transformer.from_crs(to_proj, from_proj)  # reverted
         y_orig_grid, x_orig_grid = transformer.transform(x_dest_grid, y_dest_grid)
 
         # Get the corresponding min/max coordinates in the original grid
@@ -173,11 +177,11 @@ class DataLoader:
                                              'x_tmp': (('y2', 'x2'), x_orig_grid)})
 
         # Interpolate the original input data onto the new grid
-        self.data = self.data.interp(y2=new_data_format.y_tmp,
-                                     x2=new_data_format.x_tmp, method=method)
+        self.data = self.data.interp(y=new_data_format.y_tmp,
+                                     x=new_data_format.x_tmp, method=method)
 
         # Removing duplicate coordinates
-        self.data = self.data.drop_vars(['y2', 'x2'])
+        self.data = self.data.drop_vars(['y', 'x'])
 
         # Add the new coordinates
         self.data = self.data.assign_coords(x=(('y2', 'x2'), x_dest_grid),
@@ -197,6 +201,21 @@ class DataLoader:
             os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
             with open(pkl_filename, 'wb') as f:
                 pickle.dump(self.data, f, protocol=-1)
+
+    @staticmethod
+    def _proj_to_epsg(proj):
+        """
+        Convert the projection to the EPSG format.
+        """
+        if 'EPSG' in proj:
+            return proj
+
+        if proj in ['CH1903', 'CH1903+', 'CH1903_LV95']:
+            return 'EPSG:2056'
+        elif proj in ['WGS84', 'WGS_84']:
+            return 'EPSG:4326'
+
+        raise ValueError('Unknown projection for from_proj.')
 
     def _get_nc_data(self, files, date_start, date_end):
         """
@@ -225,7 +244,7 @@ class DataLoader:
 
         return ds
 
-    def _get_pickle_filename(self):
+    def _get_pickle_filename(self, date_start, date_end):
         """
         Get the pickle filename for the given paths.
 
@@ -233,16 +252,17 @@ class DataLoader:
         -------
         str
             The pickle filename.
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
         """
         tag = hashlib.md5(
             pickle.dumps(self.paths)
-            + pickle.dumps(self.data.shape)
-            + pickle.dumps(self.data.x)
-            + pickle.dumps(self.data.y)
-            + pickle.dumps(self.data.time[0].values)
-            + pickle.dumps(self.data.time[-1].values)
             + pickle.dumps(self.x_bnds)
             + pickle.dumps(self.y_bnds)
+            + pickle.dumps(date_start)
+            + pickle.dumps(date_end)
         ).hexdigest()
 
         return f'{self.path_tmp}/data_{tag}.pkl'
@@ -271,7 +291,7 @@ class DataLoader:
         """
         tag = hashlib.md5(
             pickle.dumps(self.paths)
-            + pickle.dumps(self.data.shape)  # property of the original data
+            + pickle.dumps(self.data.sizes)  # property of the original data
             + pickle.dumps(self.data.x)  # property of the original data
             + pickle.dumps(self.data.y)  # property of the original data
             + pickle.dumps(self.data.time[0].values)  # property of the original data
@@ -367,7 +387,7 @@ class DataLoader:
         xarray.Dataset
             The dataset with the temporal slice.
         """
-        ds.time = pd.to_datetime(ds.time.values)
+        ds['time'] = pd.to_datetime(ds.time.values)
         ds = ds.sel(time=slice(date_start, date_end))
 
         return ds
