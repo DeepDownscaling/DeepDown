@@ -32,7 +32,7 @@ class DataLoader:
         self.path_tmp = path_tmp
         self.dump_data_to_pickle = dump_data_to_pickle
 
-    def load(self, date_start, date_end, paths):
+    def load(self, date_start, date_end, paths, load_in_memory=False):
         """
         Load the target data.
 
@@ -44,6 +44,8 @@ class DataLoader:
             The desired end date ('YYYY-MM-DD').
         paths : list
             The paths to the data.
+        load_in_memory : bool
+            Whether to load the data in memory.
 
         Returns
         -------
@@ -86,10 +88,12 @@ class DataLoader:
             self.data = self.data.sel(x=slice(min_x, max_x),
                                       y=slice(max_y, min_y))
 
+            if load_in_memory:
+                self.data.load()
+
             # Save to pickle
             if self.dump_data_to_pickle:
                 os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
-                self.data.load()
                 with open(pkl_filename, 'wb') as f:
                     pickle.dump(self.data, f, protocol=-1)
 
@@ -126,7 +130,8 @@ class DataLoader:
 
         self.data = xr.merge([self.data, topo])
 
-    def coarsen(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+'):
+    def coarsen(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+',
+                load_in_memory=False):
         """
         Coarsen the data to the given axes.
 
@@ -140,6 +145,8 @@ class DataLoader:
             The original projection of the data (as EPSG or projection name).
         to_proj : str
             The desired projection of the data (as EPSG or projection name).
+        load_in_memory : bool
+            Whether to load the data in memory.
         """
         if isinstance(x_axis, xr.DataArray):
             x_axis = x_axis.values
@@ -203,15 +210,17 @@ class DataLoader:
         self.data = self.data.assign(x=xr.DataArray(x_1d, dims='x'),
                                      y=xr.DataArray(y_1d, dims='y'))
 
+        if load_in_memory:
+            self.data.load()
+
         # Save to pickle
         if self.dump_data_to_pickle:
             os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
-            self.data.load()
             with open(pkl_filename, 'wb') as f:
                 pickle.dump(self.data, f, protocol=-1)
 
     def interpolate(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+',
-                    method='nearest'):
+                    method='nearest', load_in_memory=False):
         """
         Interpolate the data to the given axes.
 
@@ -228,6 +237,8 @@ class DataLoader:
         method : str
             The interpolation method. Options are: "linear", "nearest", "zero",
             "slinear", "quadratic", "cubic", "polynomial".
+        load_in_memory : bool
+            Whether to load the data in memory.
         """
         if isinstance(x_axis, xr.DataArray):
             x_axis = x_axis.values
@@ -284,10 +295,12 @@ class DataLoader:
         self.data = self.data.assign(x=xr.DataArray(x_1d, dims='x'),
                                      y=xr.DataArray(y_1d, dims='y'))
 
+        if load_in_memory:
+            self.data.load()
+
         # Save to pickle
         if self.dump_data_to_pickle:
             os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
-            self.data.load()
             with open(pkl_filename, 'wb') as f:
                 pickle.dump(self.data, f, protocol=-1)
 
