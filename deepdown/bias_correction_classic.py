@@ -46,7 +46,7 @@ def correct_bias(conf):
             var_ibicus = 'tasmax'
 
         target_array_hist = target_data_hist.data[var_target].values
-        input_array_hist = input_data_hist.data[var_input].values,
+        input_array_hist = input_data_hist.data[var_input].values
         input_array_clim = input_data_clim.data[var_input].values
 
         # Replace NaNs with zeros
