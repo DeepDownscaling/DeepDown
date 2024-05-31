@@ -122,10 +122,93 @@ class DataLoader:
 
         self.data = xr.merge([self.data, topo])
 
-    def regrid(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+',
-               method='nearest'):
+    def coarsen(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+'):
         """
-        Regrid the data to the given axes.
+        Coarsen the data to the given axes.
+
+        Parameters
+        ----------
+        x_axis : numpy.ndarray|xr.DataArray
+            The x coordinates of the final domain.
+        y_axis : numpy.ndarray|xr.DataArray
+            The y coordinates of the final domain.
+        from_proj : str
+            The original projection of the data (as EPSG or projection name).
+        to_proj : str
+            The desired projection of the data (as EPSG or projection name).
+        """
+        if isinstance(x_axis, xr.DataArray):
+            x_axis = x_axis.values
+        if isinstance(y_axis, xr.DataArray):
+            y_axis = y_axis.values
+
+        # Convert the projection to EPSG format
+        from_proj = self._proj_to_epsg(from_proj)
+        to_proj = self._proj_to_epsg(to_proj)
+
+        # Load from pickle
+        pkl_filename = self._get_regridded_pickle_filename(
+            x_axis, y_axis, from_proj, to_proj, 'coarsen')
+        if self.dump_data_to_pickle and os.path.isfile(pkl_filename):
+            with open(pkl_filename, 'rb') as f:
+                self.data = pickle.load(f)
+                print('Regridded data loaded from pickle.')
+                return
+
+        # Get x/y axes in the desired projection for a high-res grid compatible with
+        # the coarsening (multiple of the final grid)
+        x_pts = int(np.ceil(len(self.data.x) / x_axis.size) * x_axis.size)
+        x_axis_hi = np.linspace(x_axis[0], x_axis[-1], x_pts)
+        y_pts = int(np.ceil(len(self.data.y) / y_axis.size) * y_axis.size)
+        y_axis_hi = np.linspace(y_axis[0], y_axis[-1], y_pts)
+
+        # Get extent in desired projection from the original one
+        x_dest_grid_hi, y_dest_grid_hi = np.meshgrid(x_axis_hi, y_axis_hi)
+        transformer = Transformer.from_crs(to_proj, from_proj, always_xy=True)
+        x_orig_grid_hi, y_orig_grid_hi = transformer.transform(
+            x_dest_grid_hi, y_dest_grid_hi)
+
+        # Create a new xarray dataset with the new grid coordinates
+        new_data_format_hi = xr.Dataset(
+            coords={'y_tmp': (('y2', 'x2'), y_orig_grid_hi),
+                    'x_tmp': (('y2', 'x2'), x_orig_grid_hi)})
+
+        self.data = self.data.interp(y=new_data_format_hi.y_tmp,
+                                     x=new_data_format_hi.x_tmp, method='linear')
+
+        # Coarsen the data
+        coarsen_x = int(x_orig_grid_hi.shape[1] / x_axis.size)
+        coarsen_y = int(y_orig_grid_hi.shape[0] / y_axis.size)
+        self.data = self.data.coarsen(y2=coarsen_y, x2=coarsen_x,
+                                      boundary='trim').mean()
+
+        # Removing duplicate coordinates
+        self.data = self.data.drop_vars(['y', 'x'])
+
+        # Add the new coordinates
+        x_dest_grid, y_dest_grid = np.meshgrid(x_axis, y_axis)
+        self.data = self.data.assign_coords(x=(('y2', 'x2'), x_dest_grid),
+                                            y=(('y2', 'x2'), y_dest_grid))
+        # Rename variables before merging
+        self.data = self.data.rename({'x2': 'x', 'y2': 'y'})
+        self.data = self.data.drop_vars(['y_tmp', 'x_tmp'])
+
+        # Squeeze the 2D coordinates
+        x_1d = self.data['x'][0, :]
+        y_1d = self.data['y'][:, 0]
+        self.data = self.data.assign(x=xr.DataArray(x_1d, dims='x'),
+                                     y=xr.DataArray(y_1d, dims='y'))
+
+        # Save to pickle
+        if self.dump_data_to_pickle:
+            os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+            with open(pkl_filename, 'wb') as f:
+                pickle.dump(self.data, f, protocol=-1)
+
+    def interpolate(self, x_axis, y_axis, from_proj='WGS84', to_proj='CH1903+',
+                    method='nearest'):
+        """
+        Interpolate the data to the given axes.
 
         Parameters
         ----------
@@ -138,8 +221,8 @@ class DataLoader:
         to_proj : str
             The desired projection of the data (as EPSG or projection name).
         method : str
-            The interpolation method. Nearest neighbour is OK for an increase in
-            resolution. Other options: 'linear', 'cubic'.
+            The interpolation method. Options are: "linear", "nearest", "zero",
+            "slinear", "quadratic", "cubic", "polynomial".
         """
         if isinstance(x_axis, xr.DataArray):
             x_axis = x_axis.values
@@ -161,8 +244,8 @@ class DataLoader:
 
         # Get extent of the final domain in desired projection from the original one
         x_dest_grid, y_dest_grid = np.meshgrid(x_axis, y_axis)
-        transformer = Transformer.from_crs(to_proj, from_proj)  # reverted
-        y_orig_grid, x_orig_grid = transformer.transform(x_dest_grid, y_dest_grid)
+        transformer = Transformer.from_crs(to_proj, from_proj, always_xy=True)  # reverted
+        x_orig_grid, y_orig_grid = transformer.transform(x_dest_grid, y_dest_grid)
 
         # Get the corresponding min/max coordinates in the original grid
         y_min = np.floor(np.min(y_orig_grid))

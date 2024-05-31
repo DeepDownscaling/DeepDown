@@ -1,12 +1,8 @@
-# Common imports
 import argparse
 import logging
 import numpy as np
-
-# Import torch
 import torch
 
-# Utils
 from deepdown.utils.data_loader import DataLoader
 from deepdown.utils.data_generator import DataGenerator
 from deepdown.utils.loss_fcts import generator_loss, discriminator_loss
@@ -33,8 +29,8 @@ def train(conf):
 
     input_data = DataLoader(path_tmp=conf.path_tmp)
     input_data.load(conf.date_start, conf.date_end, conf.path_inputs)
-    input_data.regrid(x_axis=target_data.data.x, y_axis=target_data.data.y,
-                      from_proj='WGS84', to_proj='CH1903_LV95', method='nearest')
+    input_data.interpolate(x_axis=target_data.data.x, y_axis=target_data.data.y,
+                           from_proj='WGS84', to_proj='CH1903_LV95', method='nearest')
 
     # Split the data
     x_train = split_data(input_data.data, conf.years_train)
