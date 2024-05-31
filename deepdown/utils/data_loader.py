@@ -86,6 +86,7 @@ class DataLoader:
         # Save to pickle
         if self.dump_data_to_pickle:
             os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+            self.data.load()
             with open(pkl_filename, 'wb') as f:
                 pickle.dump(self.data, f, protocol=-1)
 
@@ -202,6 +203,7 @@ class DataLoader:
         # Save to pickle
         if self.dump_data_to_pickle:
             os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+            self.data.load()
             with open(pkl_filename, 'wb') as f:
                 pickle.dump(self.data, f, protocol=-1)
 
@@ -282,6 +284,7 @@ class DataLoader:
         # Save to pickle
         if self.dump_data_to_pickle:
             os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+            self.data.load()
             with open(pkl_filename, 'wb') as f:
                 pickle.dump(self.data, f, protocol=-1)
 
