@@ -3,13 +3,13 @@ path_dem: 'path/to/dem/tif/file'
 path_inputs: [
   'path/to/era5land/precipitation',
   'path/to/era5land/temperature',
+  'path/to/era5land/min_temperature',
   'path/to/era5land/max_temperature',
-  'path/to/era5land/min_temperature'
 ]
 path_targets: [
   'path/to/meteoswiss/RhiresD_v2.0_swiss.lv95',
   'path/to/meteoswiss/TabsD_v2.0_swiss.lv95',
+  'path/to/meteoswiss/TminD_v2.0_swiss.lv95',
   'path/to/meteoswiss/TmaxD_v2.0_swiss.lv95',
-  'path/to/meteoswiss/TminD_v2.0_swiss.lv95'
 ]
 path_tmp: 'path/to/tmp/folder/for/pickle/files'
