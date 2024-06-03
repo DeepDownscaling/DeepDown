@@ -49,6 +49,18 @@ def correct_bias(conf):
         input_array_hist = input_data_hist.data[var_input].values
         input_array_clim = input_data_clim.data[var_input].values
 
+        # Change units
+        if var_target == 'tp':
+            # mm/day to kg/m^2/s
+            target_array_hist /= 86400
+            input_array_hist /= 86400
+            input_array_clim /= 86400
+        elif var_target in ['t', 't_min', 't_max']:
+            # Degree Celsius to Kelvin
+            target_array_hist += 273.15
+            input_array_hist += 273.15
+            input_array_clim += 273.15
+
         # Replace NaNs with zeros
         target_array_hist = np.nan_to_num(target_array_hist)
         input_array_hist = np.nan_to_num(input_array_hist)
