@@ -76,26 +76,25 @@ class DataLoader:
         max_y = float(min([ds.y.max() for ds in data]).values)
 
         with dask.config.set(**{"array.slicing.split_large_chunks": True}):
-
             # Convert to xarray
             self.data = xr.merge(data)
 
-            # Invert y axis if needed
-            if self.data.y[0].values < self.data.y[1].values:
-                self.data = self.data.reindex(y=list(reversed(self.data.y)))
+        # Invert y axis if needed
+        if self.data.y[0].values < self.data.y[1].values:
+            self.data = self.data.reindex(y=list(reversed(self.data.y)))
 
-            # Crop the target data to the final domain
-            self.data = self.data.sel(x=slice(min_x, max_x),
-                                      y=slice(max_y, min_y))
+        # Crop the target data to the final domain
+        self.data = self.data.sel(x=slice(min_x, max_x),
+                                  y=slice(max_y, min_y))
 
-            if load_in_memory:
-                self.data.load()
+        if load_in_memory:
+            self.data.load()
 
-            # Save to pickle
-            if self.dump_data_to_pickle:
-                os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
-                with open(pkl_filename, 'wb') as f:
-                    pickle.dump(self.data, f, protocol=-1)
+        # Save to pickle
+        if self.dump_data_to_pickle:
+            os.makedirs(os.path.dirname(pkl_filename), exist_ok=True)
+            with open(pkl_filename, 'wb') as f:
+                pickle.dump(self.data, f, protocol=-1)
 
         return self.data
 
