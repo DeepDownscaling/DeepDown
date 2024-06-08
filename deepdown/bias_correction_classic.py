@@ -1,8 +1,11 @@
 import argparse
 import logging
 import numpy as np
-from ibicus.debias import QuantileMapping
+import xarray as xr
+import os
 
+from ibicus.debias import QuantileMapping
+from deepdown.utils.utils_ibicus import _step_to_impute_values
 from deepdown.utils.data_loader import DataLoader
 from deepdown.config import Config
 
@@ -30,7 +33,9 @@ def correct_bias(conf):
     target_data_hist.coarsen(
         x_axis=input_data_hist.data.x, y_axis=input_data_hist.data.y,
         from_proj='CH1903_LV95', to_proj='WGS84')
-
+    
+    # Create a new dataset for debiased variables
+    # debiased_data = xr.Dataset(coords=input_data_clim.data.coords)
     # Bias correct each input variable
     for var_target, var_input in zip(conf.target_vars, conf.input_vars):
         logger.info(f"Bias correcting variable {var_target}")
@@ -55,23 +60,42 @@ def correct_bias(conf):
             target_array_hist /= 86400
             input_array_hist /= 86400
             input_array_clim /= 86400
+
         elif var_target in ['t', 't_min', 't_max']:
             # Degree Celsius to Kelvin
-            target_array_hist += 273.15
-            input_array_hist += 273.15
-            input_array_clim += 273.15
+            target_array_hist += 273.15 # I think this's only applies to the target
+            # input_array_hist += 273.15
+            # input_array_clim += 273.15
+        if conf.imputed_method is not None:
+            logger.info("imputed values")
+            target_array_hist = _step_to_impute_values(target_array_hist)
+            input_array_hist = _step_to_impute_values(input_array_hist)
+            input_array_clim = _step_to_impute_values(input_array_clim)
+        else:
+            logger.info("replace with NaN")
+            # Replace NaNs with zeros
+            target_array_hist = np.nan_to_num(target_array_hist)
+            input_array_hist = np.nan_to_num(input_array_hist)
+            input_array_clim = np.nan_to_num(input_array_clim)
 
-        # Replace NaNs with zeros
-        target_array_hist = np.nan_to_num(target_array_hist)
-        input_array_hist = np.nan_to_num(input_array_hist)
-        input_array_clim = np.nan_to_num(input_array_clim)
 
         debiaser = QuantileMapping.from_variable(var_ibicus)
         debiased_ts = debiaser.apply(
             target_array_hist,
             input_array_hist,
             input_array_clim)
-        input_data_clim.data[var_input] = debiased_ts
+    
+
+        debiased_var = f"{var_input}_deb"
+        input_data_clim.data = input_data_clim.data.assign(**{debiased_var: (('time', 'y', 'x'), debiased_ts)})
+
+
+    # Save the debiased dataset to a NetCDF file
+
+    output_path = conf.path_output
+    file_out = os.path.join(output_path, "input_data_clim_zeroimput_debiased.nc")
+    input_data_clim.data.to_netcdf(file_out)
+    logger.info(f"Debiased dataset saved to {file_out}")
 
 
 if __name__ == "__main__":
