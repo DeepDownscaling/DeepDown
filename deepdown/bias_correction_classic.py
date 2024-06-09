@@ -68,9 +68,13 @@ def correct_bias(conf):
             # input_array_clim += 273.15
         if conf.imputed_method is not None:
             logger.info("imputed values")
-            target_array_hist = _step_to_impute_values(target_array_hist)
-            input_array_hist = _step_to_impute_values(input_array_hist)
-            input_array_clim = _step_to_impute_values(input_array_clim)
+            if var_ibicus == 'tp':
+                iecdf_method = 'averaged_inverted_cdf' #'closest_observation'
+            else:
+                iecdf_method = 'linear'
+            target_array_hist = _step_to_impute_values(target_array_hist, iecdf_method=iecdf_method)
+            input_array_hist = _step_to_impute_values(input_array_hist, iecdf_method=iecdf_method)
+            input_array_clim = _step_to_impute_values(input_array_clim, iecdf_method=iecdf_method)
         else:
             logger.info("replace with NaN")
             # Replace NaNs with zeros
