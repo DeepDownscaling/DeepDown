@@ -5,7 +5,7 @@ import xarray as xr
 import os
 
 from ibicus.debias import QuantileMapping
-from deepdown.utils.utils_ibicus import _step_to_impute_values
+from deepdown.utils.debiaser import _step_to_impute_values
 from deepdown.utils.data_loader import DataLoader
 from deepdown.config import Config
 
