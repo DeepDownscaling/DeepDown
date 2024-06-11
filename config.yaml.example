@@ -1,4 +1,5 @@
 # Paths are mandatory and should be set to the correct location on your system
+path_tmp: 'path/to/tmp/folder/for/pickle/files'
 path_dem: 'path/to/dem/tif/file'
 path_inputs: [
   'path/to/era5land/precipitation',
@@ -12,4 +13,4 @@ path_targets: [
   'path/to/meteoswiss/TminD_v2.0_swiss.lv95',
   'path/to/meteoswiss/TmaxD_v2.0_swiss.lv95',
 ]
-path_tmp: 'path/to/tmp/folder/for/pickle/files'
+path_output: 'path/to/output/folder'
