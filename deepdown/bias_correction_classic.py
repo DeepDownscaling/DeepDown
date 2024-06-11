@@ -33,9 +33,7 @@ def correct_bias(conf):
     target_data_hist.coarsen(
         x_axis=input_data_hist.data.x, y_axis=input_data_hist.data.y,
         from_proj='CH1903_LV95', to_proj='WGS84')
-    
-    # Create a new dataset for debiased variables
-    # debiased_data = xr.Dataset(coords=input_data_clim.data.coords)
+
     # Bias correct each input variable
     for var_target, var_input in zip(conf.target_vars, conf.input_vars):
         logger.info(f"Bias correcting variable {var_target}")
