@@ -5,7 +5,7 @@ import xarray as xr
 from pathlib import Path
 
 from ibicus.debias import QuantileMapping
-from deepdown.utils.debiaser import get_ibicus_var_name, prepare_for_ibicus
+from deepdown.utils.debiaser_utils import get_ibicus_var_name, prepare_for_ibicus
 from deepdown.utils.data_loader import DataLoader
 from deepdown.config import Config
 
