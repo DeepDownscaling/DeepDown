@@ -1,7 +1,5 @@
 import argparse
 import logging
-import numpy as np
-import xarray as xr
 from pathlib import Path
 
 from ibicus.debias import QuantileMapping
@@ -57,7 +55,7 @@ def correct_bias(conf):
 
     # Save the debiased dataset to a NetCDF file
     output_path = Path(conf.path_output)
-    file_out = output_path / "input_data_clim_zeroimput_debiased.nc"
+    file_out = output_path / "input_data_clim_debiased.nc"
     input_data_clim.data.to_netcdf(file_out)
     logger.info(f"Debiased dataset saved to {file_out}")
 
