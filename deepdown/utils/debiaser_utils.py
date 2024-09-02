@@ -47,7 +47,7 @@ def prepare_for_ibicus(data_loader, variable_name):
     elif variable_name in ['t', 't_min', 't_max']:
         if data_units in ['K', 'kelvin']:
             pass
-        elif data_units in ['°C', 'C', 'celsius', 'degree Celsius']:
+        elif data_units in ['°C', 'C', 'celsius', 'degree Celsius', 'degC']:
             # Degree Celsius to Kelvin
             data_array += 273.15
         elif data_units in ['degree', 'degrees'] or data_units is None:
