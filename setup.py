@@ -21,14 +21,12 @@ class InstallSBCKWithEigen(Command):
 
     def run(self):
         print('Installing SBCK with custom Eigen path')
-        # Retrieve the Eigen path
-        EIGEN_PATH = eigenpip.get_include()
 
         # Set the environment variable for Eigen path
-        os.environ['EIGEN_PATH'] = EIGEN_PATH
+        os.environ['EIGEN_PATH'] = eigenpip.get_include()
 
         # Install SBCK using the environment variable
-        subprocess.check_call(['pip', 'install', 'SBCK'])
+        subprocess.check_call(['pip', 'install', 'git+https://github.com/pascalhorton/SBCK-python.git'])
 
 
 class CustomInstall(_install):
@@ -81,7 +79,6 @@ setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
     ],
-    readme="README.md",
     project_urls={
         "Source Code": "https://github.com/DeepDownscaling/DeepDown",
         "Bug Tracker": "https://github.com/DeepDownscaling/DeepDown/issues",
