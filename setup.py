@@ -1,7 +1,47 @@
-from setuptools import setup
+from setuptools import setup, Command
+from setuptools.command.install import install as _install
+from setuptools.command.develop import develop as _develop
+import subprocess
+import eigenpip
+import os
 
 with open('README.md') as f:
     readme = f.read()
+
+
+class InstallSBCKWithEigen(Command):
+    description = 'Install SBCK package with custom Eigen path'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        print('Installing SBCK with custom Eigen path')
+        # Retrieve the Eigen path
+        EIGEN_PATH = eigenpip.get_include()
+
+        # Set the environment variable for Eigen path
+        os.environ['EIGEN_PATH'] = EIGEN_PATH
+
+        # Install SBCK using the environment variable
+        subprocess.check_call(['pip', 'install', 'SBCK'])
+
+
+class CustomInstall(_install):
+    def run(self):
+        _install.run(self)
+        self.run_command('install_sbck_with_eigen')
+
+
+class CustomDevelop(_develop):
+    def run(self):
+        _develop.run(self)
+        self.run_command('install_sbck_with_eigen')
+
 
 setup(
     name="DeepDown",
@@ -19,6 +59,23 @@ setup(
     zip_safe=False,
     extras_require={"test": ["pytest>=6.0"]},
     python_requires=">=3.8",
+    install_requires=[
+        'xarray',
+        'pyproj',
+        'numpy',
+        'dask',
+        'torch',
+        'matplotlib',
+        'scipy',
+        'omegaconf',
+        'rich',
+        'eigenpip'
+    ],
+    cmdclass={
+        'install_sbck_with_eigen': InstallSBCKWithEigen,
+        'install': CustomInstall,
+        'develop': CustomDevelop,
+    },
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",

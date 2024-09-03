@@ -7,4 +7,3 @@ matplotlib
 scipy
 omegaconf
 rich
-ibicus
