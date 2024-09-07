@@ -63,10 +63,16 @@ def correct_bias(conf):
 
     # Save the debiased dataset to a NetCDF file
     output_path = Path(conf.path_output)
-    file_out = output_path / "input_data_clim_debiased.nc"
+    file_out = output_path/"input_data_clim_debiased.nc"
+    # to save RCM
+ 
+    if '_NCProperties' in input_data_clim.data.attrs:
+        logger.info(f"removing attributes")
+        del input_data_clim.data.attrs['_NCProperties']
+
     input_data_clim.data.to_netcdf(file_out)
     logger.info(f"Debiased dataset saved to {file_out}")
-    file_test = output_path / "target_clim_period.nc"
+    file_test = output_path/"target_clim_period.nc"
     target_data_clim.data.to_netcdf(file_test)
 
 

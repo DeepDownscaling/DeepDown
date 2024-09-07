@@ -5,6 +5,8 @@ import dask
 import numpy as np
 import xarray as xr
 import pandas as pd
+import datetime
+import cftime
 from pyproj import Transformer
 
 
@@ -476,6 +478,13 @@ class DataLoader:
         ds = ds.drop_vars(vars_to_remove, errors='ignore')
 
         return ds
+    
+    
+ 
+    def cftime_to_datetime(cftime_array):
+    # Convert each cftime object to a pandas Timestamp if needed
+        return np.array([pd.Timestamp(datetime.datetime(year=d.year, month=d.month, day=d.day, hour=d.hour, minute=d.minute, second=d.second)) 
+                        for d in cftime_array])
 
     @staticmethod
     def _temporal_slice(ds, date_start, date_end):
@@ -496,7 +505,12 @@ class DataLoader:
         xarray.Dataset
             The dataset with the temporal slice.
         """
-        ds['time'] = pd.to_datetime(ds.time.values)
+        print("slicing time")
+        if isinstance(ds.time.values[0], cftime.datetime):
+            print("converting to dtime")
+            ds['time'] = DataLoader.cftime_to_datetime(ds['time'].values)
+        else:
+            ds['time'] = pd.to_datetime(ds.time.values)
         ds = ds.sel(time=slice(date_start, date_end))
 
         return ds
