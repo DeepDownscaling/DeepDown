@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import os
 
 
 # Helper functions for plotting
@@ -108,8 +109,7 @@ def plot_grid_points(input_data, grid_points, variables,target_coarser =None):
     plt.show()
 
 
-
-def plot_mean_maps(input_data, variables, target_coarser=None):
+def plot_maps(input_data, variables, target_coarser=None, date =None, title=None, fig_name=None, crop=True):
     """
     Plot mean maps for specified variables and their debiased versions.
 
@@ -121,34 +121,72 @@ def plot_mean_maps(input_data, variables, target_coarser=None):
     num_rows = num_vars
     num_cols = 3  # One for the original variable, one for the debiased variable, one for the coarser version
     
+    if crop:
+        input_data = input_data.sel(x=slice(target_coarser.x.min(), target_coarser.x.max()), y=slice(target_coarser.y.max(),target_coarser.y.min()))
+        
     fig, axes = plt.subplots(num_rows, num_cols, figsize=(15, 5*num_rows), subplot_kw={'projection': ccrs.PlateCarree()})
     
     for i, var in enumerate(variables):
         var_deb = f"{var}_deb"
-        ax_original = axes[i, 0]
-        ax_debiased = axes[i, 1]
-        ax_coarser = axes[i, 2]
+        ax_original = axes[i][0] if num_vars > 1 else axes[0]
+        ax_debiased = axes[i][1] if num_vars > 1 else axes[1]
+        ax_coarser = axes[i][2] if num_vars > 1 else axes[2]
+     
         
         if var in input_data:
-            mean_data = input_data[var].mean(dim="time")
-            mean_data.plot(ax=ax_original, transform=ccrs.PlateCarree(), cmap='viridis', cbar_kwargs={'shrink': 0.5})
+            if date is not None:
+                var_data = input_data[var].isel(time=date)
+            else:
+                var_data = input_data[var]
+            var_data.plot(ax=ax_original, transform=ccrs.PlateCarree(), cmap='viridis', cbar_kwargs={'shrink': 0.5})
             ax_original.add_feature(cfeature.COASTLINE)
             ax_original.add_feature(cfeature.BORDERS)
-            ax_original.set_title(f'Mean {var}', fontsize=14)
+            # ax_original.set_title(f'{var}', fontsize=14)
         
         if var_deb in input_data:
-            mean_data_deb = input_data[var_deb].mean(dim="time")
-            mean_data_deb.plot(ax=ax_debiased, transform=ccrs.PlateCarree(), cmap='viridis', cbar_kwargs={'shrink': 0.5})
+            if date is not None:
+                var_deb = input_data[var_deb].isel(time=date)
+            else:
+                var_deb = input_data[var_deb]
+            var_deb.plot(ax=ax_debiased, transform=ccrs.PlateCarree(), cmap='viridis', cbar_kwargs={'shrink': 0.5})
             ax_debiased.add_feature(cfeature.COASTLINE)
             ax_debiased.add_feature(cfeature.BORDERS)
-            ax_debiased.set_title(f'Mean {var_deb}', fontsize=14)
+            # ax_debiased.set_title(f'{var_deb}', fontsize=14)
 
         if target_coarser is not None and var in target_coarser:
-            mean_ch_coarser = target_coarser[var].mean(dim="time")
-            mean_ch_coarser.plot(ax=ax_coarser, transform=ccrs.PlateCarree(), cmap='viridis', cbar_kwargs={'shrink': 0.5})
+            if date is not None:
+                var_ch_coarser = target_coarser[var].isel(time=date)
+            else:
+                var_ch_coarser = target_coarser[var]
+
+            var_ch_coarser.plot(ax=ax_coarser, transform=ccrs.PlateCarree(), cmap='viridis', cbar_kwargs={'shrink': 0.5})
             ax_coarser.add_feature(cfeature.COASTLINE)
             ax_coarser.add_feature(cfeature.BORDERS)
-            ax_coarser.set_title(f'Mean {var} Coarser', fontsize=14)
+            # ax_coarser.set_title(f'{var} Coarser', fontsize=14)
+
+         # Add the title to the figure if provided
+    if title:
+        fig.suptitle(title, fontsize=16, y=1.02)
     
     plt.tight_layout()
+    
+    if fig_name:
+            # Create the directory if it doesn't exist
+            dir_name = os.path.dirname(fig_name)
+            if dir_name:  # Only create the directory if it's not an empty string (i.e., a path is provided)
+                os.makedirs(dir_name, exist_ok=True)
+            
+            fig.savefig(fig_name, bbox_inches='tight')
+            print(f"Figure saved as {fig_name}")
+        
     plt.show()
+  
+
+
+def get_extreme_date(data,var):
+    # Get the date with the max number of grid points with pr > threshold
+    if var == 't':
+        x = data[var].mean(dim=['y', 'x'])
+    else:
+        x = data[var].sum(dim=['y', 'x'])
+    return x.argmax(dim='time')
