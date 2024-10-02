@@ -64,6 +64,51 @@ def prepare_for_ibicus(data_loader, variable_name):
     return data_array
 
 
+def prepare_for_sbck(data_loader, variable_name):
+    """Prepare data for SBCK."""
+    # Get variable of interest
+    data = data_loader.data[variable_name]
+
+    # Convert to numpy array
+    data_array = data.values
+
+    # Get units
+    data_units = None
+    if 'units' in data.attrs:
+        data_units = data.attrs['units']
+
+    # Convert units
+    if variable_name == 'tp':
+        if data_units in ['mm', 'mm/day', 'millimeter', 'millimeters']:
+            pass
+        elif data_units in ['kg/m^2/s', 'kg m-2 s-1']:
+            # kg/m^2/s to mm/day
+            data_array *= 86400
+        elif data_units in ['m', 'm/day', 'meter', 'meters']:
+            # m/day to mm/day
+            data_array *= 1000
+        else:
+            raise ValueError(f"Unit {data_units} not listed for {variable_name}.")
+    elif variable_name in ['t', 't_min', 't_max']:
+        if data_units in ['°C', 'C', 'celsius', 'degree Celsius', 'degC']:
+            pass
+        elif data_units in ['K', 'kelvin']:
+            # Kelvin to Degree Celsius
+            data_array -= 273.15
+        elif data_units in ['degree', 'degrees'] or data_units is None:
+            v_mean = np.nanmean(data_array)
+            if v_mean > 100:
+                # Kelvin to Degree Celsius
+                data_array -= 273.15
+        else:
+            raise ValueError(f"Unit {data_units} not listed for {variable_name}.")
+
+    # Replace missing values
+    data_array = _replace_missing_values(data_array)
+
+    return data_array
+
+
 def _replace_missing_values(x):
     """Replace missing values."""
     mask_missing = np.logical_or(np.isnan(x), np.isinf(x))
