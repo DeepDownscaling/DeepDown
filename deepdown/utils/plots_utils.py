@@ -179,7 +179,8 @@ def plot_maps(input_data, variables, target_coarser=None, date =None, title=None
             fig.savefig(fig_name, bbox_inches='tight')
             print(f"Figure saved as {fig_name}")
         
-    plt.show()
+  #  plt.show()
+    plt.close()
   
 
 

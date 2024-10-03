@@ -17,8 +17,6 @@ if __name__ == "__main__":
 
     logger.info("Loading configuration...")
     conf = Config(args)
-    conf.print()
-
     base_config = conf.get()
 
     for rcm_model in base_config['RCM']:
