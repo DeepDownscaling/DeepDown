@@ -18,7 +18,7 @@ def correct_bias(conf):
     target_data_hist = DataLoader(path_tmp=conf.path_tmp)
     target_data_hist.load(conf.period_hist_start, conf.period_hist_end,
                           conf.path_targets)
-
+    
     # Load input data (e.g. climate model) for the historical period
     input_data_hist = DataLoader(path_tmp=conf.path_tmp)
     input_data_hist.load(conf.period_hist_start, conf.period_hist_end, conf.path_inputs)
@@ -31,6 +31,14 @@ def correct_bias(conf):
     target_data_hist.coarsen(
         x_axis=input_data_hist.data.x, y_axis=input_data_hist.data.y,
         from_proj='CH1903_LV95', to_proj='WGS84')
+    # just for testing:
+    target_data_clim = DataLoader(path_tmp=conf.path_tmp)
+    target_data_clim.load(conf.period_clim_start, conf.period_clim_end,
+                          conf.path_targets)
+    target_data_clim.coarsen(
+        x_axis=input_data_clim.data.x, y_axis=input_data_clim.data.y,
+        from_proj='CH1903_LV95', to_proj='WGS84')
+
 
     # Bias correct each input variable
     for var_target, var_input in zip(conf.target_vars, conf.input_vars):
@@ -55,9 +63,17 @@ def correct_bias(conf):
 
     # Save the debiased dataset to a NetCDF file
     output_path = Path(conf.path_output)
-    file_out = output_path / "input_data_clim_debiased.nc"
+    file_out = output_path/"input_data_clim_debiased.nc"
+    # to save RCM
+ 
+    if '_NCProperties' in input_data_clim.data.attrs:
+        logger.info(f"removing attributes")
+        del input_data_clim.data.attrs['_NCProperties']
+
     input_data_clim.data.to_netcdf(file_out)
     logger.info(f"Debiased dataset saved to {file_out}")
+    file_test = output_path/"target_clim_period.nc"
+    target_data_clim.data.to_netcdf(file_test)
 
 
 if __name__ == "__main__":
