@@ -3,6 +3,7 @@ import scipy.interpolate
 import scipy.special
 import scipy.stats
 import numpy as np
+import SBCK, SBCK.tools
 
 
 def get_ibicus_var_name(variable_name):
@@ -107,6 +108,61 @@ def prepare_for_sbck(data_loader, variable_name):
     data_array = _replace_missing_values(data_array)
 
     return data_array
+
+
+def debias_with_sbck(bc_method, input_array_clim, input_array_hist, target_array_hist):
+    if bc_method == "QM":
+        bc = SBCK.QM(distY0=SBCK.tools.rv_histogram,
+                     distX0=SBCK.tools.rv_histogram)
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "RBC":
+        bc = SBCK.RBC()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "IdBC":
+        bc = SBCK.IdBC()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "CDFt":
+        bc = SBCK.CDFt()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "OTC":
+        bc = SBCK.OTC()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "dOTC":
+        bc = SBCK.dOTC()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "ECBC":
+        bc = SBCK.ECBC()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "QMrs":
+        bc = SBCK.QMrs()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "R2D2":
+        bc = SBCK.R2D2()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "QDM":
+        bc = SBCK.QDM()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "MBCn":
+        bc = SBCK.MBCn()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "MRec":
+        bc = SBCK.MRec()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "TSMBC":
+        bc = SBCK.TSMBC(lag=30)
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "dTSMBC":
+        bc = SBCK.dTSMBC(lag=30)
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "AR2D2":
+        bc = SBCK.AR2D2()
+        bc.fit(target_array_hist, input_array_hist)
+    else:
+        raise ValueError(f"Unknown bias correction method: {bc_method}")
+    debiased_hist_ts = bc.predict(input_array_hist)
+    debiased_clim_ts = bc.predict(input_array_clim)
+
+    return debiased_clim_ts, debiased_hist_ts
 
 
 def _replace_missing_values(x):

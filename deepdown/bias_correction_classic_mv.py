@@ -2,10 +2,9 @@ import argparse
 import logging
 import numpy as np
 import xarray as xr
-import SBCK, SBCK.tools
 from pathlib import Path
 
-from deepdown.utils.debiaser_utils import prepare_for_sbck
+from deepdown.utils.debiaser_utils import prepare_for_sbck, debias_with_sbck
 from deepdown.utils.data_loader import DataLoader
 from deepdown.config import Config
 
@@ -14,6 +13,30 @@ logger = logging.getLogger(__name__)
 
 
 def correct_bias(conf):
+    """
+    Correct bias in the input data using the target data.
+
+    Parameters
+    ----------
+    conf : dict
+        Configuration dictionary. Contains the bias correction method and paths to the
+        input and target data. bias_correction_method should be one of the following:
+        - 'QM': Quantile Mapping
+        - 'RBC': Random Bias Correction
+        - 'IdBC': Identity Bias Correction
+        - 'CDFt': Quantile Mapping bias corrector, taking account of an evolution of the distribution
+        - 'OTC': Optimal Transport bias Corrector
+        - 'dOTC': Dynamical Optimal Transport bias Corrector
+        - 'ECBC': Empirical Copula Bias Correction
+        - 'QMrs': Quantile Mapping bias corrector with multivariate rankshuffle
+        - 'R2D2': Non stationnary Quantile Mapping bias corrector with multivariate rankshuffle
+        - 'QDM': QDM Bias correction method
+        - 'MBCn': MBCn Bias correction method
+        - 'MRec': MRec Bias correction method
+        - 'TSMBC': Time Shifted Multivariate Bias Correction
+        - 'dTSMBC': Time Shifted Multivariate Bias Correction where observations are unknown.
+        - 'AR2D2': Multivariate bias correction with quantiles shuffle
+    """
     logger.info("Loading input and targets data")
 
     # Load target data for the historical period
@@ -62,45 +85,55 @@ def correct_bias(conf):
     input_array_clim = np.stack(input_array_clim, axis=1)
 
     # Bias correct all variables simultaneously
-    logger.info(f"Processing the bias correction.")
-    qm_empiric = SBCK.QM(distY0=SBCK.tools.rv_histogram,
-                         distX0=SBCK.tools.rv_histogram)
-    qm_empiric.fit(target_array_hist, input_array_hist)
-    debiased_ts = qm_empiric.predict(input_array_clim)
+    logger.info(f"Processing the bias correction with {bc_method}.")
+    debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
+        conf.bias_correction_method, input_array_clim,
+        input_array_hist, target_array_hist)
 
     # Extract and reshape the debiased time series
+    ouput_array_hist = []
     ouput_array_clim = []
     for var_out in conf.target_vars:
-        debiased_ts_v = debiased_ts[:, conf.target_vars.index(var_out)]
+        debiased_ts_v = debiased_hist_ts[:, conf.target_vars.index(var_out)]
+        debiased_ts_v = debiased_ts_v.reshape(input_data_hist.data[var_out].shape)
+        ouput_array_hist.append(debiased_ts_v)
+        debiased_ts_v = debiased_clim_ts[:, conf.target_vars.index(var_out)]
         debiased_ts_v = debiased_ts_v.reshape(input_data_clim.data[var_out].shape)
         ouput_array_clim.append(debiased_ts_v)
 
-    time_coords = input_data_clim.data['time']
-    y_coords = input_data_clim.data['y']
-    x_coords = input_data_clim.data['x']
-    variables = conf.target_vars
-
     # Create a dictionary for the data variables
-    data_vars = {var: (('time', 'y', 'x'), ouput_array_clim[i]) for i, var in
-                 enumerate(variables)}
+    data_vars_hist = {var: (('time', 'y', 'x'), ouput_array_hist[i]) for i, var in
+                      enumerate(conf.target_vars)}
+    data_vars_clim = {var: (('time', 'y', 'x'), ouput_array_clim[i]) for i, var in
+                 enumerate(conf.target_vars)}
 
     # Create the xarray dataset
-    output_data_clim = xr.Dataset(
-        data_vars=data_vars,
+    output_data_hist = xr.Dataset(
+        data_vars=data_vars_hist,
         coords={
-            'time': time_coords,
-            'y': y_coords,
-            'x': x_coords
+            'time': input_data_hist.data['time'],
+            'y': input_data_hist.data['y'],
+            'x': input_data_hist.data['x']
+        }
+    )
+    output_data_clim = xr.Dataset(
+        data_vars=data_vars_clim,
+        coords={
+            'time': input_data_clim.data['time'],
+            'y': input_data_clim.data['y'],
+            'x': input_data_clim.data['x']
         }
     )
 
     # Save the debiased dataset to a NetCDF file
     output_path = Path(conf.path_output)
-    file_out_orig = output_path / "input_data_clim.nc"
-    input_data_clim.data.to_netcdf(file_out_orig)
-    file_out = output_path / "input_data_clim_debiased.nc"
-    output_data_clim.to_netcdf(file_out)
-    logger.info(f"Debiased dataset saved to {file_out}")
+    output_path.mkdir(parents=True, exist_ok=True)
+    target_data_hist.data.to_netcdf(output_path / "target_data_hist_original.nc")
+    input_data_hist.data.to_netcdf(output_path / "input_data_hist_original.nc")
+    output_data_hist.to_netcdf(output_path / "input_data_hist_debiased.nc")
+    input_data_clim.data.to_netcdf(output_path / "input_data_clim_original.nc")
+    output_data_clim.to_netcdf(output_path / "input_data_clim_debiased.nc")
+    logger.info(f"Debiased dataset saved to {output_path}")
 
 
 if __name__ == "__main__":

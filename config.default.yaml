@@ -34,6 +34,9 @@ do_crop: False
 crop_x: []
 crop_y: []
 
+# SBCK bias correction method
+bias_correction_method: 'QM'
+
 # Hyperparameters
 lr: 0.0002
 batch_size: 32
