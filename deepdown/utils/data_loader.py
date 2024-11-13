@@ -32,7 +32,8 @@ class DataLoader:
         self.path_tmp = path_tmp
         self.dump_data_to_pickle = dump_data_to_pickle
 
-    def load(self, date_start, date_end, paths, load_in_memory=False):
+    def load(self, date_start, date_end, paths, load_in_memory=False, x_min=None,
+             x_max=None, y_min=None, y_max=None):
         """
         Load the target data.
 
@@ -46,6 +47,14 @@ class DataLoader:
             The paths to the data.
         load_in_memory : bool
             Whether to load the data in memory.
+        x_min : float
+            The minimum x coordinate.
+        x_max : float
+            The maximum x coordinate.
+        y_min : float
+            The minimum y coordinate.
+        y_max : float
+            The maximum y coordinate.
 
         Returns
         -------
@@ -53,6 +62,11 @@ class DataLoader:
             The data array.
         """
         self.paths = paths
+
+        if x_min is not None and x_max is not None:
+            self.x_bnds = [x_min, x_max]
+        if y_min is not None and y_max is not None:
+            self.y_bnds = [y_min, y_max]
 
         # Load from pickle
         pkl_filename = self._get_pickle_filename(date_start, date_end)
@@ -70,10 +84,12 @@ class DataLoader:
             data.append(dat)
 
         # Extract the min/max coordinates of the common domain
-        min_x = float(max([ds.x.min() for ds in data]).values)
-        max_x = float(min([ds.x.max() for ds in data]).values)
-        min_y = float(max([ds.y.min() for ds in data]).values)
-        max_y = float(min([ds.y.max() for ds in data]).values)
+        if x_min is None and x_max is None:
+            x_min = float(max([ds.x.min() for ds in data]).values)
+            x_max = float(min([ds.x.max() for ds in data]).values)
+        if y_min is None and y_max is None:
+            y_min = float(max([ds.y.min() for ds in data]).values)
+            y_max = float(min([ds.y.max() for ds in data]).values)
 
         with dask.config.set(**{"array.slicing.split_large_chunks": True}):
             # Convert to xarray
@@ -84,8 +100,8 @@ class DataLoader:
             self.data = self.data.reindex(y=list(reversed(self.data.y)))
 
         # Crop the target data to the final domain
-        self.data = self.data.sel(x=slice(min_x, max_x),
-                                  y=slice(max_y, min_y))
+        self.data = self.data.sel(x=slice(x_min, x_max),
+                                  y=slice(y_max, y_min))
 
         if load_in_memory:
             self.data.load()
