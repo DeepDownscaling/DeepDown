@@ -107,7 +107,9 @@ def prepare_for_sbck(data_loader, variable_name):
     # Replace missing values
     data_array = _replace_missing_values(data_array)
 
-    return data_array
+    data_loader.data[variable_name] = (data.dims, data_array)
+
+    return data_loader
 
 
 def debias_with_sbck(bc_method, input_array_clim, input_array_hist, target_array_hist):

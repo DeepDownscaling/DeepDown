@@ -65,9 +65,14 @@ def correct_bias(conf):
         logger.info(f"Preparing data for {var_target}")
 
         # Prepare data
-        target_array_hist_v = prepare_for_sbck(target_data_hist, var_target)
-        input_array_hist_v = prepare_for_sbck(input_data_hist, var_input)
-        input_array_clim_v = prepare_for_sbck(input_data_clim, var_input)
+        target_data_hist = prepare_for_sbck(target_data_hist, var_target)
+        input_data_hist = prepare_for_sbck(input_data_hist, var_input)
+        input_data_clim = prepare_for_sbck(input_data_clim, var_input)
+
+        # Extract the data
+        target_array_hist_v = target_data_hist.data[var_target].values
+        input_array_hist_v = input_data_hist.data[var_input].values
+        input_array_clim_v = input_data_clim.data[var_input].values
 
         # Reshape data (3D to 1D)
         target_array_hist_v = target_array_hist_v.flatten()
@@ -85,7 +90,7 @@ def correct_bias(conf):
     input_array_clim = np.stack(input_array_clim, axis=1)
 
     # Bias correct all variables simultaneously
-    logger.info(f"Processing the bias correction with {bc_method}.")
+    logger.info(f"Processing the bias correction with {conf.bias_correction_method}.")
     debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
         conf.bias_correction_method, input_array_clim,
         input_array_hist, target_array_hist)

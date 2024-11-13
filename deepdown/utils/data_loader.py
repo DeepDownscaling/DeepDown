@@ -454,6 +454,10 @@ class DataLoader:
             ds = ds.rename({'t2m_min': 't_min'})
         if 't2m_max' in ds.variables:
             ds = ds.rename({'t2m_max': 't_max'})
+        if 'pr' in ds.variables:
+            ds = ds.rename({'pr': 'tp'})
+        if 'tas' in ds.variables:
+            ds = ds.rename({'tas': 't'})
 
         return ds
 
