@@ -114,6 +114,37 @@ class DataLoader:
 
         return self.data
 
+    def select_domain(self, x_min, x_max, y_min, y_max):
+        """
+        Crop the data to the given domain.
+
+        Parameters
+        ----------
+        x_min : float
+            The minimum x coordinate.
+        x_max : float
+            The maximum x coordinate.
+        y_min : float
+            The minimum y coordinate.
+        y_max : float
+            The maximum y coordinate.
+        """
+        self.data = self.data.sel(x=slice(x_min, x_max),
+                                  y=slice(y_max, y_min))
+
+    def select_period(self, date_start, date_end):
+        """
+        Slice along the temporal dimension.
+
+        Parameters
+        ----------
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+        """
+        self.data = self.data.sel(time=slice(date_start, date_end))
+
     def load_topography(self, path_dem=None):
         """
         Load the topography data.
