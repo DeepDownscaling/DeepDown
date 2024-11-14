@@ -23,9 +23,9 @@ years_test: [2011, 2022]
 
 # Temporal selection for using the models (bias correction and downscaling)
 period_hist_start: '1971-01-01'  # Start of the historical period for bias correction
-period_hist_end: '2009-12-31'  # End of the historical period for bias correction
-period_clim_start: '2010-01-01'  # Start of the period of interest (e.g. future)
-period_clim_end: '2022-12-31'  # End of the period of interest (e.g. future)
+period_hist_end: '2019-12-31'  # End of the historical period for bias correction
+period_clim_start: '2020-01-01'  # Start of the period of interest (e.g. future)
+period_clim_end: '2089-12-31'  # End of the period of interest (e.g. future)
 
 # Data properties
 input_vars: ['tp', 't', 't_min', 't_max']
@@ -33,6 +33,9 @@ target_vars: ['tp', 't', 't_min', 't_max']
 do_crop: False
 crop_x: []
 crop_y: []
+
+# SBCK bias correction method
+bias_correction_method: 'MBCn'
 
 # Hyperparameters
 lr: 0.0002

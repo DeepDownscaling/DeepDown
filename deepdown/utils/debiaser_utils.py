@@ -3,6 +3,7 @@ import scipy.interpolate
 import scipy.special
 import scipy.stats
 import numpy as np
+import SBCK, SBCK.tools
 
 
 def get_ibicus_var_name(variable_name):
@@ -62,6 +63,108 @@ def prepare_for_ibicus(data_loader, variable_name):
     data_array = _replace_missing_values(data_array)
 
     return data_array
+
+
+def prepare_for_sbck(data_loader, variable_name):
+    """Prepare data for SBCK."""
+    # Get variable of interest
+    data = data_loader.data[variable_name]
+
+    # Convert to numpy array
+    data_array = data.values
+
+    # Get units
+    data_units = None
+    if 'units' in data.attrs:
+        data_units = data.attrs['units']
+
+    # Convert units
+    if variable_name == 'tp':
+        if data_units in ['mm', 'mm/day', 'millimeter', 'millimeters']:
+            pass
+        elif data_units in ['kg/m^2/s', 'kg m-2 s-1']:
+            # kg/m^2/s to mm/day
+            data_array *= 86400
+        elif data_units in ['m', 'm/day', 'meter', 'meters']:
+            # m/day to mm/day
+            data_array *= 1000
+        else:
+            raise ValueError(f"Unit {data_units} not listed for {variable_name}.")
+    elif variable_name in ['t', 't_min', 't_max']:
+        if data_units in ['°C', 'C', 'celsius', 'degree Celsius', 'degC']:
+            pass
+        elif data_units in ['K', 'kelvin']:
+            # Kelvin to Degree Celsius
+            data_array -= 273.15
+        elif data_units in ['degree', 'degrees'] or data_units is None:
+            v_mean = np.nanmean(data_array)
+            if v_mean > 100:
+                # Kelvin to Degree Celsius
+                data_array -= 273.15
+        else:
+            raise ValueError(f"Unit {data_units} not listed for {variable_name}.")
+
+    # Replace missing values
+    data_array = _replace_missing_values(data_array)
+
+    data_loader.data[variable_name] = (data.dims, data_array)
+
+    return data_loader
+
+
+def debias_with_sbck(bc_method, input_array_clim, input_array_hist, target_array_hist):
+    if bc_method == "QM":
+        bc = SBCK.QM(distY0=SBCK.tools.rv_histogram,
+                     distX0=SBCK.tools.rv_histogram)
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "RBC":
+        bc = SBCK.RBC()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "IdBC":
+        bc = SBCK.IdBC()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "CDFt":
+        bc = SBCK.CDFt()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "OTC":
+        bc = SBCK.OTC()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "dOTC":
+        bc = SBCK.dOTC()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "ECBC":
+        bc = SBCK.ECBC()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "QMrs":
+        bc = SBCK.QMrs()
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "R2D2":
+        bc = SBCK.R2D2()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "QDM":
+        bc = SBCK.QDM()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "MBCn":
+        bc = SBCK.MBCn()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "MRec":
+        bc = SBCK.MRec()
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "TSMBC":
+        bc = SBCK.TSMBC(lag=30)
+        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "dTSMBC":
+        bc = SBCK.dTSMBC(lag=30)
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+    elif bc_method == "AR2D2":
+        bc = SBCK.AR2D2()
+        bc.fit(target_array_hist, input_array_hist)
+    else:
+        raise ValueError(f"Unknown bias correction method: {bc_method}")
+    debiased_hist_ts = bc.predict(input_array_hist)
+    debiased_clim_ts = bc.predict(input_array_clim)
+
+    return debiased_clim_ts, debiased_hist_ts
 
 
 def _replace_missing_values(x):

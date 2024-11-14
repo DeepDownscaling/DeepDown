@@ -32,7 +32,8 @@ class DataLoader:
         self.path_tmp = path_tmp
         self.dump_data_to_pickle = dump_data_to_pickle
 
-    def load(self, date_start, date_end, paths, load_in_memory=False):
+    def load(self, date_start, date_end, paths, load_in_memory=False, x_min=None,
+             x_max=None, y_min=None, y_max=None):
         """
         Load the target data.
 
@@ -46,6 +47,14 @@ class DataLoader:
             The paths to the data.
         load_in_memory : bool
             Whether to load the data in memory.
+        x_min : float
+            The minimum x coordinate.
+        x_max : float
+            The maximum x coordinate.
+        y_min : float
+            The minimum y coordinate.
+        y_max : float
+            The maximum y coordinate.
 
         Returns
         -------
@@ -53,6 +62,11 @@ class DataLoader:
             The data array.
         """
         self.paths = paths
+
+        if x_min is not None and x_max is not None:
+            self.x_bnds = [x_min, x_max]
+        if y_min is not None and y_max is not None:
+            self.y_bnds = [y_min, y_max]
 
         # Load from pickle
         pkl_filename = self._get_pickle_filename(date_start, date_end)
@@ -70,10 +84,12 @@ class DataLoader:
             data.append(dat)
 
         # Extract the min/max coordinates of the common domain
-        min_x = float(max([ds.x.min() for ds in data]).values)
-        max_x = float(min([ds.x.max() for ds in data]).values)
-        min_y = float(max([ds.y.min() for ds in data]).values)
-        max_y = float(min([ds.y.max() for ds in data]).values)
+        if x_min is None and x_max is None:
+            x_min = float(max([ds.x.min() for ds in data]).values)
+            x_max = float(min([ds.x.max() for ds in data]).values)
+        if y_min is None and y_max is None:
+            y_min = float(max([ds.y.min() for ds in data]).values)
+            y_max = float(min([ds.y.max() for ds in data]).values)
 
         with dask.config.set(**{"array.slicing.split_large_chunks": True}):
             # Convert to xarray
@@ -84,8 +100,8 @@ class DataLoader:
             self.data = self.data.reindex(y=list(reversed(self.data.y)))
 
         # Crop the target data to the final domain
-        self.data = self.data.sel(x=slice(min_x, max_x),
-                                  y=slice(max_y, min_y))
+        self.data = self.data.sel(x=slice(x_min, x_max),
+                                  y=slice(y_max, y_min))
 
         if load_in_memory:
             self.data.load()
@@ -97,6 +113,79 @@ class DataLoader:
                 pickle.dump(self.data, f, protocol=-1)
 
         return self.data
+
+    def get_extent_from(self, other_data, from_proj='CH1903+', to_proj='WGS84'):
+        """
+        Get the extent of the domain of interest.
+
+        Parameters
+        ----------
+        other_data : DataLoader
+            The other DataLoader object.
+        from_proj : str
+            The original projection of the data (as EPSG or projection name).
+        to_proj : str
+            The desired projection of the data (as EPSG or projection name).
+        """
+        x_axis_input = self.data.x.values
+        y_axis_input = self.data.y.values
+        x_target_extent = [other_data.data.x.values[0],
+                           other_data.data.x.values[-1]]
+        y_target_extent = [other_data.data.y.values[0],
+                           other_data.data.y.values[-1]]
+
+        # Convert the projection to EPSG format
+        from_proj = self._proj_to_epsg(from_proj)
+        to_proj = self._proj_to_epsg(to_proj)
+
+        # Get extent in desired projection from the original one
+        x_dest_extent, y_dest_extent = np.meshgrid(x_target_extent, y_target_extent)
+        transformer = Transformer.from_crs(from_proj, to_proj, always_xy=True)
+        x_dest_extent, y_dest_extent = transformer.transform(
+            x_dest_extent, y_dest_extent)
+        x_min = x_dest_extent.min()
+        x_max = x_dest_extent.max()
+        y_min = y_dest_extent.min()
+        y_max = y_dest_extent.max()
+
+        # Find outer limits of the extent in the input data
+        x_min = x_axis_input[(x_axis_input <= x_min)].max()
+        x_max = x_axis_input[(x_axis_input >= x_max)].min()
+        y_min = y_axis_input[(y_axis_input <= y_min)].max()
+        y_max = y_axis_input[(y_axis_input >= y_max)].min()
+
+        return x_min, x_max, y_min, y_max
+
+    def select_domain(self, x_min, x_max, y_min, y_max):
+        """
+        Crop the data to the given domain.
+
+        Parameters
+        ----------
+        x_min : float
+            The minimum x coordinate.
+        x_max : float
+            The maximum x coordinate.
+        y_min : float
+            The minimum y coordinate.
+        y_max : float
+            The maximum y coordinate.
+        """
+        self.data = self.data.sel(x=slice(x_min, x_max),
+                                  y=slice(y_max, y_min))
+
+    def select_period(self, date_start, date_end):
+        """
+        Slice along the temporal dimension.
+
+        Parameters
+        ----------
+        date_start : str
+            The desired start date ('YYYY-MM-DD').
+        date_end : str
+            The desired end date ('YYYY-MM-DD').
+        """
+        self.data = self.data.sel(time=slice(date_start, date_end))
 
     def load_topography(self, path_dem=None):
         """
@@ -454,6 +543,10 @@ class DataLoader:
             ds = ds.rename({'t2m_min': 't_min'})
         if 't2m_max' in ds.variables:
             ds = ds.rename({'t2m_max': 't_max'})
+        if 'pr' in ds.variables:
+            ds = ds.rename({'pr': 'tp'})
+        if 'tas' in ds.variables:
+            ds = ds.rename({'tas': 't'})
 
         return ds
 

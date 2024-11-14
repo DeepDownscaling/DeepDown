@@ -1,2 +1,5 @@
 timm
 rioxarray
+ibicus
+eigenpip
+SBCK
