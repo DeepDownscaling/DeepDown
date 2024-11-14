@@ -114,6 +114,48 @@ class DataLoader:
 
         return self.data
 
+    def get_extent_from(self, other_data, from_proj='CH1903+', to_proj='WGS84'):
+        """
+        Get the extent of the domain of interest.
+
+        Parameters
+        ----------
+        other_data : DataLoader
+            The other DataLoader object.
+        from_proj : str
+            The original projection of the data (as EPSG or projection name).
+        to_proj : str
+            The desired projection of the data (as EPSG or projection name).
+        """
+        x_axis_input = self.data.x.values
+        y_axis_input = self.data.y.values
+        x_target_extent = [other_data.data.x.values[0],
+                           other_data.data.x.values[-1]]
+        y_target_extent = [other_data.data.y.values[0],
+                           other_data.data.y.values[-1]]
+
+        # Convert the projection to EPSG format
+        from_proj = self._proj_to_epsg(from_proj)
+        to_proj = self._proj_to_epsg(to_proj)
+
+        # Get extent in desired projection from the original one
+        x_dest_extent, y_dest_extent = np.meshgrid(x_target_extent, y_target_extent)
+        transformer = Transformer.from_crs(from_proj, to_proj, always_xy=True)
+        x_dest_extent, y_dest_extent = transformer.transform(
+            x_dest_extent, y_dest_extent)
+        x_min = x_dest_extent.min()
+        x_max = x_dest_extent.max()
+        y_min = y_dest_extent.min()
+        y_max = y_dest_extent.max()
+
+        # Find outer limits of the extent in the input data
+        x_min = x_axis_input[(x_axis_input <= x_min)].max()
+        x_max = x_axis_input[(x_axis_input >= x_max)].min()
+        y_min = y_axis_input[(y_axis_input <= y_min)].max()
+        y_max = y_axis_input[(y_axis_input >= y_max)].min()
+
+        return x_min, x_max, y_min, y_max
+
     def select_domain(self, x_min, x_max, y_min, y_max):
         """
         Crop the data to the given domain.

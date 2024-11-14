@@ -1,5 +1,6 @@
 import argparse
 import logging
+import copy
 import numpy as np
 import xarray as xr
 from pathlib import Path
@@ -44,13 +45,20 @@ def correct_bias(conf):
     target_data_hist.load(conf.period_hist_start, conf.period_hist_end,
                           conf.path_targets)
 
-    # Load input data (e.g. climate model) for the historical period
-    input_data_hist = DataLoader(path_tmp=conf.path_tmp)
-    input_data_hist.load(conf.period_hist_start, conf.period_hist_end, conf.path_inputs)
+    # Load input data (e.g. climate model) for both historical and future periods
+    input_data = DataLoader(path_tmp=conf.path_tmp)
+    input_data.load(conf.period_hist_start, conf.period_clim_end, conf.path_inputs)
 
-    # Load input data (e.g. climate model) for the future period
-    input_data_clim = DataLoader(path_tmp=conf.path_tmp)
-    input_data_clim.load(conf.period_clim_start, conf.period_clim_end, conf.path_inputs)
+    # Get the extent of the domain of interest
+    x_min, x_max, y_min, y_max = input_data.get_extent_from(
+        target_data_hist, from_proj='CH1903+', to_proj='WGS84')
+
+    # Select the domain of interest
+    input_data.select_domain(x_min, x_max, y_min, y_max)
+    input_data_hist = input_data
+    input_data_clim = copy.deepcopy(input_data)
+    input_data_hist.select_period(conf.period_hist_start, conf.period_hist_end)
+    input_data_clim.select_period(conf.period_clim_start, conf.period_clim_end)
 
     # Coarsen the target data to the resolution of the input data
     target_data_hist.coarsen(
