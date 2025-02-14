@@ -126,8 +126,8 @@ def correct_bias(conf, preload_data=True):
 
                 # Store the debiased time series
                 for i, var_out in enumerate(conf.target_vars):
-                    output_array_hist[i][y_idx, x_idx] = debiased_hist_ts[:, conf.target_vars.index(var_out)]
-                    output_array_clim[i][y_idx, x_idx] = debiased_clim_ts[:, conf.target_vars.index(var_out)]
+                    output_array_hist[i][:, y_idx, x_idx] = debiased_hist_ts[:, conf.target_vars.index(var_out)]
+                    output_array_clim[i][:, y_idx, x_idx] = debiased_clim_ts[:, conf.target_vars.index(var_out)]
 
     # Create a dictionary for the data variables
     data_vars_hist = {var: (('time', 'y', 'x'), output_array_hist[i]) for i, var in
