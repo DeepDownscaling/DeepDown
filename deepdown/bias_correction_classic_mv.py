@@ -5,7 +5,7 @@ import numpy as np
 import xarray as xr
 from pathlib import Path
 
-from deepdown.utils.debiaser_utils import prepare_for_sbck, debias_with_sbck
+from deepdown.utils.debiaser_utils import extract_for_sbck, debias_with_sbck
 from deepdown.utils.data_loader import DataLoader
 from deepdown.config import Config
 
@@ -59,60 +59,66 @@ def correct_bias(conf):
     input_data_clim = copy.deepcopy(input_data)
     input_data_hist.select_period(conf.period_hist_start, conf.period_hist_end)
     input_data_clim.select_period(conf.period_clim_start, conf.period_clim_end)
+    del input_data_hist
 
     # Coarsen the target data to the resolution of the input data
     target_data_hist.coarsen(
         x_axis=input_data_hist.data.x, y_axis=input_data_hist.data.y,
         from_proj='CH1903_LV95', to_proj='WGS84')
 
-    # Preparing the data for SBCK (extract and flatten the data)
-    target_array_hist = []
-    input_array_hist = []
-    input_array_clim = []
-    for var_target, var_input in zip(conf.target_vars, conf.input_vars):
-        logger.info(f"Preparing data for {var_target}")
-
-        # Prepare data
-        target_data_hist = prepare_for_sbck(target_data_hist, var_target)
-        input_data_hist = prepare_for_sbck(input_data_hist, var_input)
-        input_data_clim = prepare_for_sbck(input_data_clim, var_input)
-
-        # Extract the data
-        target_array_hist_v = target_data_hist.data[var_target].values
-        input_array_hist_v = input_data_hist.data[var_input].values
-        input_array_clim_v = input_data_clim.data[var_input].values
-
-        # Reshape data (3D to 1D)
-        target_array_hist_v = target_array_hist_v.flatten()
-        input_array_hist_v = input_array_hist_v.flatten()
-        input_array_clim_v = input_array_clim_v.flatten()
-
-        # Append to the list
-        target_array_hist.append(target_array_hist_v)
-        input_array_hist.append(input_array_hist_v)
-        input_array_clim.append(input_array_clim_v)
-
-    # Stack the data
-    target_array_hist = np.stack(target_array_hist, axis=1)
-    input_array_hist = np.stack(input_array_hist, axis=1)
-    input_array_clim = np.stack(input_array_clim, axis=1)
-
-    # Bias correct all variables simultaneously
-    logger.info(f"Processing the bias correction with {conf.bias_correction_method}.")
-    debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
-        conf.bias_correction_method, input_array_clim,
-        input_array_hist, target_array_hist)
-
-    # Extract and reshape the debiased time series
+    # Create the output data arrays
     ouput_array_hist = []
     ouput_array_clim = []
-    for var_out in conf.target_vars:
-        debiased_ts_v = debiased_hist_ts[:, conf.target_vars.index(var_out)]
-        debiased_ts_v = debiased_ts_v.reshape(input_data_hist.data[var_out].shape)
-        ouput_array_hist.append(debiased_ts_v)
-        debiased_ts_v = debiased_clim_ts[:, conf.target_vars.index(var_out)]
-        debiased_ts_v = debiased_ts_v.reshape(input_data_clim.data[var_out].shape)
-        ouput_array_clim.append(debiased_ts_v)
+    for i, var_out in enumerate(conf.target_vars):
+        ouput_array_hist.append(np.ones(input_data_hist.data[var_out].shape) * np.nan)
+        ouput_array_clim.append(np.ones(input_data_clim.data[var_out].shape) * np.nan)
+
+    # Proceed to the point-wise bias correction
+    x_axis = input_data_hist.data.x
+    y_axis = input_data_hist.data.y
+    for x_idx in range(x_axis.size):
+        for y_idx in range(y_axis.size):
+            logger.info(f"Processing point ({x_axis[x_idx]}, {y_axis[y_idx]})")
+
+            # Prepare the data for SBCK
+            target_array_hist = []
+            input_array_hist = []
+            input_array_clim = []
+            for var_target, var_input in zip(conf.target_vars, conf.input_vars):
+                logger.info(f"Preparing data for {var_target}")
+
+                # Convert and extract the values as numpy arrays
+                target_array_hist_v = extract_for_sbck(target_data_hist, var_target, x_idx, y_idx)
+                if target_array_hist_v is None:
+                    logger.warning(f"Skipping point ({x_axis[x_idx]}, {y_axis[y_idx]}) for {var_target}")
+                    continue
+
+                input_array_hist_v = extract_for_sbck(input_data_hist, var_input, x_idx, y_idx)
+                input_array_clim_v = extract_for_sbck(input_data_clim, var_input, x_idx, y_idx)
+
+                assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x_axis[x_idx]}, {y_axis[y_idx]})"
+                assert input_array_clim_v is not None, f"Missing data for {var_input} at ({x_axis[x_idx]}, {y_axis[y_idx]})"
+
+                # Append to the list
+                target_array_hist.append(target_array_hist_v)
+                input_array_hist.append(input_array_hist_v)
+                input_array_clim.append(input_array_clim_v)
+
+            # Stack the data
+            target_array_hist = np.stack(target_array_hist, axis=1)
+            input_array_hist = np.stack(input_array_hist, axis=1)
+            input_array_clim = np.stack(input_array_clim, axis=1)
+
+            # Bias correct all variables simultaneously
+            logger.info(f"Processing the bias correction with {conf.bias_correction_method}.")
+            debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
+                conf.bias_correction_method, input_array_clim,
+                input_array_hist, target_array_hist)
+
+            # Store the debiased time series
+            for i, var_out in enumerate(conf.target_vars):
+                ouput_array_hist[i][y_idx, x_idx] = debiased_hist_ts[:, conf.target_vars.index(var_out)]
+                ouput_array_clim[i][y_idx, x_idx] = debiased_clim_ts[:, conf.target_vars.index(var_out)]
 
     # Create a dictionary for the data variables
     data_vars_hist = {var: (('time', 'y', 'x'), ouput_array_hist[i]) for i, var in

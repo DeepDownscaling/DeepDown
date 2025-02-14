@@ -78,6 +78,39 @@ def prepare_for_sbck(data_loader, variable_name):
     if 'units' in data.attrs:
         data_units = data.attrs['units']
 
+    data_array = _convert_units(data_array, data_units, variable_name)
+
+    # Replace missing values
+    data_array = _replace_missing_values(data_array)
+
+    data_loader.data[variable_name] = (data.dims, data_array)
+
+    return data_loader
+
+
+def extract_for_sbck(data_loader, variable_name, x_idx, y_idx):
+    """Extract data for SBCK."""
+    # Get variable of interest
+    data = data_loader.data[variable_name]
+
+    # Convert to numpy array
+    data_array = data.values[:, y_idx, x_idx]
+
+    # If contains nans, return None
+    if np.isnan(data_array).any() or np.isinf(data_array).any():
+        return None
+
+    # Get units
+    data_units = None
+    if 'units' in data.attrs:
+        data_units = data.attrs['units']
+
+    data_array = _convert_units(data_array, data_units, variable_name)
+
+    return data_array
+
+
+def _convert_units(data_array, data_units, variable_name):
     # Convert units
     if variable_name == 'tp':
         if data_units in ['mm', 'mm/day', 'millimeter', 'millimeters']:
@@ -103,13 +136,7 @@ def prepare_for_sbck(data_loader, variable_name):
                 data_array -= 273.15
         else:
             raise ValueError(f"Unit {data_units} not listed for {variable_name}.")
-
-    # Replace missing values
-    data_array = _replace_missing_values(data_array)
-
-    data_loader.data[variable_name] = (data.dims, data_array)
-
-    return data_loader
+    return data_array
 
 
 def debias_with_sbck(bc_method, input_array_clim, input_array_hist, target_array_hist):
