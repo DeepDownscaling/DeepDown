@@ -88,13 +88,13 @@ def prepare_for_sbck(data_loader, variable_name):
     return data_loader
 
 
-def extract_for_sbck(data_loader, variable_name, x_idx, y_idx):
+def extract_for_sbck(data_loader, variable_name, x, y):
     """Extract data for SBCK."""
     # Get variable of interest
     data = data_loader.data[variable_name]
 
     # Convert to numpy array
-    data_array = data.values[:, y_idx, x_idx]
+    data_array = data.sel(x=x, y=y).values
 
     # If contains nans, return None
     if np.isnan(data_array).any() or np.isinf(data_array).any():

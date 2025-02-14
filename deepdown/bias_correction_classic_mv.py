@@ -78,26 +78,26 @@ def correct_bias(conf):
     y_axis = input_data_hist.data.y
     for x_idx in range(x_axis.size):
         for y_idx in range(y_axis.size):
-            logger.info(f"Processing point ({x_axis[x_idx]}, {y_axis[y_idx]})")
+            x = float(x_axis[x_idx])
+            y = float(y_axis[y_idx])
+            logger.info(f"Processing point ({x}, {y})")
 
             # Prepare the data for SBCK
             target_array_hist = []
             input_array_hist = []
             input_array_clim = []
             for var_target, var_input in zip(conf.target_vars, conf.input_vars):
-                logger.info(f"Preparing data for {var_target}")
-
                 # Convert and extract the values as numpy arrays
-                target_array_hist_v = extract_for_sbck(target_data_hist, var_target, x_idx, y_idx)
+                target_array_hist_v = extract_for_sbck(target_data_hist, var_target, x, y)
                 if target_array_hist_v is None:
-                    logger.warning(f"Skipping point ({x_axis[x_idx]}, {y_axis[y_idx]}) for {var_target}")
+                    logger.warning(f"Skipping point ({x}, {y}) for {var_target}")
                     continue
 
-                input_array_hist_v = extract_for_sbck(input_data_hist, var_input, x_idx, y_idx)
-                input_array_clim_v = extract_for_sbck(input_data_clim, var_input, x_idx, y_idx)
+                input_array_hist_v = extract_for_sbck(input_data_hist, var_input, x, y)
+                input_array_clim_v = extract_for_sbck(input_data_clim, var_input, x, y)
 
-                assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x_axis[x_idx]}, {y_axis[y_idx]})"
-                assert input_array_clim_v is not None, f"Missing data for {var_input} at ({x_axis[x_idx]}, {y_axis[y_idx]})"
+                assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x}, {y})"
+                assert input_array_clim_v is not None, f"Missing data for {var_input} at ({x}, {y})"
 
                 # Append to the list
                 target_array_hist.append(target_array_hist_v)
