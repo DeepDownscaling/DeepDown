@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "eigenpip"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -24,7 +24,7 @@ dependencies = [
     "scipy",
     "omegaconf",
     "rich",
-    "eigenpip"
+    "SBCK @ git+https://github.com/pascalhorton/SBCK-python.git"
 ]
 
 [project.optional-dependencies]
