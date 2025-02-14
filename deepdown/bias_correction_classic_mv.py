@@ -59,7 +59,7 @@ def correct_bias(conf):
     input_data_clim = copy.deepcopy(input_data)
     input_data_hist.select_period(conf.period_hist_start, conf.period_hist_end)
     input_data_clim.select_period(conf.period_clim_start, conf.period_clim_end)
-    del input_data_hist
+    del input_data
 
     # Coarsen the target data to the resolution of the input data
     target_data_hist.coarsen(
@@ -67,11 +67,11 @@ def correct_bias(conf):
         from_proj='CH1903_LV95', to_proj='WGS84')
 
     # Create the output data arrays
-    ouput_array_hist = []
-    ouput_array_clim = []
+    output_array_hist = []
+    output_array_clim = []
     for i, var_out in enumerate(conf.target_vars):
-        ouput_array_hist.append(np.ones(input_data_hist.data[var_out].shape) * np.nan)
-        ouput_array_clim.append(np.ones(input_data_clim.data[var_out].shape) * np.nan)
+        output_array_hist.append(np.ones(input_data_hist.data[var_out].shape) * np.nan)
+        output_array_clim.append(np.ones(input_data_clim.data[var_out].shape) * np.nan)
 
     # Proceed to the point-wise bias correction
     x_axis = input_data_hist.data.x
@@ -91,7 +91,7 @@ def correct_bias(conf):
                 target_array_hist_v = extract_for_sbck(target_data_hist, var_target, x, y)
                 if target_array_hist_v is None:
                     logger.warning(f"Skipping point ({x}, {y}) for {var_target}")
-                    continue
+                    break
 
                 input_array_hist_v = extract_for_sbck(input_data_hist, var_input, x, y)
                 input_array_clim_v = extract_for_sbck(input_data_clim, var_input, x, y)
@@ -104,26 +104,27 @@ def correct_bias(conf):
                 input_array_hist.append(input_array_hist_v)
                 input_array_clim.append(input_array_clim_v)
 
-            # Stack the data
-            target_array_hist = np.stack(target_array_hist, axis=1)
-            input_array_hist = np.stack(input_array_hist, axis=1)
-            input_array_clim = np.stack(input_array_clim, axis=1)
+            else:
+                # Stack the data
+                target_array_hist = np.stack(target_array_hist, axis=1)
+                input_array_hist = np.stack(input_array_hist, axis=1)
+                input_array_clim = np.stack(input_array_clim, axis=1)
 
-            # Bias correct all variables simultaneously
-            logger.info(f"Processing the bias correction with {conf.bias_correction_method}.")
-            debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
-                conf.bias_correction_method, input_array_clim,
-                input_array_hist, target_array_hist)
+                # Bias correct all variables simultaneously
+                logger.info(f"Processing the bias correction with {conf.bias_correction_method}.")
+                debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
+                    conf.bias_correction_method, input_array_clim,
+                    input_array_hist, target_array_hist)
 
-            # Store the debiased time series
-            for i, var_out in enumerate(conf.target_vars):
-                ouput_array_hist[i][y_idx, x_idx] = debiased_hist_ts[:, conf.target_vars.index(var_out)]
-                ouput_array_clim[i][y_idx, x_idx] = debiased_clim_ts[:, conf.target_vars.index(var_out)]
+                # Store the debiased time series
+                for i, var_out in enumerate(conf.target_vars):
+                    output_array_hist[i][y_idx, x_idx] = debiased_hist_ts[:, conf.target_vars.index(var_out)]
+                    output_array_clim[i][y_idx, x_idx] = debiased_clim_ts[:, conf.target_vars.index(var_out)]
 
     # Create a dictionary for the data variables
-    data_vars_hist = {var: (('time', 'y', 'x'), ouput_array_hist[i]) for i, var in
+    data_vars_hist = {var: (('time', 'y', 'x'), output_array_hist[i]) for i, var in
                       enumerate(conf.target_vars)}
-    data_vars_clim = {var: (('time', 'y', 'x'), ouput_array_clim[i]) for i, var in
+    data_vars_clim = {var: (('time', 'y', 'x'), output_array_clim[i]) for i, var in
                  enumerate(conf.target_vars)}
 
     # Create the xarray dataset
