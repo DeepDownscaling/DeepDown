@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def correct_bias(conf):
+def correct_bias(conf, preload_data=True):
     """
     Correct bias in the input data using the target data.
 
@@ -37,6 +37,8 @@ def correct_bias(conf):
         - 'TSMBC': Time Shifted Multivariate Bias Correction
         - 'dTSMBC': Time Shifted Multivariate Bias Correction where observations are unknown.
         - 'AR2D2': Multivariate bias correction with quantiles shuffle
+    preload_data: boolean
+        Whether to preload the data in memory or not.
     """
     logger.info("Loading input and targets data")
 
@@ -66,6 +68,12 @@ def correct_bias(conf):
         x_axis=input_data_hist.data.x, y_axis=input_data_hist.data.y,
         from_proj='CH1903_LV95', to_proj='WGS84')
 
+    if preload_data:
+        logger.info(f"Preloading data in memory.")
+        input_data_hist.data.load()
+        input_data_clim.data.load()
+        target_data_hist.data.load()
+
     # Create the output data arrays
     output_array_hist = []
     output_array_clim = []
@@ -80,7 +88,7 @@ def correct_bias(conf):
         for y_idx in range(y_axis.size):
             x = float(x_axis[x_idx])
             y = float(y_axis[y_idx])
-            logger.info(f"Processing point ({x}, {y})")
+            logger.info(f"Processing point ({x:.2f}, {y:.2f})")
 
             # Prepare the data for SBCK
             target_array_hist = []
@@ -90,14 +98,14 @@ def correct_bias(conf):
                 # Convert and extract the values as numpy arrays
                 target_array_hist_v = extract_for_sbck(target_data_hist, var_target, x, y)
                 if target_array_hist_v is None:
-                    logger.warning(f"Skipping point ({x}, {y}) for {var_target}")
+                    logger.warning(f"Skipping point ({x:.2f}, {y:.2f}) for {var_target}")
                     break
 
                 input_array_hist_v = extract_for_sbck(input_data_hist, var_input, x, y)
                 input_array_clim_v = extract_for_sbck(input_data_clim, var_input, x, y)
 
-                assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x}, {y})"
-                assert input_array_clim_v is not None, f"Missing data for {var_input} at ({x}, {y})"
+                assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
+                assert input_array_clim_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
 
                 # Append to the list
                 target_array_hist.append(target_array_hist_v)
