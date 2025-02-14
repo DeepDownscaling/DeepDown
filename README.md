@@ -5,6 +5,12 @@ over Switzerland using reanalysis products (low-to-high resolution).
 
 ## Installation
 
+SBCK needs to be installed first:
+
+```bash
+pip install git+https://github.com/pascalhorton/SBCK-python.git
+```
+
 Install the package in development mode:
 
 ```bash
@@ -14,7 +20,7 @@ pip install -e .
 ## Configuration
 
 The configuration is done through config files and arguments (to come).
-There is a configuration file `config.default.yaml` that contains the the default parameters values.
+There is a configuration file `config.default.yaml` that contains the default parameters values.
 An additional user-based config file is required to run the code and should contain at a minimum the necessary path (an example of such a file is provided in `config.yaml.example`).
 The options are enforced in the following order:
 1. Starting with the content of the `config.default.yaml` file
