@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "DeepDown"
+version = "0.0.1"
+description = "Deep downscaling of climate variables in Switzerland"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name = "Pascal Horton" },
+    { name = "Noelia Otero" },
+    { name = "Maxim Samarin" }
+]
+dependencies = [
+    "xarray",
+    "pyproj",
+    "numpy",
+    "dask",
+    "torch",
+    "matplotlib",
+    "scipy",
+    "omegaconf",
+    "rich",
+    "SBCK @ git+https://github.com/pascalhorton/SBCK-python.git"
+]
+
+[project.optional-dependencies]
+test = ["pytest>=6.0"]
+
+[project.urls]
+"Source Code" = "https://github.com/DeepDownscaling/DeepDown"
+"Bug Tracker" = "https://github.com/DeepDownscaling/DeepDown/issues"
