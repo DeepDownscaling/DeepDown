@@ -111,8 +111,6 @@ def plot_bias_correction(conf):
         plt.tight_layout()
         plt.savefig(f"{var}_input_clim_debiased.png")
 
-    exit()
-
     # For each variable, do a scatter plot of the original (input_data_clim) vs. debiased data (output_data_clim)
     for var in conf.target_vars:
         fig, ax = plt.subplots()
@@ -157,5 +155,4 @@ if __name__ == "__main__":
     conf = Config(args)
     conf.print()
 
-    logger.info("Starting bias correction")
     plot_bias_correction(conf.get())
