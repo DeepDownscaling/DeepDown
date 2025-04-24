@@ -161,6 +161,7 @@ cython_debug/
 
 # Own rules
 config.yaml
+config.ubelix.yaml
 tmp/
 *.pt
 *.out

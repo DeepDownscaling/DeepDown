@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def correct_bias(conf, preload_data=True):
+def run_bias_correction(conf, method=None, preload_data=True):
     """
     Correct bias in the input data using the target data.
 
@@ -37,10 +37,21 @@ def correct_bias(conf, preload_data=True):
         - 'TSMBC': Time Shifted Multivariate Bias Correction
         - 'dTSMBC': Time Shifted Multivariate Bias Correction where observations are unknown.
         - 'AR2D2': Multivariate bias correction with quantiles shuffle
+    method : str, optional
+        The bias correction method to use. If None, the method from the configuration is used.
     preload_data: boolean
         Whether to preload the data in memory or not.
     """
     logger.info("Loading input and targets data")
+
+    # Get the bias correction method from the configuration if not provided
+    if method is None:
+        method = conf.bias_correction_method
+
+    # Check that the method is valid
+    if method not in ['QM', 'RBC', 'IdBC', 'CDFt', 'OTC', 'dOTC', 'ECBC', 'QMrs', 'R2D2',
+                      'QDM', 'MBCn', 'MRec', 'TSMBC', 'dTSMBC', 'AR2D2']:
+        raise ValueError(f"Invalid bias correction method: {method}")
 
     # Load target data for the historical period
     target_data_hist = DataLoader(path_tmp=conf.path_tmp)
@@ -119,9 +130,9 @@ def correct_bias(conf, preload_data=True):
                 input_array_clim = np.stack(input_array_clim, axis=1)
 
                 # Bias correct all variables simultaneously
-                logger.info(f"Processing the bias correction with {conf.bias_correction_method}.")
+                logger.info(f"Processing the bias correction with {method}.")
                 debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
-                    conf.bias_correction_method, input_array_clim,
+                    method, input_array_clim,
                     input_array_hist, target_array_hist)
 
                 # Store the debiased time series
@@ -175,4 +186,4 @@ if __name__ == "__main__":
     conf.print()
 
     logger.info("Starting bias correction")
-    correct_bias(conf.get())
+    run_bias_correction(conf.get())

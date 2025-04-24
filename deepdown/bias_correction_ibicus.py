@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def correct_bias(conf):
+def run_bias_correction(conf):
     logger.info("Loading input and targets data")
 
     # Load target data for the historical period
@@ -71,4 +71,4 @@ if __name__ == "__main__":
     conf.print()
 
     logger.info("Starting bias correction")
-    correct_bias(conf.get())
+    run_bias_correction(conf.get())
