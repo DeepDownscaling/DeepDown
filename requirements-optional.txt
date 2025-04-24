@@ -1,5 +1,4 @@
 timm
 rioxarray
-ibicus
 eigenpip
-SBCK
+cartopy

@@ -21,7 +21,7 @@ def run_bias_correction(conf, method=None, preload_data=True):
     ----------
     conf : dict
         Configuration dictionary. Contains the bias correction method and paths to the
-        input and target data. bias_correction_method should be one of the following:
+        input and target data. bc_method should be one of the following:
         - 'QM': Quantile Mapping
         - 'RBC': Random Bias Correction
         - 'IdBC': Identity Bias Correction
@@ -46,7 +46,7 @@ def run_bias_correction(conf, method=None, preload_data=True):
 
     # Get the bias correction method from the configuration if not provided
     if method is None:
-        method = conf.bias_correction_method
+        method = conf.bc_method
 
     # Check that the method is valid
     if method not in ['QM', 'RBC', 'IdBC', 'CDFt', 'OTC', 'dOTC', 'ECBC', 'QMrs', 'R2D2',
@@ -108,7 +108,7 @@ def run_bias_correction(conf, method=None, preload_data=True):
                 # Convert and extract the values as numpy arrays
                 target_array_hist_v = extract_for_sbck(target_data_hist, var_target, x, y)
                 if target_array_hist_v is None:
-                    logger.warning(f"Skipping point ({x:.2f}, {y:.2f}) for {var_target}")
+                    logger.debug(f"Skipping point ({x:.2f}, {y:.2f}) for {var_target}")
                     break
 
                 input_array_hist_v = extract_for_sbck(input_data_hist, var_input, x, y)
@@ -122,7 +122,7 @@ def run_bias_correction(conf, method=None, preload_data=True):
                 input_array_hist.append(input_array_hist_v)
                 input_array_clim.append(input_array_clim_v)
 
-            else:  # Only proceed if all variables were successfully extracted
+            else:  # Only proceed if the point has valid data for all variables
                 # Stack the data
                 target_array_hist = np.stack(target_array_hist, axis=1)
                 input_array_hist = np.stack(input_array_hist, axis=1)
