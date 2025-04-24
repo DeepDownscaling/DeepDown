@@ -3,7 +3,7 @@ import subprocess
 import os
 
 # Load the original YAML configuration
-config_path = 'config.yaml'  # Path to your config file
+config_path = '../config.yaml'  # Path to your config file
 with open(config_path, 'r') as file:
     config = yaml.safe_load(file)
 

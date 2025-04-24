@@ -14,6 +14,9 @@ path_targets: [
   'path/to/min_temperature'
 ]
 
+# RCMs
+RCMs: ['ALADIN63_CNRM-CM5','ALADIN63_MPI-ESM-LR','CCLM4-8-17_MIROC5','CCLM4-8-17_MPI-ESM-LR','RegCM4-6_CNRM-CM5','RegCM4-6_MPI-ESM-LR','REMO2015_MIROC5']
+
 # Temporal selection for training/testing
 date_start: '1971-01-01'
 date_end: '2022-12-31'
