@@ -99,7 +99,6 @@ def run_bias_correction(conf, method=None, preload_data=True):
         for y_idx in range(y_axis.size):
             x = float(x_axis[x_idx])
             y = float(y_axis[y_idx])
-            logger.info(f"Processing point ({x:.2f}, {y:.2f})")
 
             # Prepare the data for SBCK
             target_array_hist = []
@@ -123,14 +122,13 @@ def run_bias_correction(conf, method=None, preload_data=True):
                 input_array_hist.append(input_array_hist_v)
                 input_array_clim.append(input_array_clim_v)
 
-            else:
+            else:  # Only proceed if all variables were successfully extracted
                 # Stack the data
                 target_array_hist = np.stack(target_array_hist, axis=1)
                 input_array_hist = np.stack(input_array_hist, axis=1)
                 input_array_clim = np.stack(input_array_clim, axis=1)
 
                 # Bias correct all variables simultaneously
-                logger.info(f"Processing the bias correction with {method}.")
                 debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
                     method, input_array_clim,
                     input_array_hist, target_array_hist)

@@ -18,6 +18,7 @@
 # - 'dTSMBC': Time Shifted Multivariate Bias Correction where observations are unknown.
 # - 'AR2D2': Multivariate bias correction with quantiles shuffle
 
+from pathlib import Path
 from deepdown.config import Config
 from deepdown.bias_correction_sbck import run_bias_correction
 
@@ -44,6 +45,11 @@ for model in models:
             f'{path_inputs[1]}/{model}'
         ]
         conf.path_output = f'{path_output}/{method}/{model}'
+
+        # If the output directory exists, skip the setting
+        if Path(conf.path_output).exists():
+            print(f"Output directory {conf.path_output} already exists. Skipping.")
+            continue
 
         # Run the bias correction for each method
         run_bias_correction(conf, method)
