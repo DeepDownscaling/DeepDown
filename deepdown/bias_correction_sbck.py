@@ -49,8 +49,7 @@ def run_bias_correction(conf, method=None, preload_data=True):
         method = conf.bc_method
 
     # Check that the method is valid
-    if method not in ['QM', 'RBC', 'IdBC', 'CDFt', 'OTC', 'dOTC', 'ECBC', 'QMrs', 'R2D2',
-                      'QDM', 'MBCn', 'MRec', 'TSMBC', 'dTSMBC', 'AR2D2']:
+    if method not in conf.bc_methods:
         raise ValueError(f"Invalid bias correction method: {method}")
 
     # Load target data for the historical period

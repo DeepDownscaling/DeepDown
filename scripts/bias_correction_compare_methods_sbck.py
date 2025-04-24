@@ -3,6 +3,7 @@
 # to plot the results.
 
 import sys
+import os
 from pathlib import Path
 from deepdown.config import Config
 from deepdown.bias_correction_sbck import run_bias_correction
@@ -57,7 +58,7 @@ def assess_all():
                 f'{path_inputs[0]}/{model}',
                 f'{path_inputs[1]}/{model}'
             ]
-            conf.path_output = f'{path_output}/{method}/{model}'
+            conf.path_output = os.path.join(path_output, method, model)
 
             # If the output directory exists, skip the setting
             if Path(conf.path_output).exists():
