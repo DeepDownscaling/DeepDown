@@ -2,3 +2,4 @@ timm
 rioxarray
 eigenpip
 cartopy
+xskillscore
