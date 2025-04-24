@@ -13,8 +13,11 @@ def plot_maps_for_bc_method(conf, files, method, var):
 
     # Create figure with subplots for all models and data types
     fig, axes = plt.subplots(len(models), len(files),
-                             figsize=(len(files) * 4, len(models) * 4),
+                             figsize=(25, len(models) * 3.3),
                              subplot_kw={'projection': ccrs.PlateCarree()})
+
+    v_min = None
+    v_max = None
 
     for row, model in enumerate(models):
         data_path = os.path.join(path_output, method, model)
@@ -28,10 +31,16 @@ def plot_maps_for_bc_method(conf, files, method, var):
                 if var in ds:
                     data = ds[var].mean(dim="time")  # Compute time mean
 
+                    if v_min is None and col == 0:
+                        v_min = data.min() * 0.8
+                        v_max = data.max() * 1.2
+
                     # Plot on corresponding subplot
                     ax = axes[row, col]
+                    add_colorbar = (col == len(files) - 1)
+                    add_colorbar = False
                     data.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                              add_colorbar=(col == len(files) - 1))
+                              add_colorbar=add_colorbar, vmin=v_min, vmax=v_max)
 
                     ax.set_title(f"{model}\n{data_type.split('.')[0]}", fontsize=10)
                     ax.add_feature(cfeature.COASTLINE)
@@ -40,10 +49,10 @@ def plot_maps_for_bc_method(conf, files, method, var):
     plt.tight_layout()
 
     # Save the figure
-    save_path = os.path.join(path_output, f"maps_for_bc_method_{method}_{var}.png")
-    plt.savefig(save_path, dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(path_output, f"maps_for_bc_method_{method}_{var}.png"), dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(path_output, f"maps_for_bc_method_{method}_{var}.pdf"), dpi=300, bbox_inches="tight")
     plt.close(fig)
-    print(f"Saved: {save_path}")
+    print(f"Saved in {path_output}")
 
 
 def plot_maps_for_rcm(conf, files, model, var):
@@ -52,8 +61,11 @@ def plot_maps_for_rcm(conf, files, model, var):
 
     # Create figure with subplots for all methods and data types
     fig, axes = plt.subplots(len(methods), len(files),
-                             figsize=(len(files) * 4, len(methods) * 4),
+                             figsize=(25, len(methods) * 3.3),
                              subplot_kw={'projection': ccrs.PlateCarree()})
+
+    v_min = None
+    v_max = None
 
     for row, method in enumerate(methods):
         data_path = os.path.join(path_output, method, model)
@@ -67,10 +79,16 @@ def plot_maps_for_rcm(conf, files, model, var):
                 if var in ds:
                     data = ds[var].mean(dim="time")  # Compute time mean
 
+                    if v_min is None and col == 0:
+                        v_min = data.min() * 0.8
+                        v_max = data.max() * 1.2
+
                     # Plot on corresponding subplot
                     ax = axes[row, col]
+                    add_colorbar = (col == len(files) - 1)
+                    add_colorbar = False
                     data.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                              add_colorbar=(col == len(files) - 1))
+                              add_colorbar=add_colorbar, vmin=v_min, vmax=v_max)
 
                     ax.set_title(f"{method}\n{data_type.split('.')[0]}", fontsize=10)
                     ax.add_feature(cfeature.COASTLINE)
@@ -79,49 +97,10 @@ def plot_maps_for_rcm(conf, files, model, var):
     plt.tight_layout()
 
     # Save the figure
-    save_path = os.path.join(path_output, f"maps_for_rcm_{model}_{var}.png")
-    plt.savefig(save_path, dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(path_output, f"maps_for_rcm_{model}_{var}.png"), dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(path_output, f"maps_for_rcm_{model}_{var}.pdf"), dpi=300, bbox_inches="tight")
     plt.close(fig)
-    print(f"Saved: {save_path}")
-
-
-def plot_maps_for_rcm(conf, files, model, var):
-    methods = conf.bc_methods
-    path_output = conf.path_output
-
-    # Create figure with subplots for all methods and data types
-    fig, axes = plt.subplots(len(methods), len(files),
-                             figsize=(len(files) * 4, len(methods) * 4),
-                             subplot_kw={'projection': ccrs.PlateCarree()})
-
-    for row, method in enumerate(methods):
-        data_path = os.path.join(path_output, method, model)
-        for col, data_type in enumerate(files):
-            file_path = os.path.join(data_path, data_type)
-
-            if os.path.exists(file_path):
-                print(f"Loading: {file_path}")
-                ds = xr.open_dataset(file_path).load()
-
-                if var in ds:
-                    data = ds[var].mean(dim="time")  # Compute time mean
-
-                    # Plot on corresponding subplot
-                    ax = axes[row, col]
-                    data.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                              add_colorbar=(col == len(files) - 1))
-
-                    ax.set_title(f"{method}\n{data_type.split('.')[0]}", fontsize=10)
-                    ax.add_feature(cfeature.COASTLINE)
-                    ax.add_feature(cfeature.BORDERS, linestyle=":")
-
-    plt.tight_layout()
-
-    # Save the figure
-    save_path = os.path.join(path_output, f"maps_for_rcm_{model}_{var}.png")
-    plt.savefig(save_path, dpi=300, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {save_path}")
+    print(f"Saved in {path_output}")
 
 
 def plot_maps_correl_for_rcm(conf, files, model):
@@ -130,14 +109,14 @@ def plot_maps_correl_for_rcm(conf, files, model):
     path_output = conf.path_output
 
     # Define the color limits for the correlation maps
-    vmin = -0.2
-    vmax = 0.2
+    v_min = -0.2
+    v_max = 0.2
 
     assert len(vars) == 2
 
     # Create figure with subplots for all methods and data types
     fig, axes = plt.subplots(len(methods) + 2, 2,
-                             figsize=(10, len(methods) * 3.5),
+                             figsize=(10, len(methods) * 3.3),
                              subplot_kw={'projection': ccrs.PlateCarree()})
 
     # Load the reference data
@@ -150,7 +129,7 @@ def plot_maps_correl_for_rcm(conf, files, model):
     # Plot on corresponding subplot
     ax = axes[0, 0]
     correl_ref.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                    vmin=vmin, vmax=vmax, add_colorbar=False)
+                    vmin=v_min, vmax=v_max, add_colorbar=False)
     ax.set_title(f"Reference", fontsize=10)
     ax.add_feature(cfeature.COASTLINE)
     ax.add_feature(cfeature.BORDERS, linestyle=":")
@@ -158,7 +137,7 @@ def plot_maps_correl_for_rcm(conf, files, model):
     # Add the colorbar in axes[0, 1]
     cbar_ax = fig.add_axes([0.65, 0.9, 0.02, 0.07])  # [left, bottom, width, height]
     correl_ref.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                    vmin=vmin, vmax=vmax, cbar_ax=cbar_ax)
+                    vmin=v_min, vmax=v_max, cbar_ax=cbar_ax)
     # Remove the box for axes[0,1]
     for spine in axes[0, 1].spines.values():
         spine.set_visible(False)
@@ -174,7 +153,7 @@ def plot_maps_correl_for_rcm(conf, files, model):
     # Plot on corresponding subplot
     ax = axes[1, 0]
     correl_diff.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                     vmin=vmin, vmax=vmax, add_colorbar=False)
+                     vmin=v_min, vmax=v_max, add_colorbar=False)
     ax.set_title(f"Difference for model (control)", fontsize=10)
     ax.add_feature(cfeature.COASTLINE)
     ax.add_feature(cfeature.BORDERS, linestyle=":")
@@ -190,7 +169,7 @@ def plot_maps_correl_for_rcm(conf, files, model):
     # Plot on corresponding subplot
     ax = axes[1, 1]
     correl_diff.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                     vmin=vmin, vmax=vmax, add_colorbar=False)
+                     vmin=v_min, vmax=v_max, add_colorbar=False)
     ax.set_title(f"Difference for model (future)", fontsize=10)
     ax.add_feature(cfeature.COASTLINE)
     ax.add_feature(cfeature.BORDERS, linestyle=":")
@@ -239,7 +218,7 @@ def main():
     methods = conf.bc_methods
 
     # plots = ['maps_for_bc_method', 'maps_for_rcm', 'maps_correl_for_rcm']
-    plots = ['maps_correl_for_rcm']
+    plots = ['maps_for_bc_method']
 
     files = [
         "target_data_hist_original.nc",
