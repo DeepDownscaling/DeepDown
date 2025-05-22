@@ -135,6 +135,25 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
         input_data_clim.data.load()
         target_data_hist.data.load()
 
+    # If the time dimension length differs between the input and target data (e.g.,
+    # due to ignored leap years), adjust the time dimension of the target data to match
+    # the input data
+    if input_data_hist.data.time.size != target_data_hist.data.time.size:
+        logger.info(f"Adjusting time dimension of target data to match input data.")
+
+        # Extract date (YYYY-MM-DD) from both indexes
+        input_dates = np.array([str(t)[:10] for t in input_data_hist.data.time.values])
+        targ_dates = np.array([str(t)[:10] for t in target_data_hist.data.time.values])
+
+        # Find common dates
+        common_dates = np.intersect1d(input_dates, targ_dates)
+
+        # Select by matching string times
+        target_data_hist.data = target_data_hist.data.sel(
+            time=[t for t, d in zip(target_data_hist.data.time.values, targ_dates) if
+                  d in common_dates]
+        )
+
     # Create the output data arrays
     output_array_hist = []
     output_array_clim = []
