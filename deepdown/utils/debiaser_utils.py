@@ -164,7 +164,7 @@ def debias_with_sbck(bc_method, input_array_clim, input_array_hist, target_array
         bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "ECBC":
         bc = SBCK.ECBC(**kwargs)
-        bc.fit(target_array_hist, input_array_hist)
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "QMrs":
         bc = SBCK.QMrs(**kwargs)
         bc.fit(target_array_hist, input_array_hist)

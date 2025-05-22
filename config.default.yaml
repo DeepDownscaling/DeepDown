@@ -51,8 +51,6 @@ bc_method: 'dOTC'
 # All methods available in the package
 bc_methods: [
     'QM',
-    'RBC',
-    'IdBC',
     'CDFt',
     'OTC',
     'dOTC',
