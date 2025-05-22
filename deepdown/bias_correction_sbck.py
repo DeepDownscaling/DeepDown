@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def run_bias_correction(conf, method=None, preload_data=True):
+def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
     """
     Correct bias in the input data using the target data.
 
@@ -21,26 +21,77 @@ def run_bias_correction(conf, method=None, preload_data=True):
     ----------
     conf : dict
         Configuration dictionary. Contains the bias correction method and paths to the
-        input and target data. bc_method should be one of the following:
-        - 'QM': Quantile Mapping
+        input and target data. bc_method should be one of the following.
+
+        Univariate methods:
+        - 'QM': Quantile Mapping method.
+        - 'QDM' [1]: Quantile delta mapping method.
+        - 'CDFt' [2]: Cumulative Distribution Function transfer. Quantile Mapping bias
+           corrector, taking account of an evolution of the distribution.
+
+        Multivariate methods:
+        - 'MRec' [3]: Matrix Recorrelation method. Perform a multivariate bias
+           correction with Gaussian assumption.
+        - 'ECBC' [4]: Empirical Copula Bias Correction. Use Schaake shuffle.
+        - 'MBCn' [5]: MBCn Bias correction method
+        - 'QMrs' [6]: Quantile Mapping bias corrector with multivariate rank shuffle
+        - 'R2D2' [6]: Rank Resampling for Distributions and Dependences method. Non
+           stationnary Quantile Mapping bias corrector with multivariate rankshuffle.
+        - 'AR2D2' [7]: Analogues Rank Resampling for Distributions and Dependences.
+           Multivariate bias correction with quantiles shuffle.
+        - 'OTC' [8]: Optimal Transport bias Corrector
+        - 'dOTC' [8]: Dynamical Optimal Transport bias Corrector, taking account of an
+           evolution of the distribution
+        - 'TSMBC' [9]: Time Shifted Multivariate Bias Correction. Correct
+           auto-correlation with a shift approach.
+        - 'dTSMBC' [9]: Time Shifted Multivariate Bias Correction where observations
+           are unknown. Perform a bias correction of auto-correlation.
+
+        Only for comparison:
         - 'RBC': Random Bias Correction
         - 'IdBC': Identity Bias Correction
-        - 'CDFt': Quantile Mapping bias corrector, taking account of an evolution of the distribution
-        - 'OTC': Optimal Transport bias Corrector
-        - 'dOTC': Dynamical Optimal Transport bias Corrector
-        - 'ECBC': Empirical Copula Bias Correction
-        - 'QMrs': Quantile Mapping bias corrector with multivariate rankshuffle
-        - 'R2D2': Non stationnary Quantile Mapping bias corrector with multivariate rankshuffle
-        - 'QDM': QDM Bias correction method
-        - 'MBCn': MBCn Bias correction method
-        - 'MRec': MRec Bias correction method
-        - 'TSMBC': Time Shifted Multivariate Bias Correction
-        - 'dTSMBC': Time Shifted Multivariate Bias Correction where observations are unknown.
-        - 'AR2D2': Multivariate bias correction with quantiles shuffle
+
     method : str, optional
         The bias correction method to use. If None, the method from the configuration is used.
     preload_data: boolean
         Whether to preload the data in memory or not.
+    kwargs : additional arguments for SBCK methods
+        Additional arguments for the bias correction methods. See SBCK documentation for
+        details on the available arguments for each method.
+
+    References
+	----------
+    [1] Cannon, A. J., Sobie, S. R., & Murdock, T. Q. (2015). Bias Correction of GCM
+        Precipitation by Quantile Mapping: How Well Do Methods Preserve Changes in
+        Quantiles and Extremes? Journal of Climate, 28(17), 6938–6959.
+        https://doi.org/10.1175/JCLI-D-14-00754.1
+	[2] Michelangeli, P. ‐A., Vrac, M., & Loukos, H. (2009). Probabilistic downscaling
+	    approaches: Application to wind cumulative distribution functions. Geophysical
+	    Research Letters, 36(11), 2009GL038401. https://doi.org/10.1029/2009GL038401
+    [3] Bárdossy, A., & Pegram, G. (2012). Multiscale spatial recorrelation of RCM
+        precipitation to produce unbiased climate change scenarios over large areas
+        and small. Water Resources Research, 48(9), 2011WR011524.
+        https://doi.org/10.1029/2011WR011524
+    [4] Vrac, M., & Friederichs, P. (2015). Multivariate—Intervariable, Spatial, and
+        Temporal—Bias Correction. Journal of Climate, 28(1), 218–237.
+        https://doi.org/10.1175/JCLI-D-14-00059.1
+    [5] Cannon, A. J. (2018). Multivariate quantile mapping bias correction: An
+        N-dimensional probability density function transform for climate model
+        simulations of multiple variables. Climate Dynamics, 50(1–2), 31–49.
+        https://doi.org/10.1007/s00382-017-3580-6
+    [6] Vrac, M. (2018). Multivariate bias adjustment of high-dimensional climate
+        simulations: The Rank Resampling for Distributions and Dependences (R2D2)
+        bias correction. Hydrology and Earth System Science, 22, 3175–3196.
+        https://doi.org/10.5194/hess-22-3175-2018
+	[7] Vrac, M., & Thao, S. (2020). R2 D2 v2.0: Accounting for temporal dependences in
+	    multivariate bias correction via analogue rank resampling. Geoscientific Model
+	    Development, 13(11), 5367–5387. https://doi.org/10.5194/gmd-13-5367-2020
+    [8] Robin, Y., Vrac, M., Naveau, P., & Yiou, P. (2019). Multivariate stochastic
+        bias corrections with optimal transport. Hydrology and Earth System Sciences,
+        23(2), 773–786. https://doi.org/10.5194/hess-23-773-2019
+    [9] Robin, Y., & Vrac, M. (2021). Is time a variable like the others in
+        multivariate statistical downscaling and bias correction? Earth System Dynamics,
+        12, 1253–1273. https://doi.org/10.5194/esd-12-1253-2021
     """
     logger.info("Loading input and targets data")
 
@@ -129,8 +180,8 @@ def run_bias_correction(conf, method=None, preload_data=True):
 
                 # Bias correct all variables simultaneously
                 debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
-                    method, input_array_clim,
-                    input_array_hist, target_array_hist)
+                    method, input_array_clim, input_array_hist,
+                    target_array_hist, **kwargs)
 
                 # Store the debiased time series
                 for i, var_out in enumerate(conf.target_vars):

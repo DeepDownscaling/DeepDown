@@ -139,53 +139,56 @@ def _convert_units(data_array, data_units, variable_name):
     return data_array
 
 
-def debias_with_sbck(bc_method, input_array_clim, input_array_hist, target_array_hist):
+def debias_with_sbck(bc_method, input_array_clim, input_array_hist, target_array_hist,
+                     **kwargs):
     if bc_method == "QM":
+        # Empirical quantile mapping
         bc = SBCK.QM(distY0=SBCK.tools.rv_histogram,
-                     distX0=SBCK.tools.rv_histogram)
+                     distX0=SBCK.tools.rv_histogram,
+                     **kwargs)
         bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "RBC":
+    elif bc_method == "RBC":  # Only for comparison
         bc = SBCK.RBC()
         bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "IdBC":
+    elif bc_method == "IdBC":  # Only for comparison
         bc = SBCK.IdBC()
         bc.fit(target_array_hist, input_array_hist)
     elif bc_method == "CDFt":
-        bc = SBCK.CDFt()
+        bc = SBCK.CDFt(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "OTC":
-        bc = SBCK.OTC()
+        bc = SBCK.OTC(**kwargs)
         bc.fit(target_array_hist, input_array_hist)
     elif bc_method == "dOTC":
-        bc = SBCK.dOTC()
+        bc = SBCK.dOTC(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "ECBC":
-        bc = SBCK.ECBC()
+        bc = SBCK.ECBC(**kwargs)
         bc.fit(target_array_hist, input_array_hist)
     elif bc_method == "QMrs":
-        bc = SBCK.QMrs()
+        bc = SBCK.QMrs(**kwargs)
         bc.fit(target_array_hist, input_array_hist)
     elif bc_method == "R2D2":
-        bc = SBCK.R2D2()
+        bc = SBCK.R2D2(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "QDM":
-        bc = SBCK.QDM()
+        bc = SBCK.QDM(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "MBCn":
-        bc = SBCK.MBCn()
+        bc = SBCK.MBCn(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "MRec":
-        bc = SBCK.MRec()
+        bc = SBCK.MRec(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "TSMBC":
-        bc = SBCK.TSMBC(lag=30)
+        bc = SBCK.TSMBC(lag=30, **kwargs)
         bc.fit(target_array_hist, input_array_hist)
     elif bc_method == "dTSMBC":
-        bc = SBCK.dTSMBC(lag=30)
+        bc = SBCK.dTSMBC(lag=30, **kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_clim)
     elif bc_method == "AR2D2":
-        bc = SBCK.AR2D2()
-        bc.fit(target_array_hist, input_array_hist)
+        bc = SBCK.AR2D2(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_clim)
     else:
         raise ValueError(f"Unknown bias correction method: {bc_method}")
     debiased_hist_ts = bc.predict(input_array_hist)
