@@ -589,7 +589,6 @@ class DataLoader:
         xarray.Dataset
             The dataset with the temporal slice.
         """
-        ds['time'] = pd.to_datetime(ds.time.values)
         ds = ds.sel(time=slice(date_start, date_end))
 
         return ds
