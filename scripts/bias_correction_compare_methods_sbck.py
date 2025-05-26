@@ -3,6 +3,7 @@
 # to plot the results.
 
 import sys
+import time
 import os
 from pathlib import Path
 from deepdown.config import Config
@@ -72,7 +73,12 @@ def assess_all():
 
 
 if __name__ == "__main__":
+    start_time = time.time()
+
     if len(sys.argv) != 2:
         assess_all()
     else:
         assess_single(int(sys.argv[1]))
+
+    time_minutes = round((time.time() - start_time) / 60, 1)
+    print(f"Execution time: {time_minutes:.1f} minutes")
