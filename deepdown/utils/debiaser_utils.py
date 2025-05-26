@@ -141,38 +141,41 @@ def _convert_units(data_array, data_units, variable_name):
 
 def debias_with_sbck(bc_method, input_array_proj, input_array_hist, target_array_hist,
                      **kwargs):
-    if bc_method == "QM":
-        # Empirical quantile mapping
-        bc = SBCK.QM(distY0=SBCK.tools.rv_histogram,
-                     distX0=SBCK.tools.rv_histogram,
-                     **kwargs)
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "RBC":  # Only for comparison
-        bc = SBCK.RBC()
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "IdBC":  # Only for comparison
-        bc = SBCK.IdBC()
-        bc.fit(target_array_hist, input_array_hist)
+
+    if bc_method in ["OTC", "QM", "QMrs", "TSMBC"]:
+        if bc_method == "OTC":
+            bc = SBCK.OTC(**kwargs)
+            bc.fit(target_array_hist, input_array_hist)
+        elif bc_method == "QM":
+            # Empirical quantile mapping
+            bc = SBCK.QM(distY0=SBCK.tools.rv_histogram,
+                         distX0=SBCK.tools.rv_histogram,
+                         **kwargs)
+            bc.fit(target_array_hist, input_array_hist)
+        elif bc_method == "QMrs":
+            bc = SBCK.QMrs(**kwargs)
+            bc.fit(target_array_hist, input_array_hist)
+        elif bc_method == "TSMBC":
+            bc = SBCK.TSMBC(lag=30, **kwargs)
+            bc.fit(target_array_hist, input_array_hist)
+
+        deb_hist_ts = bc.predict(input_array_hist)
+        deb_proj_ts = bc.predict(input_array_proj)
+
+        return deb_proj_ts, deb_hist_ts
+
+    # For all other methods, we need the input_array_proj
+    if bc_method == "AR2D2":
+        bc = SBCK.AR2D2(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "CDFt":
         bc = SBCK.CDFt(**kwargs)
-        bc.fit(target_array_hist, input_array_hist, input_array_proj)
-    elif bc_method == "OTC":
-        bc = SBCK.OTC(**kwargs)
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "dOTC":
-        bc = SBCK.dOTC(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "ECBC":
         bc = SBCK.ECBC(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_proj)
-    elif bc_method == "QMrs":
-        bc = SBCK.QMrs(**kwargs)
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "R2D2":
-        bc = SBCK.R2D2(**kwargs)
-        bc.fit(target_array_hist, input_array_hist, input_array_proj)
-    elif bc_method == "QDM":
-        bc = SBCK.QDM(**kwargs)
+    elif bc_method == "IdBC":  # Only for comparison
+        bc = SBCK.IdBC()
         bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "MBCn":
         bc = SBCK.MBCn(**kwargs)
@@ -180,21 +183,27 @@ def debias_with_sbck(bc_method, input_array_proj, input_array_hist, target_array
     elif bc_method == "MRec":
         bc = SBCK.MRec(**kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_proj)
-    elif bc_method == "TSMBC":
-        bc = SBCK.TSMBC(lag=30, **kwargs)
-        bc.fit(target_array_hist, input_array_hist)
+    elif bc_method == "QDM":
+        bc = SBCK.QDM(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
+    elif bc_method == "R2D2":
+        bc = SBCK.R2D2(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
+    elif bc_method == "RBC":  # Only for comparison
+        bc = SBCK.RBC()
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
+    elif bc_method == "dOTC":
+        bc = SBCK.dOTC(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "dTSMBC":
         bc = SBCK.dTSMBC(lag=30, **kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_proj)
-    elif bc_method == "AR2D2":
-        bc = SBCK.AR2D2(**kwargs)
-        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     else:
         raise ValueError(f"Unknown bias correction method: {bc_method}")
-    debiased_hist_ts = bc.predict(input_array_hist)
-    debiased_proj_ts = bc.predict(input_array_proj)
 
-    return debiased_proj_ts, debiased_hist_ts
+    deb_proj_ts, deb_hist_ts = bc.predict(input_array_proj, input_array_hist)
+
+    return deb_proj_ts, deb_hist_ts
 
 
 def _replace_missing_values(x):
