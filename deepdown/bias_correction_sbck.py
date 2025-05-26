@@ -110,7 +110,7 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
 
     # Load input data (e.g. climate model) for both historical and future periods
     input_data = DataLoader(path_tmp=conf.path_tmp)
-    input_data.load(conf.period_hist_start, conf.period_clim_end, conf.path_inputs)
+    input_data.load(conf.period_hist_start, conf.period_proj_end, conf.path_inputs)
 
     # Get the extent of the domain of interest
     x_min, x_max, y_min, y_max = input_data.get_extent_from(
@@ -119,9 +119,9 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
     # Select the domain of interest
     input_data.select_domain(x_min, x_max, y_min, y_max)
     input_data_hist = input_data
-    input_data_clim = copy.deepcopy(input_data)
+    input_data_proj = copy.deepcopy(input_data)
     input_data_hist.select_period(conf.period_hist_start, conf.period_hist_end)
-    input_data_clim.select_period(conf.period_clim_start, conf.period_clim_end)
+    input_data_proj.select_period(conf.period_proj_start, conf.period_proj_end)
     del input_data
 
     # Coarsen the target data to the resolution of the input data
@@ -132,7 +132,7 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
     if preload_data:
         logger.info(f"Preloading data in memory.")
         input_data_hist.data.load()
-        input_data_clim.data.load()
+        input_data_proj.data.load()
         target_data_hist.data.load()
 
     # If the time dimension length differs between the input and target data (e.g.,
@@ -156,10 +156,10 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
 
     # Create the output data arrays
     output_array_hist = []
-    output_array_clim = []
+    output_array_proj = []
     for i, var_out in enumerate(conf.target_vars):
         output_array_hist.append(np.ones(input_data_hist.data[var_out].shape) * np.nan)
-        output_array_clim.append(np.ones(input_data_clim.data[var_out].shape) * np.nan)
+        output_array_proj.append(np.ones(input_data_proj.data[var_out].shape) * np.nan)
 
     # Proceed to the point-wise bias correction
     x_axis = input_data_hist.data.x
@@ -172,7 +172,7 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
             # Prepare the data for SBCK
             target_array_hist = []
             input_array_hist = []
-            input_array_clim = []
+            input_array_proj = []
             for var_target, var_input in zip(conf.target_vars, conf.input_vars):
                 # Convert and extract the values as numpy arrays
                 target_array_hist_v = extract_for_sbck(target_data_hist, var_target, x, y)
@@ -181,36 +181,36 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
                     break
 
                 input_array_hist_v = extract_for_sbck(input_data_hist, var_input, x, y)
-                input_array_clim_v = extract_for_sbck(input_data_clim, var_input, x, y)
+                input_array_proj_v = extract_for_sbck(input_data_proj, var_input, x, y)
 
                 assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
-                assert input_array_clim_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
+                assert input_array_proj_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
 
                 # Append to the list
                 target_array_hist.append(target_array_hist_v)
                 input_array_hist.append(input_array_hist_v)
-                input_array_clim.append(input_array_clim_v)
+                input_array_proj.append(input_array_proj_v)
 
             else:  # Only proceed if the point has valid data for all variables
                 # Stack the data
                 target_array_hist = np.stack(target_array_hist, axis=1)
                 input_array_hist = np.stack(input_array_hist, axis=1)
-                input_array_clim = np.stack(input_array_clim, axis=1)
+                input_array_proj = np.stack(input_array_proj, axis=1)
 
                 # Bias correct all variables simultaneously
-                debiased_clim_ts, debiased_hist_ts = debias_with_sbck(
-                    method, input_array_clim, input_array_hist,
+                debiased_proj_ts, debiased_hist_ts = debias_with_sbck(
+                    method, input_array_proj, input_array_hist,
                     target_array_hist, **kwargs)
 
                 # Store the debiased time series
                 for i, var_out in enumerate(conf.target_vars):
                     output_array_hist[i][:, y_idx, x_idx] = debiased_hist_ts[:, conf.target_vars.index(var_out)]
-                    output_array_clim[i][:, y_idx, x_idx] = debiased_clim_ts[:, conf.target_vars.index(var_out)]
+                    output_array_proj[i][:, y_idx, x_idx] = debiased_proj_ts[:, conf.target_vars.index(var_out)]
 
     # Create a dictionary for the data variables
     data_vars_hist = {var: (('time', 'y', 'x'), output_array_hist[i]) for i, var in
                       enumerate(conf.target_vars)}
-    data_vars_clim = {var: (('time', 'y', 'x'), output_array_clim[i]) for i, var in
+    data_vars_proj = {var: (('time', 'y', 'x'), output_array_proj[i]) for i, var in
                  enumerate(conf.target_vars)}
 
     # Create the xarray dataset
@@ -222,12 +222,12 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
             'x': input_data_hist.data['x']
         }
     )
-    output_data_clim = xr.Dataset(
-        data_vars=data_vars_clim,
+    output_data_proj = xr.Dataset(
+        data_vars=data_vars_proj,
         coords={
-            'time': input_data_clim.data['time'],
-            'y': input_data_clim.data['y'],
-            'x': input_data_clim.data['x']
+            'time': input_data_proj.data['time'],
+            'y': input_data_proj.data['y'],
+            'x': input_data_proj.data['x']
         }
     )
 
@@ -237,8 +237,8 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
     target_data_hist.data.to_netcdf(output_path / "target_data_hist_original.nc")
     input_data_hist.data.to_netcdf(output_path / "input_data_hist_original.nc")
     output_data_hist.to_netcdf(output_path / "input_data_hist_debiased.nc")
-    input_data_clim.data.to_netcdf(output_path / "input_data_clim_original.nc")
-    output_data_clim.to_netcdf(output_path / "input_data_clim_debiased.nc")
+    input_data_proj.data.to_netcdf(output_path / "input_data_proj_original.nc")
+    output_data_proj.to_netcdf(output_path / "input_data_proj_debiased.nc")
     logger.info(f"Debiased dataset saved to {output_path}")
 
 

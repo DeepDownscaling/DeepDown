@@ -22,27 +22,27 @@ def plot_bias_correction(conf):
     input_data_hist = input_data_hist.load()
     output_data_hist = xr.open_dataset(data_path / "input_data_hist_debiased.nc")
     output_data_hist = output_data_hist.load()
-    input_data_clim = xr.open_dataset(data_path / "input_data_clim_original.nc")
-    input_data_clim = input_data_clim.load()
-    output_data_clim = xr.open_dataset(data_path / "input_data_clim_debiased.nc")
-    output_data_clim = output_data_clim.load()
+    input_data_proj = xr.open_dataset(data_path / "input_data_proj_original.nc")
+    input_data_proj = input_data_proj.load()
+    output_data_proj = xr.open_dataset(data_path / "input_data_proj_debiased.nc")
+    output_data_proj = output_data_proj.load()
 
     # Plot the maps
     for var in conf.target_vars:
         target_data_mean = target_data[var].mean(dim='time')
         input_data_hist_mean = input_data_hist[var].mean(dim='time')
         output_data_hist_mean = output_data_hist[var].mean(dim='time')
-        input_data_clim_mean = input_data_clim[var].mean(dim='time')
-        output_data_clim_mean = output_data_clim[var].mean(dim='time')
+        input_data_proj_mean = input_data_proj[var].mean(dim='time')
+        output_data_proj_mean = output_data_proj[var].mean(dim='time')
 
         min_val = min(input_data_hist_mean.min().values,
                       output_data_hist_mean.min().values,
-                      input_data_clim_mean.min().values,
-                      output_data_clim_mean.min().values)
+                      input_data_proj_mean.min().values,
+                      output_data_proj_mean.min().values)
         max_val = max(input_data_hist_mean.max().values,
                       output_data_hist_mean.max().values,
-                      input_data_clim_mean.max().values,
-                      output_data_clim_mean.max().values)
+                      input_data_proj_mean.max().values,
+                      output_data_proj_mean.max().values)
 
         if var == 'tp':
             cmap = 'Blues'
@@ -89,7 +89,7 @@ def plot_bias_correction(conf):
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 7),
                                subplot_kw={'projection': ccrs.PlateCarree()})
-        input_data_clim_mean.plot(ax=ax, transform=ccrs.PlateCarree(), cmap=cmap,
+        input_data_proj_mean.plot(ax=ax, transform=ccrs.PlateCarree(), cmap=cmap,
                                   cbar_kwargs={'shrink': 0.5}, vmin=min_val,
                                   vmax=max_val)
         ax.add_feature(cfeature.COASTLINE)
@@ -97,11 +97,11 @@ def plot_bias_correction(conf):
         ax.set_title(f"Input {var} (future)")
         ax.axis('off')
         plt.tight_layout()
-        plt.savefig(f"{var}_input_clim_original.png")
+        plt.savefig(f"{var}_input_proj_original.png")
 
         fig, ax = plt.subplots(1, 1, figsize=(10, 7),
                                subplot_kw={'projection': ccrs.PlateCarree()})
-        output_data_clim_mean.plot(ax=ax, transform=ccrs.PlateCarree(), cmap=cmap,
+        output_data_proj_mean.plot(ax=ax, transform=ccrs.PlateCarree(), cmap=cmap,
                                    cbar_kwargs={'shrink': 0.5}, vmin=min_val,
                                    vmax=max_val)
         ax.add_feature(cfeature.COASTLINE)
@@ -109,12 +109,12 @@ def plot_bias_correction(conf):
         ax.set_title(f"Debiased {var} (future)")
         ax.axis('off')
         plt.tight_layout()
-        plt.savefig(f"{var}_input_clim_debiased.png")
+        plt.savefig(f"{var}_input_proj_debiased.png")
 
-    # For each variable, do a scatter plot of the original (input_data_clim) vs. debiased data (output_data_clim)
+    # For each variable, do a scatter plot of the original (input_data_proj) vs. debiased data (output_data_proj)
     for var in conf.target_vars:
         fig, ax = plt.subplots()
-        ax.scatter(input_data_clim[var].values.flatten(), output_data_clim[var].values.flatten(), s=1)
+        ax.scatter(input_data_proj[var].values.flatten(), output_data_proj[var].values.flatten(), s=1)
         ax.set_xlabel(f"Original {var}")
         ax.set_ylabel(f"Debiased {var}")
         ax.set_title(f"Original vs. Debiased {var}")
