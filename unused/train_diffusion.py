@@ -13,7 +13,7 @@ from transformers import AutoImageProcessor, Swin2SRForImageSuperResolution
 # Utils
 from deepdown.utils.data_loader import *
 from deepdown.utils.data_generator import *
-from deepdown.utils.helpers import *
+from deepdown.utils.utils import *
 from deepdown.constants import *
 
 # Try dask.distributed and see if the performance improves...

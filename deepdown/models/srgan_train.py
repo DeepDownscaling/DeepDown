@@ -4,7 +4,7 @@ import torch
 import time
 
 from deepdown.utils.loss_fcts import *
-from deepdown.utils.helpers import DEVICE
+from deepdown.utils.utils import DEVICE
 
 
 def srgan_train(loader_train, D, G, D_solver, G_solver, discriminator_loss,

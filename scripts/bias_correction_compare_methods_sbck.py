@@ -1,6 +1,7 @@
-# Compare the bias correction methods from SBCK. This script computes the bias correction for different RCM
-# outputs and saves the results as netCDF files. The script bias_correction_plot_comparison_methods_sbck can be used
-# to plot the results.
+# Compare the bias correction methods from SBCK. This script computes the bias
+# correction for different RCM outputs and saves the results as netCDF files.
+# The script bias_correction_plot_comparison_methods_sbck can be used to plot
+# the results.
 
 import sys
 import time

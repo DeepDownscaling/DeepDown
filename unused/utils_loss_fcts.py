@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from deepdown.utils.helpers import DEVICE
+from deepdown.utils.utils import DEVICE
 
 
 class MeanSquaredErrorNans(nn.Module):
