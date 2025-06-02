@@ -1,7 +1,3 @@
-from ibicus.utils import iecdf
-import scipy.interpolate
-import scipy.special
-import scipy.stats
 import numpy as np
 import SBCK, SBCK.tools
 
