@@ -51,18 +51,18 @@ bc_method: 'dOTC'
 # All methods available in the package
 bc_methods: [
     'QM',
+    'QDM',
     'CDFt',
-    'OTC',
-    'dOTC',
+    'MRec',
     'ECBC',
+    'MBCn',
     'QMrs',
     'R2D2',
-    'QDM',
-    'MBCn',
-    'MRec',
+    'AR2D2',
+    'OTC',
+    'dOTC',
     #'TSMBC',
     #'dTSMBC',
-    'AR2D2'
 ]
 
 # Hyperparameters
