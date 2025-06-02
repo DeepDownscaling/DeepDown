@@ -1,11 +1,46 @@
 import os
+import bottleneck
 import xarray as xr
-import xskillscore as xs
+import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from deepdown.config import Config
 
+
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="Mean of empty slice")
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="Degrees of freedom <= 0 for slice")
+
+
+def covariance_gufunc(x, y):
+    x_mean = np.nanmean(x, axis=-1, keepdims=True)
+    y_mean = np.nanmean(y, axis=-1, keepdims=True)
+    return np.nanmean((x - x_mean) * (y - y_mean), axis=-1)
+
+
+def pearson_correlation_gufunc(x, y):
+    return covariance_gufunc(x, y) / (
+        np.nanstd(x, axis=-1) * np.nanstd(y, axis=-1)
+    )
+
+
+def spearman_correlation_gufunc(x, y):
+    x_ranks = bottleneck.nanrankdata(x, axis=-1)
+    y_ranks = bottleneck.nanrankdata(y, axis=-1)
+    return pearson_correlation_gufunc(x_ranks, y_ranks)
+
+
+def spearman_correlation(x, y, dim):
+    return xr.apply_ufunc(
+        spearman_correlation_gufunc,
+        x,
+        y,
+        input_core_dims=[[dim], [dim]],
+        dask="parallelized",
+        output_dtypes=[float],
+    )
 
 def plot_maps_for_bc_method(conf, files, method, var):
     models = conf.RCMs
@@ -43,8 +78,7 @@ def plot_maps_for_bc_method(conf, files, method, var):
                               add_colorbar=add_colorbar, vmin=v_min, vmax=v_max)
 
                     ax.set_title(f"{model}\n{data_type.split('.')[0]}", fontsize=10)
-                    ax.add_feature(cfeature.COASTLINE)
-                    ax.add_feature(cfeature.BORDERS, linestyle=":")
+                    ax.add_feature(cfeature.BORDERS)
 
     plt.tight_layout()
 
@@ -91,8 +125,7 @@ def plot_maps_for_rcm(conf, files, model, var):
                               add_colorbar=add_colorbar, vmin=v_min, vmax=v_max)
 
                     ax.set_title(f"{method}\n{data_type.split('.')[0]}", fontsize=10)
-                    ax.add_feature(cfeature.COASTLINE)
-                    ax.add_feature(cfeature.BORDERS, linestyle=":")
+                    ax.add_feature(cfeature.BORDERS)
 
     plt.tight_layout()
 
@@ -117,10 +150,11 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False):
     # Loop through the seasons to make 1 plot for each
     for season in ['DJF', 'MAM', 'JJA', 'SON']:
 
+        swiss_crs = ccrs.epsg(2056)
+
         # Create figure with subplots for all methods and data types
-        fig, axes = plt.subplots(len(methods) + 2, 2,
-                                 figsize=(10, len(methods) * 3.3),
-                                 subplot_kw={'projection': ccrs.PlateCarree()})
+        fig = plt.figure(figsize=(10, len(methods) * 3.3))
+        gs = gridspec.GridSpec(len(methods) + 2, 2, figure=fig)
 
         # Load the reference data
         file_path = os.path.join(path_output, methods[0], model, files[0])
@@ -128,24 +162,16 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False):
         ds = ds.where(ds.time.dt.season == season, drop=True).load()
 
         # Compute the spearman's rank correlation
-        #correl_ref = spearman_correlation(ds[vars[0]], ds[vars[1]], dim="time")
-        correl_ref = xs.spearman_r(ds[vars[0]], ds[vars[1]], dim="time", skipna=True)
+        correl_ref = spearman_correlation(ds[vars[0]], ds[vars[1]], dim="time")
+
+        ax_big = fig.add_subplot(gs[0, :], projection=swiss_crs)
 
         # Plot on corresponding subplot
-        ax = axes[0, 0]
+        ax = ax_big
         correl_ref.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                        vmin=v_min, vmax=v_max, add_colorbar=False)
+                        vmin=v_min, vmax=v_max, add_colorbar=True)
         ax.set_title(f"Reference", fontsize=10)
-        ax.add_feature(cfeature.COASTLINE)
-        ax.add_feature(cfeature.BORDERS, linestyle=":")
-
-        # Add the colorbar in axes[0, 1]
-        cbar_ax = fig.add_axes([0.65, 0.9, 0.02, 0.07])  # [left, bottom, width, height]
-        correl_ref.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                        vmin=v_min, vmax=v_max, cbar_ax=cbar_ax)
-        # Remove the box for axes[0,1]
-        for spine in axes[0, 1].spines.values():
-            spine.set_visible(False)
+        ax.add_feature(cfeature.BORDERS)
 
         # Load the historical model data
         file_path = os.path.join(path_output, methods[0], model, files[1])
@@ -153,19 +179,20 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False):
         ds = ds.where(ds.time.dt.season == season, drop=True)
 
         # Compute the spearman's rank correlation
-        correl_model_hist = xs.spearman_r(ds[vars[0]], ds[vars[1]], dim="time", skipna=True)
+        correl_model_hist = spearman_correlation(ds[vars[0]], ds[vars[1]], dim="time")
         if plot_diff:
             correl_diff = correl_model_hist - correl_ref
+            t_prefix = "Difference in Spearman correlation"
         else:
             correl_diff = correl_model_hist
+            t_prefix = "Spearman correlation"
 
         # Plot on corresponding subplot
-        ax = axes[1, 0]
+        ax = fig.add_subplot(gs[1, 0], projection=swiss_crs)
         correl_diff.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
                          vmin=v_min, vmax=v_max, add_colorbar=False)
-        ax.set_title(f"Difference for model (control)", fontsize=10)
-        ax.add_feature(cfeature.COASTLINE)
-        ax.add_feature(cfeature.BORDERS, linestyle=":")
+        ax.set_title(f"{t_prefix} for RCM (control)", fontsize=10)
+        ax.add_feature(cfeature.BORDERS)
 
         # Load the historical model data
         file_path = os.path.join(path_output, methods[0], model, files[3])
@@ -173,27 +200,27 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False):
         ds = ds.where(ds.time.dt.season == season, drop=True)
 
         # Compute the spearman's rank correlation
-        correl_model_proj = xs.spearman_r(ds[vars[0]], ds[vars[1]], dim="time", skipna=True)
+        correl_model_proj = spearman_correlation(ds[vars[0]], ds[vars[1]], dim="time")
         if plot_diff:
             correl_diff = correl_model_proj - correl_ref
         else:
             correl_diff = correl_model_proj
 
         # Plot on corresponding subplot
-        ax = axes[1, 1]
+        ax = fig.add_subplot(gs[1, 1], projection=swiss_crs)
         correl_diff.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
                          vmin=v_min, vmax=v_max, add_colorbar=False)
-        ax.set_title(f"Difference for model (future)", fontsize=10)
-        ax.add_feature(cfeature.COASTLINE)
-        ax.add_feature(cfeature.BORDERS, linestyle=":")
+
+        ax.set_title(f"{t_prefix} for RCM (future)", fontsize=10)
+        ax.add_feature(cfeature.BORDERS)
 
         # Keep only the 3rd and 5th files
-        files = [files[2], files[4]]
+        files_deb = [files[2], files[4]]
 
         # Loop through methods
         for row, method in enumerate(methods):
             data_path = os.path.join(path_output, method, model)
-            for col, data_type in enumerate(files):
+            for col, data_type in enumerate(files_deb):
                 file_path = os.path.join(data_path, data_type)
 
                 if os.path.exists(file_path):
@@ -202,7 +229,7 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False):
                     ds = ds.where(ds.time.dt.season == season, drop=True)
 
                     # Compute the spearman's rank correlation
-                    correl = xs.spearman_r(ds[vars[0]], ds[vars[1]], dim="time", skipna=True)
+                    correl = spearman_correlation(ds[vars[0]], ds[vars[1]], dim="time")
 
                     if plot_diff:
                         correl_diff = correl - correl_ref
@@ -210,18 +237,13 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False):
                         correl_diff = correl
 
                     # Plot on corresponding subplot
-                    ax = axes[row + 2, col]
+                    ax = fig.add_subplot(gs[row + 2, col], projection=swiss_crs)
                     correl_diff.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
                                      add_colorbar=False)
 
-                    t_prefix = "Spearman correlation"
-                    if plot_diff:
-                        t_prefix = "Difference in Spearman correlation"
-
                     subtitle = 'control' if col == 0 else 'future'
                     ax.set_title(f"{t_prefix} for {method} ({subtitle})", fontsize=10)
-                    ax.add_feature(cfeature.COASTLINE)
-                    ax.add_feature(cfeature.BORDERS, linestyle=":")
+                    ax.add_feature(cfeature.BORDERS)
 
         plt.tight_layout()
 
