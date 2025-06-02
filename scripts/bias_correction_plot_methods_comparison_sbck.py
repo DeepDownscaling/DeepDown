@@ -16,20 +16,28 @@ warnings.filterwarnings("ignore", category=RuntimeWarning,
 warnings.filterwarnings("ignore", category=RuntimeWarning,
                         message="Degrees of freedom <= 0 for slice")
 
-PLOTS = ['maps_for_bc_method', 'maps_for_rcm', 'maps_correl_for_rcm'] # List of plots to generate
+PLOTS = ['maps_for_bc_method', 'maps_for_rcm', 'maps_correl_for_rcm'] # List of plots
+PLOTS = ['maps_for_bc_method']
 CORREL_VARS = ['tp', 't']  # Variables to compute correlation for
 CORREL_MIN = -0.5  # Minimum value for correlation plots
 CORREL_MAX = 0.5  # Maximum value for correlation plots
+TITLES = {
+    'target_data_hist_original.nc': 'Target data (control period)',
+    'input_data_hist_original.nc': 'RCM (control period, original)',
+    'input_data_hist_debiased.nc': 'RCM (control period, debiased)',
+    'input_data_proj_original.nc': 'RCM (future, original)',
+    'input_data_proj_debiased.nc': 'RCM (future, debiased)'
+}
 
 
-def plot_maps_for_bc_method(conf, files, method, var):
+def plot_maps_mean_for_bc_method(conf, files, method, var, epsg=2056):
     models = conf.RCMs
     path_output = Path(conf.path_output)
+    crs = ccrs.epsg(epsg)
 
-    # Create figure with subplots for all models and data types
-    fig, axes = plt.subplots(len(models), len(files),
-                             figsize=(25, len(models) * 3.3),
-                             subplot_kw={'projection': ccrs.PlateCarree()})
+    # Create figure with subplots for all models
+    fig = plt.figure(figsize=(17, len(models) * 3.3))
+    gs = gridspec.GridSpec(len(models) + 2, len(files), figure=fig)
 
     v_min = None
     v_max = None
@@ -40,45 +48,41 @@ def plot_maps_for_bc_method(conf, files, method, var):
             file_path = data_path / data_type
 
             if file_path.exists():
-                print(f"Loading: {file_path}")
                 ds = xr.open_dataset(file_path).load()
 
                 if var in ds:
-                    data = ds[var].mean(dim="time")  # Compute time mean
+                    data = ds[var].mean(dim="time")
 
                     if v_min is None and col == 0:
                         v_min = data.min() * 0.8
                         v_max = data.max() * 1.2
 
                     # Plot on corresponding subplot
-                    ax = axes[row, col]
-                    add_colorbar = (col == len(files) - 1)
-                    add_colorbar = False
-                    data.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                              add_colorbar=add_colorbar, vmin=v_min, vmax=v_max)
-
-                    ax.set_title(f"{model}\n{data_type.split('.')[0]}", fontsize=10)
+                    ax = fig.add_subplot(gs[row, col], projection=crs)
+                    data.plot(ax=ax, transform=ccrs.PlateCarree(), cmap=_get_cmap(var),
+                              add_colorbar=False, vmin=v_min, vmax=v_max)
+                    ax.set_title(f"{model}\n{TITLES[data_type]}", fontsize=12)
                     ax.add_feature(cfeature.BORDERS)
 
     plt.tight_layout()
 
     # Save the figure
-    plt.savefig(path_output / f"maps_for_bc_method_{method}_{var}.png",
+    plt.savefig(path_output / f"maps_mean_for_bc_method_{method}_{var}.png",
                 dpi=300, bbox_inches="tight")
-    plt.savefig(path_output / f"maps_for_bc_method_{method}_{var}.pdf",
+    plt.savefig(path_output / f"maps_mean_for_bc_method_{method}_{var}.pdf",
                 dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved in {path_output}")
 
 
-def plot_maps_for_rcm(conf, files, model, var):
+def plot_maps_mean_for_rcm(conf, files, model, var, epsg=2056):
     methods = conf.bc_methods
-    path_output = conf.path_output
+    path_output = Path(conf.path_output)
+    crs = ccrs.epsg(epsg)
 
-    # Create figure with subplots for all methods and data types
-    fig, axes = plt.subplots(len(methods), len(files),
-                             figsize=(25, len(methods) * 3.3),
-                             subplot_kw={'projection': ccrs.PlateCarree()})
+    # Create figure with subplots for all methods
+    fig = plt.figure(figsize=(17, len(methods) * 3.3))
+    gs = gridspec.GridSpec(len(methods) + 2, len(files), figure=fig)
 
     v_min = None
     v_max = None
@@ -89,32 +93,28 @@ def plot_maps_for_rcm(conf, files, model, var):
             file_path = data_path / data_type
 
             if file_path.exists():
-                print(f"Loading: {file_path}")
                 ds = xr.open_dataset(file_path).load()
 
                 if var in ds:
-                    data = ds[var].mean(dim="time")  # Compute time mean
+                    data = ds[var].mean(dim="time")
 
                     if v_min is None and col == 0:
                         v_min = data.min() * 0.8
                         v_max = data.max() * 1.2
 
                     # Plot on corresponding subplot
-                    ax = axes[row, col]
-                    add_colorbar = (col == len(files) - 1)
-                    add_colorbar = False
-                    data.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
-                              add_colorbar=add_colorbar, vmin=v_min, vmax=v_max)
-
-                    ax.set_title(f"{method}\n{data_type.split('.')[0]}", fontsize=10)
+                    ax = fig.add_subplot(gs[row, col], projection=crs)
+                    data.plot(ax=ax, transform=ccrs.PlateCarree(), cmap=_get_cmap(var),
+                              add_colorbar=False, vmin=v_min, vmax=v_max)
+                    ax.set_title(f"{method}\n{TITLES[data_type]}", fontsize=12)
                     ax.add_feature(cfeature.BORDERS)
 
     plt.tight_layout()
 
     # Save the figure
-    plt.savefig(path_output / f"maps_for_rcm_{model}_{var}.png", dpi=300,
+    plt.savefig(path_output / f"maps_mean_for_rcm_{model}_{var}.png", dpi=300,
                 bbox_inches="tight")
-    plt.savefig(path_output / f"maps_for_rcm_{model}_{var}.pdf", dpi=300,
+    plt.savefig(path_output / f"maps_mean_for_rcm_{model}_{var}.pdf", dpi=300,
                 bbox_inches="tight")
     plt.close(fig)
     print(f"Saved in {path_output}")
@@ -149,7 +149,7 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False, epsg=2056):
         ax = fig.add_subplot(gs[0, :], projection=crs)
         correl_ref.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
                         vmin=v_min, vmax=v_max, add_colorbar=True)
-        ax.set_title(f"Reference", fontsize=10)
+        ax.set_title(f"Reference", fontsize=12)
         ax.add_feature(cfeature.BORDERS)
 
         # Load the RCM data for the control period
@@ -165,7 +165,7 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False, epsg=2056):
         ax = fig.add_subplot(gs[1, 0], projection=crs)
         correl_diff.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
                          vmin=v_min, vmax=v_max, add_colorbar=False)
-        ax.set_title(f"{t_prefix} for RCM (control)", fontsize=10)
+        ax.set_title(f"{t_prefix} for RCM (control)", fontsize=12)
         ax.add_feature(cfeature.BORDERS)
 
         # Load the RCM data for the future period
@@ -181,7 +181,7 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False, epsg=2056):
         ax = fig.add_subplot(gs[1, 1], projection=crs)
         correl_diff.plot(ax=ax, transform=ccrs.PlateCarree(), cmap="coolwarm",
                          vmin=v_min, vmax=v_max, add_colorbar=False)
-        ax.set_title(f"{t_prefix} for RCM (future)", fontsize=10)
+        ax.set_title(f"{t_prefix} for RCM (future)", fontsize=12)
         ax.add_feature(cfeature.BORDERS)
 
         # Keep only the debiased files
@@ -210,18 +210,31 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False, epsg=2056):
 
                     subtitle = 'control' if col == 0 else 'future'
                     ax.set_title(f"{t_prefix} for {method} ({subtitle})",
-                                 fontsize=10)
+                                 fontsize=12)
                     ax.add_feature(cfeature.BORDERS)
 
         plt.tight_layout()
 
         # Save the figure
-        plt.savefig(path_output / f"maps_correl_for_rcm_{model}_{season}.png",
-                    dpi=300, bbox_inches="tight")
-        plt.savefig(path_output / f"maps_correl_for_rcm_{model}_{season}.pdf",
-                    dpi=300, bbox_inches="tight")
+        if plot_diff:
+            file_name = f"maps_correl_diff_for_rcm_{model}_{season}"
+        else:
+            file_name = f"maps_correl_for_rcm_{model}_{season}"
+
+        plt.savefig(path_output / f"{file_name}.png", dpi=300, bbox_inches="tight")
+        plt.savefig(path_output / f"{file_name}.pdf", dpi=300, bbox_inches="tight")
         plt.close(fig)
         print(f"Saved in {path_output}")
+
+
+def _get_cmap(var):
+    """Get the colormap based on the variable."""
+    if var == 'tp':
+        return 'Blues'
+    elif var in ['t', 't_max', 't_min']:
+        return 'turbo'
+    else:
+        return 'viridis'
 
 
 def main():
@@ -241,16 +254,18 @@ def main():
     if 'maps_for_bc_method' in PLOTS:
         for method in methods:
             for var in conf.input_vars:
-                plot_maps_for_bc_method(conf, files, method, var)
+                plot_maps_mean_for_bc_method(conf, files, method, var)
 
     if 'maps_for_rcm' in PLOTS:
         for model in models:
             for var in conf.input_vars:
-                plot_maps_for_rcm(conf, files, model, var)
+                plot_maps_mean_for_rcm(conf, files, model, var)
 
     if 'maps_correl_for_rcm' in PLOTS:
         for model in models:
             plot_maps_correl_for_rcm(conf, files, model)
+
+    print("All plots generated successfully.")
 
 
 if __name__ == "__main__":
