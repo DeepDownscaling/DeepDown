@@ -84,17 +84,22 @@ def prepare_for_sbck(data_loader, variable_name):
     return data_loader
 
 
-def extract_for_sbck(data_loader, variable_name, x, y):
+def extract_for_sbck(data_loader, variable_name, x=None, y=None):
     """Extract data for SBCK."""
     # Get variable of interest
     data = data_loader.data[variable_name]
 
-    # Convert to numpy array
-    data_array = data.sel(x=x, y=y).values
+    # If x and y are provided, select the data for those coordinates
+    if x is not None and y is not None:
+        # Convert to numpy array
+        data_array = data.sel(x=x, y=y).values
 
-    # If contains nans, return None
-    if np.isnan(data_array).any() or np.isinf(data_array).any():
-        return None
+        # If contains nans, return None
+        if np.isnan(data_array).any() or np.isinf(data_array).any():
+            return None
+
+    else:
+        data_array = data.values
 
     # Get units
     data_units = None
