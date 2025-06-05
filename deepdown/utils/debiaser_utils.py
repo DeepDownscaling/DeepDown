@@ -179,7 +179,7 @@ def debias_with_sbck(bc_method, input_array_proj, input_array_hist, target_array
         bc = SBCK.IdBC()
         bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "MBCn":
-        bc = SBCK.MBCn(**kwargs)
+        bc = SBCK.MBCn(bc=SBCK.CDFt, **kwargs)
         bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "MRec":
         bc = SBCK.MRec(**kwargs)

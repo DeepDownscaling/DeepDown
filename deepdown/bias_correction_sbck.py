@@ -218,6 +218,15 @@ def run_bias_correction(conf, method=None, preload_data=True,
                     input_array_hist = np.stack(input_array_hist, axis=1)
                     input_array_proj = np.stack(input_array_proj, axis=1)
 
+                    # Adjust some parameters based on the method
+                    if method in ['R2D2', 'QMrs']:
+                        # Index of reference for Schaake Shuffle: use both t and tp
+                        if 'refs' not in kwargs:
+                            kwargs['refs'] = conf.target_vars.index('t')
+                    if method in ['AR2D2']:
+                        if 'col_cond' not in kwargs:
+                            kwargs['col_cond'] = conf.target_vars.index('t')
+
                     # Bias correct all variables simultaneously
                     debiased_proj_ts, debiased_hist_ts = debias_with_sbck(
                         method, input_array_proj, input_array_hist,
@@ -295,6 +304,17 @@ def run_bias_correction(conf, method=None, preload_data=True,
         input_array_hist = input_array_hist[:, mask_full]
         input_array_proj = input_array_proj[:, mask_full]
 
+        # Adjust some parameters based on the method
+        if method in ['R2D2', 'QMrs']:
+            # Index of reference for Schaake Shuffle: center of the domain for tp and t
+            if 'refs' not in kwargs:
+                ref_idx = _get_ref_idx(conf, mask, mask_2d, target_array_hist)
+                kwargs['refs'] = [ref_idx]
+        if method in ['AR2D2']:
+            if 'col_cond' not in kwargs:
+                ref_idx = _get_ref_idx(conf, mask, mask_2d, target_array_hist)
+                kwargs['col_cond'] = [ref_idx]
+
         # Bias correct all variables simultaneously
         debiased_proj_ts, debiased_hist_ts = debias_with_sbck(
             method, input_array_proj, input_array_hist,
@@ -358,6 +378,23 @@ def run_bias_correction(conf, method=None, preload_data=True,
     input_data_proj.data.to_netcdf(output_path / "input_data_proj_original.nc")
     output_data_proj.to_netcdf(output_path / "input_data_proj_debiased.nc")
     logger.info(f"Debiased dataset saved to {output_path}")
+
+
+def _get_ref_idx(conf, mask, mask_2d, target_array_hist):
+    var_idx = conf.target_vars.index('t')  # Uses the temperature variable
+    n_cols_per_var = target_array_hist.shape[1] // len(conf.target_vars)
+    domain = np.zeros(mask_2d.shape)
+    domain[domain.shape[0] // 2, domain.shape[1] // 2] = 1.0
+    domain = domain.reshape(-1)
+    domain = domain[mask]
+    idx_center = np.where(domain)[0]
+    if len(idx_center) == 0:
+        idx_center = n_cols_per_var // 2
+    else:
+        idx_center = idx_center[0]
+    ref_idx = var_idx * n_cols_per_var + idx_center
+
+    return ref_idx
 
 
 if __name__ == "__main__":
