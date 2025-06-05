@@ -226,18 +226,20 @@ def run_bias_correction(conf, method=None, preload_data=True,
                     # Store the debiased time series
                     for i, var_out in enumerate(conf.target_vars):
                         var_idx = conf.target_vars.index(var_out)
+                        output_array_proj_v = debiased_proj_ts[:, var_idx]
+                        output_array_hist_v = debiased_hist_ts[:, var_idx]
+
                         if var_out == 'tp':
                             # Apply the occurrence threshold for precipitation
-                            debiased_proj_ts[
-                                debiased_proj_ts[:, var_idx] < occurrence_threshold,
-                                var_idx
+                            output_array_proj_v[
+                                output_array_proj_v < occurrence_threshold
                             ] = 0.0
-                            debiased_hist_ts[
-                                debiased_hist_ts[:, var_idx] < occurrence_threshold,
-                                var_idx
+                            output_array_hist_v[
+                                output_array_hist_v < occurrence_threshold
                             ] = 0.0
-                        output_array_proj[i][:, y_idx, x_idx] = debiased_proj_ts[:,var_idx]
-                        output_array_hist[i][:, y_idx, x_idx] = debiased_hist_ts[:, var_idx]
+
+                        output_array_proj[i][:, y_idx, x_idx] = output_array_proj_v
+                        output_array_hist[i][:, y_idx, x_idx] = output_array_hist_v
 
     elif conf.bc_config['dims'] == 'full':
 
@@ -303,19 +305,21 @@ def run_bias_correction(conf, method=None, preload_data=True,
             var_idx = conf.target_vars.index(var_out)
             col_start = var_idx * target_array_hist.shape[1] // len(conf.target_vars)
             col_end = (var_idx + 1) * target_array_hist.shape[1] // len(conf.target_vars)
+
+            debiased_hist_ts_v = debiased_hist_ts[:, col_start:col_end]
+            debiased_proj_ts_v = debiased_proj_ts[:, col_start:col_end]
+
             if var_out == 'tp':
                 # Apply the occurrence threshold for precipitation
-                debiased_proj_ts[
-                    debiased_proj_ts[:, col_start:col_end] < occurrence_threshold,
-                    col_start:col_end
+                debiased_hist_ts_v[
+                    debiased_hist_ts_v < occurrence_threshold
                 ] = 0.0
-                debiased_hist_ts[
-                    debiased_hist_ts[:, col_start:col_end] < occurrence_threshold,
-                    col_start:col_end
+                debiased_proj_ts_v[
+                    debiased_proj_ts_v < occurrence_threshold
                 ] = 0.0
 
-            output_array_hist[i][:, mask_2d] = debiased_hist_ts[:, col_start:col_end]
-            output_array_proj[i][:, mask_2d] = debiased_proj_ts[:, col_start:col_end]
+            output_array_hist[i][:, mask_2d] = debiased_hist_ts_v
+            output_array_proj[i][:, mask_2d] = debiased_proj_ts_v
 
     else:
         raise ValueError(f"Invalid bc_config['dims']: {conf.bc_config['dims']}. "
