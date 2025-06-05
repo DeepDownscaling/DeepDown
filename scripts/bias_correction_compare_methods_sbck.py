@@ -17,6 +17,7 @@ def assess_single(index):
     methods = conf.bc_methods
     path_inputs = conf.path_inputs
     path_output = Path(conf.path_output)
+    bc_dims = conf.bc_config['dims']
 
     # All model-method pairs
     job_list = [(model, method) for model in models for method in methods]
@@ -30,7 +31,7 @@ def assess_single(index):
         f'{path_inputs[0]}/{model}',
         f'{path_inputs[1]}/{model}'
     ]
-    conf.path_output = path_output / method / model
+    conf.path_output = path_output / bc_dims / method / model
 
     # If the output directory exists, skip the setting
     if Path(conf.path_output).exists():
