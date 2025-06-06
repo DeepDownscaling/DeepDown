@@ -61,8 +61,8 @@ bc_methods: [
     'AR2D2',
     'OTC',
     'dOTC',
-    #'TSMBC',
-    #'dTSMBC',
+    'TSMBC',
+    'dTSMBC',
 ]
 
 # BC method configuration
