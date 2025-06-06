@@ -13,8 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def run_bias_correction(conf, method=None, preload_data=True,
-                        occurrence_threshold=0.05, **kwargs):
+def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
     """
     Correct bias in the input data using the target data.
 
@@ -64,10 +63,6 @@ def run_bias_correction(conf, method=None, preload_data=True,
         The bias correction method to use. If None, the method from the configuration is used.
     preload_data: boolean
         Whether to preload the data in memory or not.
-    occurrence_threshold: float
-        The precipitation threshold below which the precipitation is considered as
-        zero (and corrected as such). Default is 0.05, which means that any
-        precipitation value below 0.05 mm/day is considered as zero.
     kwargs : additional arguments for SBCK methods
         Additional arguments for the bias correction methods. See SBCK documentation for
         details on the available arguments for each method.
@@ -202,10 +197,16 @@ def run_bias_correction(conf, method=None, preload_data=True,
                     assert input_array_proj_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
 
                     if var_target == 'tp' or var_input == 'tp':
+                        # Compute the frequency of days without precipitation in the ref data
+                        f0 = (np.sum(target_array_hist_v == 0) /
+                              target_array_hist_v.size)
+
+                        # Find the corresponding occurrence threshold in the control period
+                        occ_th = np.quantile(input_array_hist_v, f0)
+
                         # Apply the occurrence threshold for precipitation
-                        target_array_hist_v[target_array_hist_v < occurrence_threshold] = 0.0
-                        input_array_hist_v[input_array_hist_v < occurrence_threshold] = 0.0
-                        input_array_proj_v[input_array_proj_v < occurrence_threshold] = 0.0
+                        input_array_hist_v[input_array_hist_v <= occ_th] = 0.0
+                        input_array_proj_v[input_array_proj_v <= occ_th] = 0.0
 
                     # Append to the list
                     target_array_hist.append(target_array_hist_v)
@@ -238,15 +239,6 @@ def run_bias_correction(conf, method=None, preload_data=True,
                         output_array_proj_v = debiased_proj_ts[:, var_idx]
                         output_array_hist_v = debiased_hist_ts[:, var_idx]
 
-                        if var_out == 'tp':
-                            # Apply the occurrence threshold for precipitation
-                            output_array_proj_v[
-                                output_array_proj_v < occurrence_threshold
-                            ] = 0.0
-                            output_array_hist_v[
-                                output_array_hist_v < occurrence_threshold
-                            ] = 0.0
-
                         output_array_proj[i][:, y_idx, x_idx] = output_array_proj_v
                         output_array_hist[i][:, y_idx, x_idx] = output_array_hist_v
 
@@ -263,12 +255,6 @@ def run_bias_correction(conf, method=None, preload_data=True,
             input_array_hist_v = extract_for_sbck(input_data_hist, var_input)
             input_array_proj_v = extract_for_sbck(input_data_proj, var_input)
 
-            if var_target == 'tp' or var_input == 'tp':
-                # Apply the occurrence threshold for precipitation
-                target_array_hist_v[target_array_hist_v < occurrence_threshold] = 0.0
-                input_array_hist_v[input_array_hist_v < occurrence_threshold] = 0.0
-                input_array_proj_v[input_array_proj_v < occurrence_threshold] = 0.0
-
             # Flatten spatial dimensions
             target_array_hist_v = target_array_hist_v.reshape(
                 target_array_hist_v.shape[0], -1)
@@ -277,11 +263,6 @@ def run_bias_correction(conf, method=None, preload_data=True,
             input_array_proj_v = input_array_proj_v.reshape(
                 input_array_proj_v.shape[0], -1)
 
-            # Append to the list
-            target_array_hist.append(target_array_hist_v)
-            input_array_hist.append(input_array_hist_v)
-            input_array_proj.append(input_array_proj_v)
-
             # Get the mask of non nan or inf values in the target data
             mask_v = np.isfinite(target_array_hist_v)
             mask_v = np.all(mask_v, axis=0)
@@ -289,6 +270,23 @@ def run_bias_correction(conf, method=None, preload_data=True,
                 mask = mask_v
             else:
                 mask = np.logical_and(mask, mask_v)
+
+            if var_target == 'tp' or var_input == 'tp':
+                # Compute the frequency of days without precipitation in the ref data
+                f0 = (np.sum(target_array_hist_v[:, mask] == 0) /
+                      target_array_hist_v[:, mask].size)
+
+                # Find the corresponding occurrence threshold in the control period
+                occ_th = np.quantile(input_array_hist_v[:, mask], f0)
+
+                # Apply the occurrence threshold for precipitation
+                input_array_hist_v[input_array_hist_v <= occ_th] = 0.0
+                input_array_proj_v[input_array_proj_v <= occ_th] = 0.0
+
+            # Append to the list
+            target_array_hist.append(target_array_hist_v)
+            input_array_hist.append(input_array_hist_v)
+            input_array_proj.append(input_array_proj_v)
 
         # Stack the data
         target_array_hist = np.hstack(target_array_hist)
@@ -328,15 +326,6 @@ def run_bias_correction(conf, method=None, preload_data=True,
 
             debiased_hist_ts_v = debiased_hist_ts[:, col_start:col_end]
             debiased_proj_ts_v = debiased_proj_ts[:, col_start:col_end]
-
-            if var_out == 'tp':
-                # Apply the occurrence threshold for precipitation
-                debiased_hist_ts_v[
-                    debiased_hist_ts_v < occurrence_threshold
-                ] = 0.0
-                debiased_proj_ts_v[
-                    debiased_proj_ts_v < occurrence_threshold
-                ] = 0.0
 
             output_array_hist[i][:, mask_2d] = debiased_hist_ts_v
             output_array_proj[i][:, mask_2d] = debiased_proj_ts_v

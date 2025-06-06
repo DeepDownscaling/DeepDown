@@ -282,6 +282,10 @@ def main():
     }
     stats = ['mean', 'q99', 'f0']  # Statistics to compute
 
+    if 'maps_correl_for_rcm' in PLOTS:
+        for model in models:
+            plot_maps_correl_for_rcm(conf, files, model)
+
     if 'maps_for_bc_method' in PLOTS:
         for method in methods:
             for var in conf.input_vars:
@@ -293,10 +297,6 @@ def main():
             for var in conf.input_vars:
                 for stat in stats:
                     plot_maps_stat_for_rcm(conf, files, titles, model, var, stat)
-
-    if 'maps_correl_for_rcm' in PLOTS:
-        for model in models:
-            plot_maps_correl_for_rcm(conf, files, model)
 
     print("All plots generated successfully.")
 
