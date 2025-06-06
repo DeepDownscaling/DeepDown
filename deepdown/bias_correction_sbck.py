@@ -226,7 +226,7 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
                             kwargs['refs'] = conf.target_vars.index('t')
                     if method in ['AR2D2']:
                         if 'col_cond' not in kwargs:
-                            kwargs['col_cond'] = conf.target_vars.index('t')
+                            kwargs['col_cond'] = list(range(len(conf.target_vars)))
 
                     # Bias correct all variables simultaneously
                     debiased_proj_ts, debiased_hist_ts = debias_with_sbck(
@@ -310,8 +310,9 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
                 kwargs['refs'] = [ref_idx]
         if method in ['AR2D2']:
             if 'col_cond' not in kwargs:
-                ref_idx = _get_ref_idx(conf, mask, mask_2d, target_array_hist)
-                kwargs['col_cond'] = [ref_idx]
+                # Get a sequence of indices for the conditioning columns (every 10th)
+                col_cond = list(range(0, target_array_hist.shape[1], 10))
+                kwargs['col_cond'] = col_cond
 
         # Bias correct all variables simultaneously
         debiased_proj_ts, debiased_hist_ts = debias_with_sbck(

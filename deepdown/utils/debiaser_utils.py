@@ -167,7 +167,7 @@ def debias_with_sbck(bc_method, input_array_proj, input_array_hist, target_array
 
     # For all other methods, we need the input_array_proj
     if bc_method == "AR2D2":
-        bc = SBCK.AR2D2(**kwargs)
+        bc = SBCK.AR2D2(**kwargs, lag_search=9, lag_keep=7)
         bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "CDFt":
         bc = SBCK.CDFt(**kwargs)
