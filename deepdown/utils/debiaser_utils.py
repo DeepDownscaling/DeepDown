@@ -1,7 +1,3 @@
-from ibicus.utils import iecdf
-import scipy.interpolate
-import scipy.special
-import scipy.stats
 import numpy as np
 import SBCK, SBCK.tools
 
@@ -88,17 +84,22 @@ def prepare_for_sbck(data_loader, variable_name):
     return data_loader
 
 
-def extract_for_sbck(data_loader, variable_name, x, y):
+def extract_for_sbck(data_loader, variable_name, x=None, y=None):
     """Extract data for SBCK."""
     # Get variable of interest
     data = data_loader.data[variable_name]
 
-    # Convert to numpy array
-    data_array = data.sel(x=x, y=y).values
+    # If x and y are provided, select the data for those coordinates
+    if x is not None and y is not None:
+        # Convert to numpy array
+        data_array = data.sel(x=x, y=y).values
 
-    # If contains nans, return None
-    if np.isnan(data_array).any() or np.isinf(data_array).any():
-        return None
+        # If contains nans, return None
+        if np.isnan(data_array).any() or np.isinf(data_array).any():
+            return None
+
+    else:
+        data_array = data.values
 
     # Get units
     data_units = None
@@ -139,59 +140,71 @@ def _convert_units(data_array, data_units, variable_name):
     return data_array
 
 
-def debias_with_sbck(bc_method, input_array_clim, input_array_hist, target_array_hist):
-    if bc_method == "QM":
-        bc = SBCK.QM(distY0=SBCK.tools.rv_histogram,
-                     distX0=SBCK.tools.rv_histogram)
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "RBC":
-        bc = SBCK.RBC()
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "IdBC":
-        bc = SBCK.IdBC()
-        bc.fit(target_array_hist, input_array_hist)
+def debias_with_sbck(bc_method, input_array_proj, input_array_hist, target_array_hist,
+                     **kwargs):
+
+    if bc_method in ["OTC", "QM", "QMrs", "TSMBC"]:
+        if bc_method == "OTC":
+            bc = SBCK.OTC(**kwargs)
+            bc.fit(target_array_hist, input_array_hist)
+        elif bc_method == "QM":
+            # Empirical quantile mapping
+            bc = SBCK.QM(distY0=SBCK.tools.rv_histogram,
+                         distX0=SBCK.tools.rv_histogram,
+                         **kwargs)
+            bc.fit(target_array_hist, input_array_hist)
+        elif bc_method == "QMrs":
+            bc = SBCK.QMrs(**kwargs)
+            bc.fit(target_array_hist, input_array_hist)
+        elif bc_method == "TSMBC":
+            bc = SBCK.TSMBC(lag=30, **kwargs)
+            bc.fit(target_array_hist, input_array_hist)
+
+        deb_hist_ts = bc.predict(input_array_hist)
+        deb_proj_ts = bc.predict(input_array_proj)
+
+        return deb_proj_ts, deb_hist_ts
+
+    # For all other methods, we need the input_array_proj
+    if bc_method == "AR2D2":
+        bc = SBCK.AR2D2(**kwargs, lag_search=9, lag_keep=7)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "CDFt":
-        bc = SBCK.CDFt()
-        bc.fit(target_array_hist, input_array_hist, input_array_clim)
-    elif bc_method == "OTC":
-        bc = SBCK.OTC()
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "dOTC":
-        bc = SBCK.dOTC()
-        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+        bc = SBCK.CDFt(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "ECBC":
-        bc = SBCK.ECBC()
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "QMrs":
-        bc = SBCK.QMrs()
-        bc.fit(target_array_hist, input_array_hist)
-    elif bc_method == "R2D2":
-        bc = SBCK.R2D2()
-        bc.fit(target_array_hist, input_array_hist, input_array_clim)
-    elif bc_method == "QDM":
-        bc = SBCK.QDM()
-        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+        bc = SBCK.ECBC(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
+    elif bc_method == "IdBC":  # Only for comparison
+        bc = SBCK.IdBC()
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "MBCn":
-        bc = SBCK.MBCn()
-        bc.fit(target_array_hist, input_array_hist, input_array_clim)
+        bc = SBCK.MBCn(bc=SBCK.CDFt, **kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "MRec":
-        bc = SBCK.MRec()
-        bc.fit(target_array_hist, input_array_hist, input_array_clim)
-    elif bc_method == "TSMBC":
-        bc = SBCK.TSMBC(lag=30)
-        bc.fit(target_array_hist, input_array_hist)
+        bc = SBCK.MRec(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
+    elif bc_method == "QDM":
+        bc = SBCK.QDM(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
+    elif bc_method == "R2D2":
+        bc = SBCK.R2D2(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
+    elif bc_method == "RBC":  # Only for comparison
+        bc = SBCK.RBC()
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
+    elif bc_method == "dOTC":
+        bc = SBCK.dOTC(**kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     elif bc_method == "dTSMBC":
-        bc = SBCK.dTSMBC(lag=30)
-        bc.fit(target_array_hist, input_array_hist, input_array_clim)
-    elif bc_method == "AR2D2":
-        bc = SBCK.AR2D2()
-        bc.fit(target_array_hist, input_array_hist)
+        bc = SBCK.dTSMBC(lag=30, **kwargs)
+        bc.fit(target_array_hist, input_array_hist, input_array_proj)
     else:
         raise ValueError(f"Unknown bias correction method: {bc_method}")
-    debiased_hist_ts = bc.predict(input_array_hist)
-    debiased_clim_ts = bc.predict(input_array_clim)
 
-    return debiased_clim_ts, debiased_hist_ts
+    deb_proj_ts, deb_hist_ts = bc.predict(input_array_proj, input_array_hist)
+
+    return deb_proj_ts, deb_hist_ts
 
 
 def _replace_missing_values(x):

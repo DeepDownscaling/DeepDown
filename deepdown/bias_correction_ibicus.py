@@ -24,8 +24,8 @@ def run_bias_correction(conf):
     input_data_hist.load(conf.period_hist_start, conf.period_hist_end, conf.path_inputs)
 
     # Load input data (e.g. climate model) for the future period
-    input_data_clim = DataLoader(path_tmp=conf.path_tmp)
-    input_data_clim.load(conf.period_clim_start, conf.period_clim_end, conf.path_inputs)
+    input_data_proj = DataLoader(path_tmp=conf.path_tmp)
+    input_data_proj.load(conf.period_proj_start, conf.period_proj_end, conf.path_inputs)
 
     # Coarsen the target data to the resolution of the input data
     target_data_hist.coarsen(
@@ -41,22 +41,22 @@ def run_bias_correction(conf):
         # Prepare data for ibicus
         target_array_hist = prepare_for_ibicus(target_data_hist, var_target)
         input_array_hist = prepare_for_ibicus(input_data_hist, var_input)
-        input_array_clim = prepare_for_ibicus(input_data_clim, var_input)
+        input_array_proj = prepare_for_ibicus(input_data_proj, var_input)
 
         debiaser = QuantileMapping.from_variable(var_ibicus)
         debiased_ts = debiaser.apply(
             target_array_hist,
             input_array_hist,
-            input_array_clim)
+            input_array_proj)
 
         debiased_var = f"{var_input}_deb"
-        input_data_clim.data = input_data_clim.data.assign(
+        input_data_proj.data = input_data_proj.data.assign(
             **{debiased_var: (('time', 'y', 'x'), debiased_ts)})
 
     # Save the debiased dataset to a NetCDF file
     output_path = Path(conf.path_output)
-    file_out = output_path / "input_data_clim_debiased.nc"
-    input_data_clim.data.to_netcdf(file_out)
+    file_out = output_path / "input_data_proj_debiased.nc"
+    input_data_proj.data.to_netcdf(file_out)
     logger.info(f"Debiased dataset saved to {file_out}")
 
 

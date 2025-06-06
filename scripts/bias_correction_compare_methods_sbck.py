@@ -1,9 +1,10 @@
-# Compare the bias correction methods from SBCK. This script computes the bias correction for different RCM
-# outputs and saves the results as netCDF files. The script bias_correction_plot_comparison_methods_sbck can be used
-# to plot the results.
+# Compare the bias correction methods from SBCK. This script computes the bias
+# correction for different RCM outputs and saves the results as netCDF files.
+# The script bias_correction_plot_comparison_methods_sbck can be used to plot
+# the results.
 
 import sys
-import os
+import time
 from pathlib import Path
 from deepdown.config import Config
 from deepdown.bias_correction_sbck import run_bias_correction
@@ -15,7 +16,8 @@ def assess_single(index):
     models = conf.RCMs
     methods = conf.bc_methods
     path_inputs = conf.path_inputs
-    path_output = conf.path_output
+    path_output = Path(conf.path_output)
+    bc_dims = conf.bc_config['dims']
 
     # All model-method pairs
     job_list = [(model, method) for model in models for method in methods]
@@ -29,7 +31,7 @@ def assess_single(index):
         f'{path_inputs[0]}/{model}',
         f'{path_inputs[1]}/{model}'
     ]
-    conf.path_output = f'{path_output}/{method}/{model}'
+    conf.path_output = path_output / bc_dims / method / model
 
     # If the output directory exists, skip the setting
     if Path(conf.path_output).exists():
@@ -46,7 +48,8 @@ def assess_all():
     models = conf.RCMs
     methods = conf.bc_methods
     path_inputs = conf.path_inputs
-    path_output = conf.path_output
+    path_output = Path(conf.path_output)
+    bc_dims = conf.bc_config['dims']
 
     # Iterate over each model and method
     for model in models:
@@ -58,7 +61,7 @@ def assess_all():
                 f'{path_inputs[0]}/{model}',
                 f'{path_inputs[1]}/{model}'
             ]
-            conf.path_output = os.path.join(path_output, method, model)
+            conf.path_output = path_output / bc_dims / method / model
 
             # If the output directory exists, skip the setting
             if Path(conf.path_output).exists():
@@ -72,7 +75,12 @@ def assess_all():
 
 
 if __name__ == "__main__":
+    start_time = time.time()
+
     if len(sys.argv) != 2:
         assess_all()
     else:
         assess_single(int(sys.argv[1]))
+
+    time_minutes = round((time.time() - start_time) / 60, 1)
+    print(f"Execution time: {time_minutes:.1f} minutes")

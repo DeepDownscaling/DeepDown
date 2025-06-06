@@ -35,8 +35,8 @@ years_test: [2011, 2022]
 # Temporal selection for using the models (bias correction and downscaling)
 period_hist_start: '1971-01-01'  # Start of the historical period for bias correction
 period_hist_end: '2019-12-31'  # End of the historical period for bias correction
-period_clim_start: '2020-01-01'  # Start of the period of interest (e.g. future)
-period_clim_end: '2089-12-31'  # End of the period of interest (e.g. future)
+period_proj_start: '2020-01-01'  # Start of the period of interest (e.g. future)
+period_proj_end: '2089-12-31'  # End of the period of interest (e.g. future)
 
 # Data properties
 input_vars: ['tp', 't', 't_min', 't_max']
@@ -46,26 +46,31 @@ crop_x: []
 crop_y: []
 
 # SBCK default bias correction method
-bc_method: 'dOTC'
+bc_method: 'ECBC'
 
 # All methods available in the package
 bc_methods: [
     'QM',
-    'RBC',
-    'IdBC',
+    'QDM',
     'CDFt',
-    'OTC',
-    'dOTC',
+    'MRec',
     'ECBC',
+    'MBCn',
     'QMrs',
     'R2D2',
-    'QDM',
-    'MBCn',
-    'MRec',
-    'TSMBC',
-    'dTSMBC',
-    'AR2D2'
+    'AR2D2',
+    'OTC',
+    'dOTC',
+    #'TSMBC',
+    #'dTSMBC',
 ]
+
+# BC method configuration
+# dims option:
+# '2d': independently at each grid cell (but still multivariate).
+# 'full': jointly over the entire grid for both temp and precipitation.
+bc_config:
+  dims: 'full'
 
 # Hyperparameters
 lr: 0.0002

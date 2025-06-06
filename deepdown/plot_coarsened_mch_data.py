@@ -24,8 +24,8 @@ def plot_maps(conf):
     input_data_hist.load(conf.period_hist_start, conf.period_hist_end, conf.path_inputs)
 
     # Load input data (e.g. climate model) for the future period
-    input_data_clim = DataLoader(path_tmp=conf.path_tmp)
-    input_data_clim.load(conf.period_clim_start, conf.period_clim_end, conf.path_inputs)
+    input_data_proj = DataLoader(path_tmp=conf.path_tmp)
+    input_data_proj.load(conf.period_proj_start, conf.period_proj_end, conf.path_inputs)
 
     # Coarsen the target data to the resolution of the input data
     target_data_hist_coarsened = DataLoader(path_tmp=conf.path_tmp)
