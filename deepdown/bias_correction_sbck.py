@@ -213,7 +213,8 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
                         assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
                         assert input_array_proj_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
 
-                        if var_target == 'tp' or var_input == 'tp':
+                        if (var_target == 'tp' or var_input == 'tp'
+                                and conf.bc_config['fix_tp_occ']):
                             # Compute the frequency of days without precipitation in the ref data
                             f0 = (np.sum(target_array_hist_v == 0) /
                                   target_array_hist_v.size)
@@ -305,7 +306,8 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
                 else:
                     mask = np.logical_and(mask, mask_v)
 
-                if var_target == 'tp' or var_input == 'tp':
+                if (var_target == 'tp' or var_input == 'tp'
+                        and conf.bc_config['fix_tp_occ']):
                     # Compute the frequency of days without precipitation in the ref data
                     f0 = (np.sum(target_array_hist_v[:, mask] == 0) /
                           target_array_hist_v[:, mask].size)
