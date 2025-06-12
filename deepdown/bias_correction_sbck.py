@@ -171,165 +171,200 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
 
     if conf.bc_config['dims'] == '2d':
 
-        # Proceed to the point-wise bias correction
-        x_axis = input_data_hist.data.x
-        y_axis = input_data_hist.data.y
-        for x_idx in range(x_axis.size):
-            for y_idx in range(y_axis.size):
-                x = float(x_axis[x_idx])
-                y = float(y_axis[y_idx])
+        months = list(range(1, 13)) if conf.bc_config['by_month'] else [-1]
+        for month in months:
+            if month == -1:
+                # Use all data for the time series
+                ds_target_hist = target_data_hist.data
+                ds_input_hist = input_data_hist.data
+                ds_input_proj = input_data_proj.data
 
-                # Prepare the data for SBCK
-                target_array_hist = []
-                input_array_hist = []
-                input_array_proj = []
-                for var_target, var_input in zip(conf.target_vars, conf.input_vars):
-                    # Convert and extract the values as numpy arrays
-                    target_array_hist_v = extract_for_sbck(target_data_hist, var_target, x, y)
-                    if target_array_hist_v is None:
-                        logger.debug(f"Skipping point ({x:.2f}, {y:.2f}) for {var_target}")
-                        break
+                # Get the indices
+                idx_hist = np.ones(ds_target_hist.time.size, dtype=bool)
+                idx_proj = np.ones(ds_input_proj.time.size, dtype=bool)
+            else:
+                # Create a boolean mask for the month
+                ds_target_hist, _ = _select_data(target_data_hist, month)
+                input_data_hist, idx_hist = _select_data(input_data_hist, month)
+                input_data_proj, idx_proj = _select_data(input_data_proj, month)
 
-                    input_array_hist_v = extract_for_sbck(input_data_hist, var_input, x, y)
-                    input_array_proj_v = extract_for_sbck(input_data_proj, var_input, x, y)
+            # Proceed to the point-wise bias correction
+            x_axis = input_data_hist.data.x
+            y_axis = input_data_hist.data.y
+            for x_idx in range(x_axis.size):
+                for y_idx in range(y_axis.size):
+                    x = float(x_axis[x_idx])
+                    y = float(y_axis[y_idx])
 
-                    assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
-                    assert input_array_proj_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
+                    # Prepare the data for SBCK
+                    target_array_hist = []
+                    input_array_hist = []
+                    input_array_proj = []
+                    for var_target, var_input in zip(conf.target_vars, conf.input_vars):
+                        # Convert and extract the values as numpy arrays
+                        target_array_hist_v = extract_for_sbck(ds_target_hist, var_target, x, y)
+                        if target_array_hist_v is None:
+                            logger.debug(f"Skipping point ({x:.2f}, {y:.2f}) for {var_target}")
+                            break
 
-                    if var_target == 'tp' or var_input == 'tp':
-                        # Compute the frequency of days without precipitation in the ref data
-                        f0 = (np.sum(target_array_hist_v == 0) /
-                              target_array_hist_v.size)
+                        input_array_hist_v = extract_for_sbck(ds_input_hist, var_input, x, y)
+                        input_array_proj_v = extract_for_sbck(ds_input_proj, var_input, x, y)
 
-                        # Find the corresponding occurrence threshold in the control period
-                        occ_th = np.quantile(input_array_hist_v, f0)
+                        assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
+                        assert input_array_proj_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
 
-                        # Apply the occurrence threshold for precipitation
-                        input_array_hist_v[input_array_hist_v <= occ_th] = 0.0
-                        input_array_proj_v[input_array_proj_v <= occ_th] = 0.0
+                        if var_target == 'tp' or var_input == 'tp':
+                            # Compute the frequency of days without precipitation in the ref data
+                            f0 = (np.sum(target_array_hist_v == 0) /
+                                  target_array_hist_v.size)
 
-                    # Append to the list
-                    target_array_hist.append(target_array_hist_v)
-                    input_array_hist.append(input_array_hist_v)
-                    input_array_proj.append(input_array_proj_v)
+                            # Find the corresponding occurrence threshold in the control period
+                            occ_th = np.quantile(input_array_hist_v, f0)
 
-                else:  # Only proceed if the point has valid data for all variables
-                    # Stack the data
-                    target_array_hist = np.stack(target_array_hist, axis=1)
-                    input_array_hist = np.stack(input_array_hist, axis=1)
-                    input_array_proj = np.stack(input_array_proj, axis=1)
+                            # Apply the occurrence threshold for precipitation
+                            input_array_hist_v[input_array_hist_v <= occ_th] = 0.0
+                            input_array_proj_v[input_array_proj_v <= occ_th] = 0.0
 
-                    # Adjust some parameters based on the method
-                    if method in ['R2D2', 'QMrs']:
-                        # Index of reference for Schaake Shuffle: use both t and tp
-                        if 'refs' not in kwargs:
-                            kwargs['refs'] = conf.target_vars.index('t')
-                    if method in ['AR2D2']:
-                        if 'col_cond' not in kwargs:
-                            kwargs['col_cond'] = list(range(len(conf.target_vars)))
+                        # Append to the list
+                        target_array_hist.append(target_array_hist_v)
+                        input_array_hist.append(input_array_hist_v)
+                        input_array_proj.append(input_array_proj_v)
 
-                    # Bias correct all variables simultaneously
-                    debiased_proj_ts, debiased_hist_ts = debias_with_sbck(
-                        method, input_array_proj, input_array_hist,
-                        target_array_hist, **kwargs)
+                    else:  # Only proceed if the point has valid data for all variables
+                        # Stack the data
+                        target_array_hist = np.stack(target_array_hist, axis=1)
+                        input_array_hist = np.stack(input_array_hist, axis=1)
+                        input_array_proj = np.stack(input_array_proj, axis=1)
 
-                    # Store the debiased time series
-                    for i, var_out in enumerate(conf.target_vars):
-                        var_idx = conf.target_vars.index(var_out)
-                        output_array_proj_v = debiased_proj_ts[:, var_idx]
-                        output_array_hist_v = debiased_hist_ts[:, var_idx]
+                        # Adjust some parameters based on the method
+                        if method in ['R2D2', 'QMrs']:
+                            # Index of reference for Schaake Shuffle: use both t and tp
+                            if 'refs' not in kwargs:
+                                kwargs['refs'] = conf.target_vars.index('t')
+                        if method in ['AR2D2']:
+                            if 'col_cond' not in kwargs:
+                                kwargs['col_cond'] = list(range(len(conf.target_vars)))
 
-                        output_array_proj[i][:, y_idx, x_idx] = output_array_proj_v
-                        output_array_hist[i][:, y_idx, x_idx] = output_array_hist_v
+                        # Bias correct all variables simultaneously
+                        debiased_proj_ts, debiased_hist_ts = debias_with_sbck(
+                            method, input_array_proj, input_array_hist,
+                            target_array_hist, **kwargs)
+
+                        # Store the debiased time series
+                        for i, var_out in enumerate(conf.target_vars):
+                            var_idx = conf.target_vars.index(var_out)
+                            output_array_hist_v = debiased_hist_ts[:, var_idx]
+                            output_array_proj_v = debiased_proj_ts[:, var_idx]
+
+                            output_array_hist[i][idx_hist, y_idx, x_idx] = output_array_hist_v
+                            output_array_proj[i][idx_proj, y_idx, x_idx] = output_array_proj_v
 
     elif conf.bc_config['dims'] == 'full':
 
-        # Prepare the data for SBCK
-        mask = None
-        target_array_hist = []
-        input_array_hist = []
-        input_array_proj = []
-        for var_target, var_input in zip(conf.target_vars, conf.input_vars):
-            # Convert and extract the values as numpy arrays
-            target_array_hist_v = extract_for_sbck(target_data_hist, var_target)
-            input_array_hist_v = extract_for_sbck(input_data_hist, var_input)
-            input_array_proj_v = extract_for_sbck(input_data_proj, var_input)
+        months = list(range(1, 13)) if conf.bc_config['by_month'] else [-1]
+        for month in months:
+            if month == -1:
+                # Use all data for the time series
+                ds_target_hist = target_data_hist.data
+                ds_input_hist = input_data_hist.data
+                ds_input_proj = input_data_proj.data
 
-            # Flatten spatial dimensions
-            target_array_hist_v = target_array_hist_v.reshape(
-                target_array_hist_v.shape[0], -1)
-            input_array_hist_v = input_array_hist_v.reshape(
-                input_array_hist_v.shape[0], -1)
-            input_array_proj_v = input_array_proj_v.reshape(
-                input_array_proj_v.shape[0], -1)
-
-            # Get the mask of non nan or inf values in the target data
-            mask_v = np.isfinite(target_array_hist_v)
-            mask_v = np.all(mask_v, axis=0)
-            if mask is None:
-                mask = mask_v
+                # Get the indices
+                idx_hist = np.ones(ds_target_hist.time.size, dtype=bool)
+                idx_proj = np.ones(ds_input_proj.time.size, dtype=bool)
             else:
-                mask = np.logical_and(mask, mask_v)
+                # Create a boolean mask for the month
+                ds_target_hist, _ = _select_data(target_data_hist, month)
+                input_data_hist, idx_hist = _select_data(input_data_hist, month)
+                input_data_proj, idx_proj = _select_data(input_data_proj, month)
 
-            if var_target == 'tp' or var_input == 'tp':
-                # Compute the frequency of days without precipitation in the ref data
-                f0 = (np.sum(target_array_hist_v[:, mask] == 0) /
-                      target_array_hist_v[:, mask].size)
+            # Prepare the data for SBCK
+            mask = None
+            target_array_hist = []
+            input_array_hist = []
+            input_array_proj = []
+            for var_target, var_input in zip(conf.target_vars, conf.input_vars):
+                # Convert and extract the values as numpy arrays
+                target_array_hist_v = extract_for_sbck(ds_target_hist, var_target)
+                input_array_hist_v = extract_for_sbck(ds_input_hist, var_input)
+                input_array_proj_v = extract_for_sbck(ds_input_proj, var_input)
 
-                # Find the corresponding occurrence threshold in the control period
-                occ_th = np.quantile(input_array_hist_v[:, mask], f0)
+                # Flatten spatial dimensions
+                target_array_hist_v = target_array_hist_v.reshape(
+                    target_array_hist_v.shape[0], -1)
+                input_array_hist_v = input_array_hist_v.reshape(
+                    input_array_hist_v.shape[0], -1)
+                input_array_proj_v = input_array_proj_v.reshape(
+                    input_array_proj_v.shape[0], -1)
 
-                # Apply the occurrence threshold for precipitation
-                input_array_hist_v[input_array_hist_v <= occ_th] = 0.0
-                input_array_proj_v[input_array_proj_v <= occ_th] = 0.0
+                # Get the mask of non nan or inf values in the target data
+                mask_v = np.isfinite(target_array_hist_v)
+                mask_v = np.all(mask_v, axis=0)
+                if mask is None:
+                    mask = mask_v
+                else:
+                    mask = np.logical_and(mask, mask_v)
 
-            # Append to the list
-            target_array_hist.append(target_array_hist_v)
-            input_array_hist.append(input_array_hist_v)
-            input_array_proj.append(input_array_proj_v)
+                if var_target == 'tp' or var_input == 'tp':
+                    # Compute the frequency of days without precipitation in the ref data
+                    f0 = (np.sum(target_array_hist_v[:, mask] == 0) /
+                          target_array_hist_v[:, mask].size)
 
-        # Stack the data
-        target_array_hist = np.hstack(target_array_hist)
-        input_array_hist = np.hstack(input_array_hist)
-        input_array_proj = np.hstack(input_array_proj)
+                    # Find the corresponding occurrence threshold in the control period
+                    occ_th = np.quantile(input_array_hist_v[:, mask], f0)
 
-        # Copy the mask to match the number of variables
-        mask_full = np.tile(mask, len(conf.target_vars))
-        mask_2d = mask.reshape(output_array_hist[0].shape[1:])
+                    # Apply the occurrence threshold for precipitation
+                    input_array_hist_v[input_array_hist_v <= occ_th] = 0.0
+                    input_array_proj_v[input_array_proj_v <= occ_th] = 0.0
 
-        # Extract the pixels where the mask is True and stack them into a 2D array (time, pixels)
-        target_array_hist = target_array_hist[:, mask_full]
-        input_array_hist = input_array_hist[:, mask_full]
-        input_array_proj = input_array_proj[:, mask_full]
+                # Append to the list
+                target_array_hist.append(target_array_hist_v)
+                input_array_hist.append(input_array_hist_v)
+                input_array_proj.append(input_array_proj_v)
 
-        # Adjust some parameters based on the method
-        if method in ['R2D2', 'QMrs']:
-            # Index of reference for Schaake Shuffle: center of the domain for tp and t
-            if 'refs' not in kwargs:
-                ref_idx = _get_ref_idx(conf, mask, mask_2d, target_array_hist)
-                kwargs['refs'] = [ref_idx]
-        if method in ['AR2D2']:
-            if 'col_cond' not in kwargs:
-                # Get a sequence of indices for the conditioning columns (every 10th)
-                col_cond = list(range(0, target_array_hist.shape[1], 10))
-                kwargs['col_cond'] = col_cond
+            # Stack the data
+            target_array_hist = np.hstack(target_array_hist)
+            input_array_hist = np.hstack(input_array_hist)
+            input_array_proj = np.hstack(input_array_proj)
 
-        # Bias correct all variables simultaneously
-        debiased_proj_ts, debiased_hist_ts = debias_with_sbck(
-            method, input_array_proj, input_array_hist,
-            target_array_hist, **kwargs)
+            # Copy the mask to match the number of variables
+            mask_full = np.tile(mask, len(conf.target_vars))
+            mask_2d = mask.reshape(output_array_hist[0].shape[1:])
 
-        # Store the debiased time series
-        for i, var_out in enumerate(conf.target_vars):
-            var_idx = conf.target_vars.index(var_out)
-            col_start = var_idx * target_array_hist.shape[1] // len(conf.target_vars)
-            col_end = (var_idx + 1) * target_array_hist.shape[1] // len(conf.target_vars)
+            # Extract the pixels where the mask is True and stack them into a 2D array (time, pixels)
+            target_array_hist = target_array_hist[:, mask_full]
+            input_array_hist = input_array_hist[:, mask_full]
+            input_array_proj = input_array_proj[:, mask_full]
 
-            debiased_hist_ts_v = debiased_hist_ts[:, col_start:col_end]
-            debiased_proj_ts_v = debiased_proj_ts[:, col_start:col_end]
+            # Adjust some parameters based on the method
+            if method in ['R2D2', 'QMrs']:
+                # Index of reference for Schaake Shuffle: center of the domain for tp and t
+                if 'refs' not in kwargs:
+                    ref_idx = _get_ref_idx(conf, mask, mask_2d, target_array_hist)
+                    kwargs['refs'] = [ref_idx]
+            if method in ['AR2D2']:
+                if 'col_cond' not in kwargs:
+                    # Get a sequence of indices for the conditioning columns (every 10th)
+                    col_cond = list(range(0, target_array_hist.shape[1], 10))
+                    kwargs['col_cond'] = col_cond
 
-            output_array_hist[i][:, mask_2d] = debiased_hist_ts_v
-            output_array_proj[i][:, mask_2d] = debiased_proj_ts_v
+            # Bias correct all variables simultaneously
+            debiased_proj_ts, debiased_hist_ts = debias_with_sbck(
+                method, input_array_proj, input_array_hist,
+                target_array_hist, **kwargs)
+
+            # Store the debiased time series
+            for i, var_out in enumerate(conf.target_vars):
+                var_idx = conf.target_vars.index(var_out)
+                col_start = var_idx * target_array_hist.shape[1] // len(conf.target_vars)
+                col_end = (var_idx + 1) * target_array_hist.shape[1] // len(conf.target_vars)
+
+                debiased_hist_ts_v = debiased_hist_ts[:, col_start:col_end]
+                debiased_proj_ts_v = debiased_proj_ts[:, col_start:col_end]
+
+                y_idx, x_idx = np.where(mask_2d)
+                output_array_hist[i][idx_hist][:, y_idx, x_idx] = debiased_hist_ts_v
+                output_array_proj[i][idx_proj][:, y_idx, x_idx] = debiased_proj_ts_v
 
     else:
         raise ValueError(f"Invalid bc_config['dims']: {conf.bc_config['dims']}. "
@@ -368,6 +403,14 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
     input_data_proj.data.to_netcdf(output_path / "input_data_proj_original.nc")
     output_data_proj.to_netcdf(output_path / "input_data_proj_debiased.nc")
     logger.info(f"Debiased dataset saved to {output_path}")
+
+
+def _select_data(data_loader, month):
+    mask_data = (data_loader.data.time.dt.month == month)
+    ds = data_loader.data.where(mask_data, drop=True)
+    idx = mask_data.values
+
+    return ds, idx
 
 
 def _get_ref_idx(conf, mask, mask_2d, target_array_hist):

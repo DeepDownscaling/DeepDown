@@ -10,9 +10,10 @@ def covariance_gufunc(x, y):
 
 
 def pearson_correlation_gufunc(x, y):
-    return covariance_gufunc(x, y) / (
-            np.nanstd(x, axis=-1) * np.nanstd(y, axis=-1)
-    )
+    with np.errstate(invalid='ignore', divide='ignore'):
+        return covariance_gufunc(x, y) / (
+                np.nanstd(x, axis=-1) * np.nanstd(y, axis=-1)
+        )
 
 
 def spearman_correlation_gufunc(x, y):

@@ -1,5 +1,8 @@
+import xarray
 import numpy as np
 import SBCK, SBCK.tools
+
+from deepdown.utils.data_loader import DataLoader
 
 
 def get_ibicus_var_name(variable_name):
@@ -84,10 +87,15 @@ def prepare_for_sbck(data_loader, variable_name):
     return data_loader
 
 
-def extract_for_sbck(data_loader, variable_name, x=None, y=None):
+def extract_for_sbck(ds, variable_name, x=None, y=None):
     """Extract data for SBCK."""
     # Get variable of interest
-    data = data_loader.data[variable_name]
+    if isinstance(ds, DataLoader):
+        data = ds.data[variable_name]
+    elif isinstance(ds, xarray.Dataset):
+        data = ds[variable_name]
+    else:
+        raise TypeError("ds must be a DataLoader or xarray.Dataset instance.")
 
     # If x and y are provided, select the data for those coordinates
     if x is not None and y is not None:

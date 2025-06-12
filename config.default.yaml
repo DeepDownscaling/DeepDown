@@ -71,6 +71,7 @@ bc_methods: [
 # 'full': jointly over the entire grid for both temp and precipitation.
 bc_config:
   dims: 'full'
+  by_month: True
 
 # Hyperparameters
 lr: 0.0002

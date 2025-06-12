@@ -33,6 +33,8 @@ def plot_maps_stat_for_bc_method(conf, files, titles, method, var, stat, epsg=20
     fig = plt.figure(figsize=(17, len(models) * 3.3))
     gs = gridspec.GridSpec(len(models) + 2, len(files), figure=fig)
 
+    print(f"Plotting maps of {stat} for {method} and variable {var}")
+
     v_min = None
     v_max = None
 
@@ -66,7 +68,6 @@ def plot_maps_stat_for_bc_method(conf, files, titles, method, var, stat, epsg=20
     plt.savefig(path_output / f"maps_{stat}_for_bc_method_{method}_{var}.pdf",
                 dpi=300, bbox_inches="tight")
     plt.close(fig)
-    print(f"Saved in {path_output}")
 
 
 def plot_maps_stat_for_rcm(conf, files, titles, model, var, stat, epsg=2056):
@@ -77,6 +78,8 @@ def plot_maps_stat_for_rcm(conf, files, titles, model, var, stat, epsg=2056):
     # Create figure with subplots for all methods
     fig = plt.figure(figsize=(17, len(methods) * 3.3))
     gs = gridspec.GridSpec(len(methods) + 2, len(files), figure=fig)
+
+    print(f"Plotting maps of {stat} for {model} with methods: {methods}")
 
     v_min = None
     v_max = None
@@ -111,7 +114,6 @@ def plot_maps_stat_for_rcm(conf, files, titles, model, var, stat, epsg=2056):
     plt.savefig(path_output / f"maps_{stat}_for_rcm_{model}_{var}.pdf", dpi=300,
                 bbox_inches="tight")
     plt.close(fig)
-    print(f"Saved in {path_output}")
 
 
 def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False, epsg=2056):
@@ -123,6 +125,8 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False, epsg=2056):
     v_max = CORREL_MAX
 
     assert len(vars) == 2
+
+    print(f"Plotting maps of rank correlation for {model} with methods: {methods}")
 
     if plot_diff:
         t_prefix = "Diff. rank correl."
@@ -217,7 +221,6 @@ def plot_maps_correl_for_rcm(conf, files, model, plot_diff=False, epsg=2056):
         plt.savefig(path_output / f"{file_name}.png", dpi=300, bbox_inches="tight")
         plt.savefig(path_output / f"{file_name}.pdf", dpi=300, bbox_inches="tight")
         plt.close(fig)
-        print(f"Saved in {path_output}")
 
 
 def _get_cmap(var):
@@ -299,6 +302,7 @@ def main():
                     plot_maps_stat_for_rcm(conf, files, titles, model, var, stat)
 
     print("All plots generated successfully.")
+    print(f"Saved in {conf.path_output}")
 
 
 if __name__ == "__main__":
