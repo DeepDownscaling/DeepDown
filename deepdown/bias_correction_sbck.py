@@ -185,8 +185,8 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
             else:
                 # Create a boolean mask for the month
                 ds_target_hist, _ = _select_data(target_data_hist, month)
-                input_data_hist, idx_hist = _select_data(input_data_hist, month)
-                input_data_proj, idx_proj = _select_data(input_data_proj, month)
+                ds_input_hist, idx_hist = _select_data(input_data_hist, month)
+                ds_input_proj, idx_proj = _select_data(input_data_proj, month)
 
             # Proceed to the point-wise bias correction
             x_axis = input_data_hist.data.x
@@ -276,8 +276,8 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
             else:
                 # Create a boolean mask for the month
                 ds_target_hist, _ = _select_data(target_data_hist, month)
-                input_data_hist, idx_hist = _select_data(input_data_hist, month)
-                input_data_proj, idx_proj = _select_data(input_data_proj, month)
+                ds_input_hist, idx_hist = _select_data(input_data_hist, month)
+                ds_input_proj, idx_proj = _select_data(input_data_proj, month)
 
             # Prepare the data for SBCK
             mask = None
