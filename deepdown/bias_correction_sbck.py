@@ -364,9 +364,11 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
                 debiased_hist_ts_v = debiased_hist_ts[:, col_start:col_end]
                 debiased_proj_ts_v = debiased_proj_ts[:, col_start:col_end]
 
+                t_idx_hist = np.where(idx_hist)[0]
+                t_idx_proj = np.where(idx_proj)[0]
                 y_idx, x_idx = np.where(mask_2d)
-                output_array_hist[i][idx_hist][:, y_idx, x_idx] = debiased_hist_ts_v
-                output_array_proj[i][idx_proj][:, y_idx, x_idx] = debiased_proj_ts_v
+                output_array_hist[i][t_idx_hist[:, None], y_idx, x_idx] = debiased_hist_ts_v
+                output_array_proj[i][t_idx_proj[:, None], y_idx, x_idx] = debiased_proj_ts_v
 
     else:
         raise ValueError(f"Invalid bc_config['dims']: {conf.bc_config['dims']}. "
@@ -408,9 +410,8 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
 
 
 def _select_data(data_loader, month):
-    mask_data = (data_loader.data.time.dt.month == month)
-    ds = data_loader.data.where(mask_data, drop=True)
-    idx = mask_data.values
+    ds = data_loader.data.sel(time=data_loader.data.time.dt.month == month, drop=True)
+    idx = (data_loader.data.time.dt.month == month).values
 
     return ds, idx
 
