@@ -72,7 +72,7 @@ bc_methods: [
 bc_config:
   dims: 'full'
   by_month: True
-  fix_tp_occ: True
+  fix_tp_occ: False
 
 # Hyperparameters
 lr: 0.0002
