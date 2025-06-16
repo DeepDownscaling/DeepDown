@@ -213,14 +213,21 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
                         assert input_array_hist_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
                         assert input_array_proj_v is not None, f"Missing data for {var_input} at ({x:.2f}, {y:.2f})"
 
-                        if (var_target == 'tp' or var_input == 'tp'
-                                and conf.bc_config['fix_tp_occ']):
-                            # Compute the frequency of days without precipitation in the ref data
-                            f0 = (np.sum(target_array_hist_v == 0) /
-                                  target_array_hist_v.size)
+                        if var_target == 'tp' or var_input == 'tp':
+                            precip_occ_thr = conf.bc_config['precip_occ_thr']
+                            if isinstance(precip_occ_thr, str) and precip_occ_thr == 'auto':
+                                # Compute the frequency of days without precipitation in the ref data
+                                f0 = (np.sum(target_array_hist_v == 0) /
+                                      target_array_hist_v.size)
 
-                            # Find the corresponding occurrence threshold in the control period
-                            occ_th = np.quantile(input_array_hist_v, f0)
+                                # Find the corresponding occurrence threshold in the control period
+                                occ_th = np.quantile(input_array_hist_v, f0)
+                            elif isinstance(precip_occ_thr, (int, float)):
+                                occ_th = precip_occ_thr
+                            else:
+                                raise ValueError(
+                                    f"Invalid precip_occ_thr: {precip_occ_thr}. "
+                                    f"Expected 'auto', int, or float.")
 
                             # Apply the occurrence threshold for precipitation
                             input_array_hist_v[input_array_hist_v <= occ_th] = 0.0
@@ -306,14 +313,20 @@ def run_bias_correction(conf, method=None, preload_data=True, **kwargs):
                 else:
                     mask = np.logical_and(mask, mask_v)
 
-                if (var_target == 'tp' or var_input == 'tp'
-                        and conf.bc_config['fix_tp_occ']):
-                    # Compute the frequency of days without precipitation in the ref data
-                    f0 = (np.sum(target_array_hist_v[:, mask] == 0) /
-                          target_array_hist_v[:, mask].size)
+                if var_target == 'tp' or var_input == 'tp':
+                    precip_occ_thr = conf.bc_config['precip_occ_thr']
+                    if isinstance(precip_occ_thr, str) and precip_occ_thr == 'auto':
+                        # Compute the frequency of days without precipitation in the ref data
+                        f0 = (np.sum(target_array_hist_v[:, mask] == 0) /
+                              target_array_hist_v[:, mask].size)
 
-                    # Find the corresponding occurrence threshold in the control period
-                    occ_th = np.quantile(input_array_hist_v[:, mask], f0)
+                        # Find the corresponding occurrence threshold in the control period
+                        occ_th = np.quantile(input_array_hist_v[:, mask], f0)
+                    elif isinstance(precip_occ_thr, (int, float)):
+                        occ_th = precip_occ_thr
+                    else:
+                        raise ValueError(f"Invalid precip_occ_thr: {precip_occ_thr}. "
+                                         f"Expected 'auto', int, or float.")
 
                     # Apply the occurrence threshold for precipitation
                     input_array_hist_v[input_array_hist_v <= occ_th] = 0.0

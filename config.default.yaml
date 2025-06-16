@@ -66,13 +66,10 @@ bc_methods: [
 ]
 
 # BC method configuration
-# dims option:
-# '2d': independently at each grid cell (but still multivariate).
-# 'full': jointly over the entire grid for both temp and precipitation.
 bc_config:
-  dims: 'full'
-  by_month: True
-  fix_tp_occ: False
+  dims: 'full'  # '2d' for each grid cell independently, 'full' for the entire grid
+  by_month: True  # Weather to apply the method separately for each month
+  precip_occ_thr: 0.05  # Threshold for precipitation occurrence (value or 'auto')
 
 # Hyperparameters
 lr: 0.0002
