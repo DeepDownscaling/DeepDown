@@ -68,7 +68,7 @@ bc_methods: [
 # BC method configuration
 bc_config:
   dims: 'full'  # '2d' for each grid cell independently, 'full' for the entire grid
-  by_month: True  # Weather to apply the method separately for each month
+  by_month: False  # Weather to apply the method separately for each month
   precip_occ_thr: 0.05  # Threshold for precipitation occurrence (value or 'auto')
 
 # Hyperparameters
